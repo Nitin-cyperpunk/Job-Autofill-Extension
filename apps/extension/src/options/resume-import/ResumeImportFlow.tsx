@@ -47,8 +47,11 @@ export function ResumeImportFlow({
       return setStep({ name: 'choose', error: 'Resumes must be 5 MB or smaller.' });
     setStep({ name: 'reading' });
     try {
-      const { text } = await extractResumeText(new Uint8Array(await file.arrayBuffer()), file.name);
-      review(text, isNewFile ? file : null);
+      const { text, links } = await extractResumeText(
+        new Uint8Array(await file.arrayBuffer()),
+        file.name,
+      );
+      review(text, isNewFile ? file : null, links);
     } catch (err) {
       setStep({
         name: 'choose',
@@ -60,8 +63,8 @@ export function ResumeImportFlow({
     }
   }
 
-  function review(text: string, file: File | null) {
-    const extracted = parseResumeText(text);
+  function review(text: string, file: File | null, links: string[] = []) {
+    const extracted = parseResumeText(text, links);
     setStep({ name: 'review', extracted, review: buildReview(profile, extracted), file });
   }
 
@@ -81,10 +84,10 @@ export function ResumeImportFlow({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-fg">
           Fill your profile from your resume
         </h1>
-        <p className="mt-2 flex items-center gap-2 text-sm text-emerald-800">
+        <p className="mt-2 flex items-center gap-2 text-sm text-ok">
           <LockIcon className="h-4 w-4 shrink-0" />
           {RESUME_PRIVACY}
         </p>
@@ -103,8 +106,8 @@ export function ResumeImportFlow({
 
       {step.name === 'reading' && (
         <Card>
-          <p className="flex items-center gap-3 text-sm text-slate-700">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-600 border-r-transparent" />
+          <p className="flex items-center gap-3 text-sm text-body">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-r-transparent" />
             Reading your resume on this device…
           </p>
         </Card>
@@ -167,7 +170,7 @@ function ChooseSource({
             const f = e.dataTransfer.files[0];
             if (f) onFile(f);
           }}
-          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 px-6 py-10 text-center hover:border-brand-500 hover:bg-slate-50"
+          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-line-strong px-6 py-10 text-center hover:border-accent hover:bg-subtle"
         >
           <input
             ref={input}
@@ -180,13 +183,13 @@ function ChooseSource({
               if (f) onFile(f);
             }}
           />
-          <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
             <UploadIcon className="h-5 w-5" />
           </span>
-          <span className="text-sm font-medium text-slate-900">
+          <span className="text-sm font-medium text-fg">
             Drop your resume here, or click to browse
           </span>
-          <span className="mt-1 text-xs text-slate-500">
+          <span className="mt-1 text-xs text-muted">
             PDF, DOCX or TXT · up to {formatBytes(RESUME_MAX_BYTES)} · read on this device
           </span>
         </label>
@@ -207,7 +210,7 @@ function ChooseSource({
               rows={10}
               aria-label="Resume text"
               placeholder="Paste the text of your resume…"
-              className="w-full rounded-lg border border-slate-300 p-3 text-sm"
+              className="w-full rounded-lg border border-line-strong p-3 text-sm"
             />
             <Button disabled={text.trim().length < 40} onClick={() => onText(text)}>
               Read this text
@@ -216,14 +219,14 @@ function ChooseSource({
         ) : (
           <button
             type="button"
-            className="text-sm font-medium text-brand-600 hover:underline"
+            className="text-sm font-medium text-accent hover:underline"
             onClick={() => setPasting(true)}
           >
             Paste text instead (for scanned PDFs or .doc files)
           </button>
         )}
 
-        <div className="border-t border-slate-100 pt-4">
+        <div className="border-t border-line pt-4">
           <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
@@ -329,7 +332,7 @@ function ReviewScreen({
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         We found <strong>{review.items.length}</strong> things to add or update
         {conflicts > 0 && (
           <>
@@ -362,7 +365,7 @@ function ReviewScreen({
           <Card key={id} title={title}>
             <ul className="space-y-3">
               {items.map((item) => (
-                <li key={item.id} className="rounded-lg border border-slate-200 p-3">
+                <li key={item.id} className="rounded-lg border border-line p-3">
                   <CheckboxField
                     label={item.title}
                     description={item.subtitle}
@@ -370,17 +373,17 @@ function ReviewScreen({
                     onChange={(on) => set(item.id, on)}
                   />
                   {item.details && (
-                    <p className="mt-2 ml-7 line-clamp-3 text-xs whitespace-pre-line text-slate-600">
+                    <p className="mt-2 ml-7 line-clamp-3 text-xs whitespace-pre-line text-muted">
                       {item.details}
                     </p>
                   )}
                   {item.duplicateOf && (
-                    <p className="mt-2 ml-7 text-xs text-amber-700">
+                    <p className="mt-2 ml-7 text-xs text-warn">
                       Looks like “{item.duplicateOf}” already in your profile — not added unless you
                       tick it.
                     </p>
                   )}
-                  {item.note && <p className="mt-1 ml-7 text-xs text-slate-500">{item.note}</p>}
+                  {item.note && <p className="mt-1 ml-7 text-xs text-muted">{item.note}</p>}
                 </li>
               ))}
             </ul>
@@ -398,7 +401,7 @@ function ReviewScreen({
             if (!tags.length) return null;
             return (
               <div key={group} className="mb-3">
-                <p className="mb-1.5 text-xs font-medium tracking-wide text-slate-500 uppercase">
+                <p className="mb-1.5 text-xs font-medium tracking-wide text-muted uppercase">
                   {group === 'skills' ? 'Skills' : 'Languages'}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -413,8 +416,8 @@ function ReviewScreen({
                         className={cx(
                           'rounded-md px-2 py-1 text-xs font-medium ring-1',
                           on
-                            ? 'ring-brand-200 bg-brand-50 text-brand-700'
-                            : 'bg-white text-slate-400 line-through ring-slate-200',
+                            ? 'bg-accent-soft text-accent ring-accent-line'
+                            : 'bg-surface text-faint line-through ring-line',
                         )}
                       >
                         {t.tag}
@@ -445,7 +448,7 @@ function ReviewScreen({
 
       {error && <Alert tone="error">{error}</Alert>}
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-5">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
         <Button variant="ghost" onClick={onBack} disabled={saving}>
           Back
         </Button>
@@ -477,7 +480,7 @@ function ScalarGroup({
   if (!items.length) return null;
   return (
     <Card title={title}>
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-line">
         {items.map((item) => (
           <li key={item.id} className="py-3 first:pt-0 last:pb-0">
             {item.status === 'new' ? (
@@ -523,24 +526,19 @@ function ConflictRow({
 }) {
   return (
     <div role="group" aria-label={`${label}: choose a value`}>
-      <p className="text-sm font-medium text-slate-900">
+      <p className="text-sm font-medium text-fg">
         {label}{' '}
-        <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+        <span className="ml-1 rounded bg-warn-soft px-1.5 py-0.5 text-xs font-medium text-warn">
           Differs
         </span>
       </p>
       <dl className="mt-2 grid gap-1 text-sm sm:grid-cols-[5rem_1fr]">
-        <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">Existing</dt>
-        <dd
-          className={cx(
-            'break-words',
-            !useResume ? 'text-slate-900' : 'text-slate-400 line-through',
-          )}
-        >
+        <dt className="text-xs font-medium tracking-wide text-muted uppercase">Existing</dt>
+        <dd className={cx('break-words', !useResume ? 'text-fg' : 'text-faint line-through')}>
           <Clamp>{existing}</Clamp>
         </dd>
-        <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">Resume</dt>
-        <dd className={cx('break-words', useResume ? 'text-slate-900' : 'text-slate-400')}>
+        <dt className="text-xs font-medium tracking-wide text-muted uppercase">Resume</dt>
+        <dd className={cx('break-words', useResume ? 'text-fg' : 'text-faint')}>
           <Clamp>{extracted}</Clamp>
         </dd>
       </dl>

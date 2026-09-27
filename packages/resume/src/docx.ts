@@ -71,15 +71,38 @@ export function documentXmlToText(xml: string): string {
     .trim();
 }
 
-export async function docxToText(bytes: Uint8Array): Promise<string> {
-  const entry = findEntry(bytes, 'word/document.xml');
-  if (!entry) throw new Error('This doesn’t look like a Word (.docx) document.');
-  const xmlBytes =
+async function readEntry(bytes: Uint8Array, name: string): Promise<string | null> {
+  const entry = findEntry(bytes, name);
+  if (!entry) return null;
+  const data =
     entry.method === 0
       ? entry.data
       : entry.method === 8
         ? await inflate(entry.data, 'deflate-raw')
         : null;
-  if (!xmlBytes) throw new Error('This .docx uses an unsupported compression method.');
-  return documentXmlToText(new TextDecoder().decode(xmlBytes));
+  if (!data) throw new Error('This .docx uses an unsupported compression method.');
+  return new TextDecoder().decode(data);
+}
+
+/** Hyperlink targets (word/_rels/document.xml.rels, TargetMode="External"). */
+export function relsToLinks(xml: string): string[] {
+  const out: string[] = [];
+  for (const m of xml.matchAll(/<Relationship\b[^>]*>/g)) {
+    const tag = m[0];
+    if (!/TargetMode="External"/.test(tag)) continue;
+    const url = decodeEntities(/Target="([^"]*)"/.exec(tag)?.[1] ?? '').trim();
+    if (/^https?:\/\//i.test(url) && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+
+export async function docxToText(bytes: Uint8Array): Promise<string> {
+  return (await readDocx(bytes)).text;
+}
+
+export async function readDocx(bytes: Uint8Array): Promise<{ text: string; links: string[] }> {
+  const xml = await readEntry(bytes, 'word/document.xml');
+  if (xml === null) throw new Error('This doesn’t look like a Word (.docx) document.');
+  const rels = await readEntry(bytes, 'word/_rels/document.xml.rels').catch(() => null);
+  return { text: documentXmlToText(xml), links: rels ? relsToLinks(rels) : [] };
 }

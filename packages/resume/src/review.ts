@@ -25,9 +25,11 @@ export type ScalarPath =
   | 'professional.currentCompany'
   | 'professional.yearsOfExperience'
   | 'professional.summary'
+  | 'links.resumeUrl'
   | 'links.linkedin'
   | 'links.github'
   | 'links.portfolio'
+  | 'links.x'
   | 'links.website';
 
 const SCALARS: Array<{
@@ -51,9 +53,11 @@ const SCALARS: Array<{
     group: 'Professional',
   },
   { path: 'professional.summary', label: 'Professional summary', group: 'Professional' },
+  { path: 'links.resumeUrl', label: 'Resume link', group: 'Links' },
   { path: 'links.linkedin', label: 'LinkedIn', group: 'Links' },
-  { path: 'links.github', label: 'GitHub', group: 'Links' },
   { path: 'links.portfolio', label: 'Portfolio', group: 'Links' },
+  { path: 'links.github', label: 'GitHub', group: 'Links' },
+  { path: 'links.x', label: 'X / Twitter', group: 'Links' },
   { path: 'links.website', label: 'Website', group: 'Links' },
 ];
 

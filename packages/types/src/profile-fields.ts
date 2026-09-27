@@ -44,9 +44,11 @@ export const FIELD_KEYS = [
   'skills.technical',
   'skills.soft',
   'skills.languages',
+  'links.resumeUrl',
   'links.linkedin',
   'links.github',
   'links.portfolio',
+  'links.x',
   'links.website',
   'resume',
 ] as const;

@@ -66,23 +66,23 @@ export function ConfirmDialog({
       ref={ref}
       aria-labelledby={titleId}
       onClose={onClose}
-      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto w-[min(28rem,calc(100vw-2rem))] animate-scale-in rounded-xl border border-line p-0 shadow-raised backdrop:bg-black/50"
     >
       <div className="p-6">
         <div className="flex gap-4">
           {tone === 'danger' && (
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger-soft text-danger">
               <AlertCircleIcon className="h-5 w-5" />
             </span>
           )}
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="text-lg font-semibold text-slate-900">
+            <h2 id={titleId} className="text-lg font-semibold text-fg">
               {title}
             </h2>
-            <div className="mt-2 text-sm text-slate-600">{description}</div>
+            <div className="mt-2 text-sm text-muted">{description}</div>
             {children}
             {requireText && (
-              <label className="mt-4 block text-sm text-slate-700">
+              <label className="mt-4 block text-sm text-body">
                 Type <strong className="font-semibold">{requireText}</strong> to confirm
                 <input
                   value={typed}
@@ -93,11 +93,11 @@ export function ConfirmDialog({
                 />
               </label>
             )}
-            {error && <p className="mt-3 text-sm font-medium text-red-600">{error}</p>}
+            {error && <p className="mt-3 text-sm font-medium text-danger">{error}</p>}
           </div>
         </div>
       </div>
-      <div className="flex justify-end gap-2 rounded-b-2xl border-t border-slate-100 bg-slate-50 px-6 py-4">
+      <div className="flex justify-end gap-2 rounded-b-2xl border-t border-line bg-subtle px-6 py-4">
         <Button variant="secondary" onClick={onClose} disabled={busy}>
           Cancel
         </Button>

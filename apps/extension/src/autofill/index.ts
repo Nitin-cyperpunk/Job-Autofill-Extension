@@ -1,1 +1,1 @@
-export { fillPage, planPage } from './run-autofill';
+export { attachResumeTo, fillPage, planPage } from './run-autofill';

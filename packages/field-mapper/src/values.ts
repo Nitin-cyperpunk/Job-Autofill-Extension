@@ -121,8 +121,12 @@ export function resolveProfileValue(
     case 'skills.languages':
       return list(skills.languages);
 
+    case 'links.resumeUrl':
+      return text(links.resumeUrl);
     case 'links.linkedin':
       return text(links.linkedin);
+    case 'links.x':
+      return text(links.x);
     case 'links.github':
       return text(links.github);
     case 'links.portfolio':

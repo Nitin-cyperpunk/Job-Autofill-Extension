@@ -34,16 +34,16 @@ export function StepSidebar({
                 aria-current={isCurrent ? 'step' : undefined}
                 className={cx(
                   'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                  isCurrent ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-600',
-                  canJump && !isCurrent && 'hover:bg-slate-100',
+                  isCurrent ? 'bg-accent-soft font-semibold text-accent' : 'text-muted',
+                  canJump && !isCurrent && 'hover:bg-subtle-2',
                 )}
               >
                 <span
                   className={cx(
                     'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
                     isCurrent && 'bg-brand-600 text-white',
-                    isDone && 'bg-emerald-100 text-emerald-700',
-                    !isCurrent && !isDone && 'border border-slate-300 bg-white text-slate-500',
+                    isDone && 'bg-ok-soft text-ok',
+                    !isCurrent && !isDone && 'border border-line-strong bg-surface text-muted',
                   )}
                 >
                   {isDone ? <CheckIcon className="h-3.5 w-3.5" /> : i + 1}
@@ -54,7 +54,7 @@ export function StepSidebar({
           );
         })}
       </ol>
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-xl border border-line bg-surface p-4">
         <CompletenessBar percent={completeness.percent} compact />
       </div>
     </nav>

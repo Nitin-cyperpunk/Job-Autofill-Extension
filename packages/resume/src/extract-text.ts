@@ -1,11 +1,13 @@
-import { docxToText } from './docx';
-import { pdfToText } from './pdf';
+import { readDocx } from './docx';
+import { readPdf } from './pdf';
 
 export class ResumeTextError extends Error {}
 
 export interface ExtractedText {
   text: string;
   format: 'pdf' | 'docx' | 'text';
+  /** Hyperlink targets that aren't in the visible text (PDF / DOCX links). */
+  links: string[];
 }
 
 /**
@@ -19,12 +21,13 @@ export async function extractResumeText(
 ): Promise<ExtractedText> {
   const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
   let text: string;
+  let links: string[] = [];
   let format: ExtractedText['format'];
   if (ext === 'pdf') {
-    text = await pdfToText(bytes);
+    ({ text, links } = await readPdf(bytes));
     format = 'pdf';
   } else if (ext === 'docx') {
-    text = await docxToText(bytes);
+    ({ text, links } = await readDocx(bytes));
     format = 'docx';
   } else if (ext === 'txt' || ext === 'md') {
     text = new TextDecoder().decode(bytes);
@@ -44,5 +47,5 @@ export async function extractResumeText(
         : 'No readable text found in this file. Paste the text instead.',
     );
   }
-  return { text, format };
+  return { text, format, links };
 }

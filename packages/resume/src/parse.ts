@@ -70,7 +70,14 @@ export interface ExtractedResume {
   experience: ExtractedExperience[];
   projects: ExtractedProject[];
   certifications: ExtractedCertification[];
-  links: { linkedin: string; github: string; portfolio: string; website: string };
+  links: {
+    resumeUrl: string;
+    linkedin: string;
+    github: string;
+    portfolio: string;
+    x: string;
+    website: string;
+  };
 }
 
 // ---- Sections ------------------------------------------------------------------------------------
@@ -236,8 +243,21 @@ function normalizeUrl(url: string): string {
   return /^https?:\/\//i.test(clean) ? clean : `https://${clean}`;
 }
 
+/** Hosts that serve a shared document — on a résumé, that's a link to the résumé itself. */
+const DOCUMENT_HOST =
+  /^(drive\.google\.com|docs\.google\.com|dropbox\.com|dl\.dropboxusercontent\.com|1drv\.ms|onedrive\.live\.com)\//;
+/** A profile, not a post / share / intent link. */
+const X_PROFILE = /^(twitter|x)\.com\/(?!intent\b|share\b|home\b|search\b|i\/)[a-z0-9_]{1,15}\/?$/;
+
 function findLinks(text: string) {
-  const links = { linkedin: '', github: '', portfolio: '', website: '' };
+  const links = {
+    resumeUrl: '',
+    linkedin: '',
+    github: '',
+    portfolio: '',
+    x: '',
+    website: '',
+  };
   for (const m of text.matchAll(URL_RE)) {
     const url = m[0];
     const start = m.index ?? 0;
@@ -248,7 +268,14 @@ function findLinks(text: string) {
       .replace(/^www\./i, '')
       .toLowerCase();
     if (!/^[a-z0-9-]+\.[a-z]{2,}/.test(host) || /^\d/.test(host)) continue;
-    if (host.startsWith('linkedin.com/')) links.linkedin ||= normalizeUrl(url);
+    // Country subdomains too: in.linkedin.com/in/…, uk.linkedin.com/in/…
+    if (/^([a-z]{2,3}\.)?linkedin\.com\/(in|pub)\//.test(host))
+      links.linkedin ||= normalizeUrl(url);
+    else if (/^([a-z]{2,3}\.)?linkedin\.com\//.test(host))
+      continue; // company pages, posts
+    else if (X_PROFILE.test(host)) links.x ||= normalizeUrl(url);
+    else if (/^(twitter|x)\.com\//.test(host)) continue;
+    else if (DOCUMENT_HOST.test(host)) links.resumeUrl ||= normalizeUrl(url);
     else if (host.startsWith('github.com/') && host.split('/').filter(Boolean).length === 2)
       links.github ||= normalizeUrl(url);
     else if (host.startsWith('github.com/'))
@@ -641,7 +668,11 @@ function parseCertifications(lines: string[]): ExtractedCertification[] {
 
 // ---- Main -------------------------------------------------------------------------------------------
 
-export function parseResumeText(text: string): ExtractedResume {
+/**
+ * `linkUrls` are link targets the file carries but doesn't show — a "LinkedIn" word
+ * hyperlinked to the profile, say. They only feed the Links section.
+ */
+export function parseResumeText(text: string, linkUrls: readonly string[] = []): ExtractedResume {
   const sections = splitSections(text);
   const header = sections.get('header') ?? [];
   const headerSegments = header
@@ -709,6 +740,6 @@ export function parseResumeText(text: string): ExtractedResume {
     experience,
     projects: parseProjects(sections.get('projects') ?? []),
     certifications: parseCertifications(sections.get('certifications') ?? []),
-    links: findLinks(text),
+    links: findLinks([text, ...linkUrls].join('\n')),
   };
 }

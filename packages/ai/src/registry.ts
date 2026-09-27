@@ -56,6 +56,9 @@ export function createProvider(settings: AISettings, fetchImpl?: typeof fetch): 
     throw new AIError('AI answers are turned off. Enable them in JobFill settings.', 'config');
   const meta = PROVIDERS[settings.provider];
   if (!meta) throw new AIError('Unknown AI provider.', 'config');
+  // Designed-in providers that aren't released (the JobFill service) can't be used, even if
+  // a setting names them: the privacy policy promises data only goes to providers you pick.
+  if (!meta.available) throw new AIError(`${meta.label} isn’t available yet.`, 'config');
   if (meta.needsKey && !settings.apiKey)
     throw new AIError(`Add your ${meta.label} API key in JobFill settings.`, 'config');
   if (meta.needsUrl && !settings.baseUrl)

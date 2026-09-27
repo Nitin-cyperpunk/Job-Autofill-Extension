@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "npm run dev -w @jobfill/extension",
     "build": "npm run build -w @jobfill/extension",
+    "package": "npm run build && node scripts/package-extension.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "npm run typecheck --workspaces --if-present",

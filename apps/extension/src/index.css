@@ -1,15 +1,14 @@
 @import 'tailwindcss';
+/* Colour tokens, light/dark/system theming and motion — shared with the website. */
+@import '../../../packages/theme/theme.css';
 
-@theme {
-  --color-brand-50: #eef6ff;
-  --color-brand-100: #d9ebff;
-  --color-brand-500: #2f6fed;
-  --color-brand-600: #1f5ad6;
-  --color-brand-700: #1a47a8;
-}
-
+/*
+ * Use semantic colours (bg-surface, text-muted, border-line, text-accent…) rather than
+ * palette shades, so light and dark mode stay consistent. See packages/theme/theme.css.
+ * The theme is applied to <html data-theme> by utils/theme.ts before first render.
+ */
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-subtle text-fg antialiased;
   }
 }

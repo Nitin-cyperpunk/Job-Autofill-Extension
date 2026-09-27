@@ -37,8 +37,8 @@ export function ReviewStep({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Review your profile</h1>
-        <p className="mt-1 text-slate-600">
+        <h1 className="text-2xl font-bold tracking-tight text-fg">Review your profile</h1>
+        <p className="mt-1 text-muted">
           Check everything looks right. You can edit any section later.
         </p>
       </div>
@@ -86,7 +86,7 @@ export function ReviewStep({
         </Alert>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-6">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-6">
         <Button variant="ghost" icon={<ArrowLeftIcon />} onClick={onBack}>
           Back
         </Button>

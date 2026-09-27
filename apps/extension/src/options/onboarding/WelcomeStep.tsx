@@ -47,21 +47,21 @@ export function WelcomeStep({
       <div className="flex justify-center">
         <Logo />
       </div>
-      <h1 className="mt-8 text-4xl font-bold tracking-tight text-balance text-slate-900">
+      <h1 className="mt-8 text-4xl font-bold tracking-tight text-balance text-fg">
         Save your information once. Autofill job applications in seconds.
       </h1>
-      <p className="mt-4 text-lg text-slate-600">
+      <p className="mt-4 text-lg text-muted">
         Set up your profile in about five minutes. You can skip anything and come back later.
       </p>
 
       <ul className="mt-10 grid gap-4 text-left sm:grid-cols-3">
         {FEATURES.map((f) => (
-          <li key={f.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+          <li key={f.title} className="rounded-xl border border-line bg-surface p-5 shadow-card">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
               {f.icon}
             </span>
-            <p className="mt-3 font-semibold text-slate-900">{f.title}</p>
-            <p className="mt-1 text-sm text-slate-600">{f.text}</p>
+            <p className="mt-3 font-semibold text-fg">{f.title}</p>
+            <p className="mt-1 text-sm text-muted">{f.text}</p>
           </li>
         ))}
       </ul>

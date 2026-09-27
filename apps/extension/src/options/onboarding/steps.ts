@@ -11,14 +11,14 @@ export const STEP_LABELS: Record<StepId, string> = {
   certifications: 'Certifications',
   skills: 'Skills',
   links: 'Links',
-  resume: 'Resume',
+  resume: 'Resume & Links',
   review: 'Review',
   complete: 'Complete',
 };
 
 /** The steps shown in the progress sidebar (the form steps). */
 export const FORM_STEPS = STEP_ORDER.slice(
-  STEP_ORDER.indexOf('personal'),
+  STEP_ORDER.indexOf('resume'),
   STEP_ORDER.indexOf('review') + 1,
 );
 

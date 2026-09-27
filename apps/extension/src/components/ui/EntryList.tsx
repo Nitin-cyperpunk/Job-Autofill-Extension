@@ -58,7 +58,7 @@ export function EntryList<T extends { id: string }>({
   return (
     <div className="space-y-3">
       {items.length === 0 && (
-        <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500">
+        <p className="rounded-lg border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
           {emptyText}
         </p>
       )}
@@ -75,8 +75,8 @@ export function EntryList<T extends { id: string }>({
           <div
             key={item.id}
             className={cx(
-              'rounded-xl border bg-white',
-              hasErrors ? 'border-red-300' : 'border-slate-200',
+              'rounded-xl border bg-surface',
+              hasErrors ? 'border-danger-line' : 'border-line',
             )}
           >
             <div className="flex items-center gap-2 px-4 py-3">
@@ -88,16 +88,16 @@ export function EntryList<T extends { id: string }>({
               >
                 <ChevronDownIcon
                   className={cx(
-                    'h-4 w-4 shrink-0 text-slate-400 transition-transform',
+                    'h-4 w-4 shrink-0 text-faint transition-transform',
                     !isOpen && '-rotate-90',
                   )}
                 />
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-slate-900">
+                  <span className="block truncate text-sm font-medium text-fg">
                     {itemTitle(item, index)}
                   </span>
                   {subtitle && (
-                    <span className="block truncate text-xs text-slate-500">{subtitle}</span>
+                    <span className="block truncate text-xs text-muted">{subtitle}</span>
                   )}
                 </span>
               </button>
@@ -126,7 +126,7 @@ export function EntryList<T extends { id: string }>({
               />
             </div>
             {isOpen && (
-              <div className="border-t border-slate-100 px-4 pt-4 pb-5">
+              <div className="border-t border-line px-4 pt-4 pb-5">
                 {renderItem(item, update, itemErrors)}
               </div>
             )}

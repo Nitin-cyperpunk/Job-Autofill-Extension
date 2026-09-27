@@ -1,5 +1,6 @@
 import type { SectionId } from '@jobfill/types';
 import { Logo } from '@/components/Logo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { PrivacyNotice } from '@/components/PrivacyNotice';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -30,9 +31,11 @@ export function OnboardingFlow({
   route: OnboardingRoute;
   navigate: (route: Route) => void;
 }) {
-  const { profile, completeOnboarding } = useProfile();
+  const { completeOnboarding } = useProfile();
   const { step, returnTo } = route;
-  const go = (to: StepId) => navigate({ name: 'onboarding', step: to });
+  /** Links are edited inside the Resume & Professional Links step during onboarding. */
+  const stepFor = (to: StepId): StepId => (to === 'links' ? 'resume' : to);
+  const go = (to: StepId) => navigate({ name: 'onboarding', step: stepFor(to) });
   /** After saving a step: back to review when editing from there, otherwise onwards. */
   const advance = () => go(returnTo === 'review' ? 'review' : nextStep(step));
   const back = () => go(returnTo === 'review' ? 'review' : prevStep(step));
@@ -50,7 +53,7 @@ export function OnboardingFlow({
     content = (
       <StartStep
         onResume={() => navigate({ name: 'resume-import', from: 'onboarding' })}
-        onScratch={() => go('personal')}
+        onScratch={() => go('resume')}
         onImported={() => go('review')}
         onBack={back}
       />
@@ -66,12 +69,14 @@ export function OnboardingFlow({
           </div>
         </aside>
         <div className="min-w-0">
-          <p className="mb-3 text-sm font-medium text-brand-600">
+          <p className="mb-3 text-sm font-medium text-accent">
             Step {FORM_STEPS.indexOf(step) + 1} of {FORM_STEPS.length}
           </p>
           {step === 'review' ? (
             <ReviewStep
-              onEdit={(to) => navigate({ name: 'onboarding', step: to, returnTo: 'review' })}
+              onEdit={(to) =>
+                navigate({ name: 'onboarding', step: stepFor(to), returnTo: 'review' })
+              }
               onBack={back}
               onFinish={async () => {
                 await completeOnboarding();
@@ -80,24 +85,44 @@ export function OnboardingFlow({
             />
           ) : step === 'resume' ? (
             <Card
-              title="Resume"
+              headingLevel={1}
+              title="Resume & Professional Links"
               icon={<FileTextIcon />}
-              description="Upload the resume you send with applications. It’s saved only on this device."
+              description="Upload the resume you send with applications — JobFill attaches it to resume upload fields when it fills a form. It’s saved only on this device."
             >
               <ResumePanel />
-              <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
-                <Button variant="ghost" icon={<ArrowLeftIcon />} onClick={back}>
-                  Back
-                </Button>
-                <div className="flex-1" />
-                <Button onClick={advance} variant={profile.resume ? 'primary' : 'secondary'}>
-                  {profile.resume ? 'Continue' : 'Skip for now'}
-                  {profile.resume && <ArrowRightIcon />}
-                </Button>
+              <div className="mt-8 border-t border-line pt-6">
+                <h3 className="text-base font-semibold text-fg">Professional links</h3>
+                <p className="mt-1 mb-4 text-sm text-muted">
+                  Resume drive link, LinkedIn, portfolio, GitHub and X — all optional. JobFill fills
+                  these into the matching fields on application forms.
+                </p>
+                <SectionEditor
+                  id="links"
+                  onSaved={advance}
+                  actions={({ saving }) => (
+                    <>
+                      <Button variant="ghost" icon={<ArrowLeftIcon />} onClick={back}>
+                        Back
+                      </Button>
+                      <div className="flex-1" />
+                      {returnTo !== 'review' && (
+                        <Button variant="ghost" onClick={advance}>
+                          Skip for now
+                        </Button>
+                      )}
+                      <Button type="submit" loading={saving}>
+                        {returnTo === 'review' ? 'Save & return to review' : 'Save & continue'}
+                        {!saving && <ArrowRightIcon />}
+                      </Button>
+                    </>
+                  )}
+                />
               </div>
             </Card>
           ) : isSectionStep(step) ? (
             <Card
+              headingLevel={1}
               title={SECTIONS[step].title}
               description={SECTIONS[step].description}
               icon={SECTIONS[step].icon}
@@ -133,14 +158,17 @@ export function OnboardingFlow({
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <Logo />
-          <PrivacyNotice variant="badge" className="hidden sm:inline-flex" />
+          <div className="flex items-center gap-3">
+            <PrivacyNotice variant="badge" className="hidden sm:inline-flex" />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-10">{content}</main>
-      <footer className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 border-t border-slate-200 px-6 py-6 text-xs text-slate-500">
+      <footer className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 border-t border-line px-6 py-6 text-xs text-muted">
         <span>Everything you enter stays in this browser’s local extension storage.</span>
         <DeleteAllDataButton
           onDone={() => navigate({ name: 'onboarding', step: 'welcome', notice: 'deleted' })}

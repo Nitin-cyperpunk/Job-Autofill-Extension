@@ -95,12 +95,10 @@ export function ImportProfileButton({
         onClose={() => setParsed(null)}
       >
         {p && parsed && (
-          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-            <p className="font-medium text-slate-900">
-              {fullName(p.personal) || 'Unnamed profile'}
-            </p>
-            {p.personal.email && <p className="text-slate-600">{p.personal.email}</p>}
-            <p className="mt-2 text-xs text-slate-500">
+          <div className="mt-4 rounded-lg border border-line bg-subtle p-3 text-sm">
+            <p className="font-medium text-fg">{fullName(p.personal) || 'Unnamed profile'}</p>
+            {p.personal.email && <p className="text-muted">{p.personal.email}</p>}
+            <p className="mt-2 text-xs text-muted">
               {[
                 `${p.education.length} education`,
                 `${p.experience.length} experience`,
@@ -109,7 +107,7 @@ export function ImportProfileButton({
               ].join(' · ')}
             </p>
             {parsed.warnings.map((w) => (
-              <p key={w} className="mt-2 text-xs font-medium text-amber-700">
+              <p key={w} className="mt-2 text-xs font-medium text-warn">
                 {w}
               </p>
             ))}

@@ -323,6 +323,18 @@ function describeSingle(
   };
 }
 
+/**
+ * A pre-filled URL prefix ("https://", "https://www.linkedin.com/in/") is a hint for the
+ * user, not an answer — treating it as "already filled" left LinkedIn / GitHub fields empty.
+ */
+const URL_STUB =
+  /^(https?:\/\/)?(www\.)?(([a-z]{2,3}\.)?linkedin\.com\/?(in\/?)?|github\.com\/?|(x|twitter)\.com\/?)?$/i;
+
+export function isUrlStub(value: string): boolean {
+  const v = value.trim();
+  return v !== '' && URL_STUB.test(v);
+}
+
 /** Does the field already hold something the user (or the site) put there? */
 function currentlyHasValue(
   el: Element,
@@ -336,7 +348,10 @@ function currentlyHasValue(
     return native ? false : displayedValue(el) !== '';
   }
   if (type === 'file') return ((el as HTMLInputElement).files?.length ?? 0) > 0;
-  if (native) return (el as HTMLInputElement).value.trim() !== '';
+  if (native) {
+    const value = (el as HTMLInputElement).value;
+    return value.trim() !== '' && !isUrlStub(value);
+  }
   return (el.textContent ?? '').trim() !== '';
 }
 

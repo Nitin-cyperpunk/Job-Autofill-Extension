@@ -11,9 +11,11 @@ import pkg from './package.json' with { type: 'json' };
  */
 export default defineManifest({
   manifest_version: 3,
-  name: 'JobFill',
-  description:
-    'Save your details once and autofill job applications in seconds. Local-first: your profile stays on your device.',
+  // The Chrome Web Store listing takes its title and short description from these
+  // (name ≤ 75 chars, description ≤ 132). short_name is what the toolbar and menus show.
+  name: 'JobFill — Job Application Autofill',
+  short_name: 'JobFill',
+  description: 'Save your profile once and autofill job applications in seconds.',
   version: pkg.version,
   icons: {
     16: 'icons/icon-16.png',

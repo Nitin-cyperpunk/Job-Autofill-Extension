@@ -13,6 +13,10 @@ const clearAISettings = vi.fn(async () => {
 vi.mock('@/storage', () => ({
   loadProfile: async () => sampleProfile(),
   onProfileChanged: () => () => undefined,
+  // The page header's theme switcher reads and saves settings.
+  loadSettings: async () => ({ previewBeforeFill: false, debugMode: false, theme: 'system' }),
+  saveSettings: async () => undefined,
+  onItemChanged: () => () => undefined,
   getBytesInUse: async (key: string | null = null) =>
     key === null ? 4096 : key === 'jobfill.ai.v1' && ai.apiKey ? 120 : 0,
 }));

@@ -6,7 +6,15 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/dist-debug/**', '**/node_modules/**'] },
+  {
+    ignores: [
+      '**/dist/**',
+      '**/dist-debug/**',
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/next-env.d.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

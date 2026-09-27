@@ -47,4 +47,4 @@ export {
   fullName,
 } from './format';
 export type { ExtensionMessage, MessageResponse, MessageResponseMap } from './messages';
-export type { FillResultItem, FillSummary } from './autofill';
+export type { FieldFillStatus, FieldOutcome, FillResultItem, FillSummary } from './autofill';

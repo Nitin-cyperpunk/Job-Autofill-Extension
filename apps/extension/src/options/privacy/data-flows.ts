@@ -35,7 +35,7 @@ export const STORED_ITEMS: StoredItem[] = [
   {
     key: STORAGE_KEYS.settings,
     label: 'App settings',
-    detail: '“Preview fields before filling” and “Debug mode”.',
+    detail: '“Preview fields before filling”, “Debug mode” and your colour theme.',
   },
   {
     key: STORAGE_KEYS.ai,

@@ -3,3 +3,5 @@ dist
 dist-debug
 package-lock.json
 *.zip
+.next
+next-env.d.ts

@@ -662,6 +662,32 @@ function interpret(content: string, fonts: Map<string, FontInfo>): string {
 }
 
 export async function pdfToText(bytes: Uint8Array): Promise<string> {
+  return (await readPdf(bytes)).text;
+}
+
+/**
+ * Web links from the PDF's link annotations (<< /S /URI /URI (https://…) >>), in object
+ * order. Résumés often show just "LinkedIn" or "Portfolio" with the address behind it.
+ */
+function linkTargets(doc: PdfDocument): string[] {
+  const out: string[] = [];
+  const uriOf = (d: PdfDict | undefined) => {
+    const v = doc.resolve(d?.get('URI'));
+    if (typeof v !== 'object' || v === null || Array.isArray(v) || v instanceof Map) return;
+    if ((v as PdfStr).t !== 'str') return;
+    const url = latin1((v as PdfStr).b).trim();
+    if (/^https?:\/\//i.test(url) && !out.includes(url)) out.push(url);
+  };
+  for (const { value } of doc.objects.values()) {
+    const dict = asDict(value);
+    if (!dict) continue;
+    uriOf(dict);
+    uriOf(asDict(doc.resolve(dict.get('A'))));
+  }
+  return out;
+}
+
+export async function readPdf(bytes: Uint8Array): Promise<{ text: string; links: string[] }> {
   if (latin1(bytes.subarray(0, 1024)).indexOf('%PDF') < 0)
     throw new Error('This doesn’t look like a PDF file.');
   const doc = new PdfDocument(bytes);
@@ -690,10 +716,11 @@ export async function pdfToText(bytes: Uint8Array): Promise<string> {
     }
     pageTexts.push(interpret(content, fonts));
   }
-  return pageTexts
+  const text = pageTexts
     .join('\n')
     .replace(/[ \t]+/g, ' ')
     .replace(/ *\n */g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+  return { text, links: linkTargets(doc) };
 }

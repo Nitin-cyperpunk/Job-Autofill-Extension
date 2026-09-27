@@ -90,7 +90,7 @@ export const SECTIONS: { [K in SectionId]: SectionDefinition<K> } = {
   links: {
     id: 'links',
     title: 'Links',
-    description: 'LinkedIn, GitHub, portfolio and other profiles.',
+    description: 'Resume link, LinkedIn, portfolio, GitHub, X and other profiles.',
     icon: <LinkIcon />,
     optional: true,
     Form: LinksForm,

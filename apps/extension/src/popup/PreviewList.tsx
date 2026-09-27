@@ -32,18 +32,18 @@ export function PreviewList({
   return (
     <div className="space-y-3">
       <div>
-        <h2 className="text-sm font-semibold text-slate-900">Preview</h2>
-        <p className="text-xs text-slate-500">
+        <h2 className="text-sm font-semibold text-fg">Preview</h2>
+        <p className="text-xs text-muted">
           {items.length} fields found · {fillable.length} can be filled. Nothing is changed until
           you confirm.
         </p>
       </div>
 
       {fillable.length > 0 ? (
-        <ul className="max-h-64 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-1">
+        <ul className="max-h-64 space-y-1 overflow-y-auto rounded-lg border border-line p-1">
           {fillable.map((item) => (
             <li key={item.fieldId}>
-              <label className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50">
+              <label className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 hover:bg-subtle">
                 <input
                   type="checkbox"
                   checked={selected.has(item.fieldId)}
@@ -51,12 +51,10 @@ export function PreviewList({
                   className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-medium text-slate-900">
-                    {item.label}
-                  </span>
-                  <span className="block truncate text-xs text-slate-600">{item.preview}</span>
+                  <span className="block truncate text-xs font-medium text-fg">{item.label}</span>
+                  <span className="block truncate text-xs text-muted">{item.preview}</span>
                   {item.status === 'fill-review' && (
-                    <span className="mt-0.5 flex items-center gap-1 text-xs text-amber-700">
+                    <span className="mt-0.5 flex items-center gap-1 text-xs text-warn">
                       <AlertCircleIcon className="h-3 w-3 shrink-0" />
                       {item.reason}
                     </span>
@@ -67,13 +65,13 @@ export function PreviewList({
           ))}
         </ul>
       ) : (
-        <p className="rounded-lg border border-dashed border-slate-300 p-3 text-center text-xs text-slate-500">
+        <p className="rounded-lg border border-dashed border-line-strong p-3 text-center text-xs text-muted">
           No fields on this page match your profile.
         </p>
       )}
 
       {needsYou.length > 0 && (
-        <details className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <details className="rounded-lg bg-warn-soft px-3 py-2 text-xs text-warn">
           <summary className="cursor-pointer font-medium">
             {needsYou.length} {needsYou.length === 1 ? 'field needs' : 'fields need'} you
           </summary>
@@ -87,7 +85,7 @@ export function PreviewList({
         </details>
       )}
       {skipped > 0 && (
-        <p className="text-xs text-slate-500">{skipped} other fields left as they are.</p>
+        <p className="text-xs text-muted">{skipped} other fields left as they are.</p>
       )}
 
       <div className="flex gap-2">

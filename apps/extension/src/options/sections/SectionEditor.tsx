@@ -86,7 +86,7 @@ export function SectionEditor<K extends SectionId>({
         </Alert>
       )}
       {saveError && <Alert tone="error">{saveError}</Alert>}
-      <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
         {actions({
           saving,
           dirty,

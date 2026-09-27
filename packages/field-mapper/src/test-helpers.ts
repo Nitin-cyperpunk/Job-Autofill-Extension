@@ -119,9 +119,11 @@ export function sampleProfile(): Profile {
       languages: ['English', 'French'],
     },
     links: {
+      resumeUrl: 'https://drive.google.com/file/d/ada-resume/view',
       linkedin: 'https://linkedin.com/in/ada',
       github: 'https://github.com/ada',
       portfolio: 'https://ada.dev',
+      x: 'https://x.com/ada',
       website: 'https://ada.blog',
       other: [],
     },

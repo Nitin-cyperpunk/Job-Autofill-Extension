@@ -1,4 +1,7 @@
-import { STORAGE_KEYS, type ExtensionMessage, type MessageResponse } from '@jobfill/shared';
+import type { ExtensionMessage, FieldOutcome, MessageResponse } from '@jobfill/shared';
+// The constants entry point, not the barrel: the barrel pulls in zod and every schema,
+// which would be parsed on every page the user visits.
+import { STORAGE_KEYS } from '@jobfill/shared/constants';
 import { adapterFor } from '@/adapters';
 import { CONTROL_SELECTOR, FieldWatcher } from '@/field-detection';
 import type { DebugTools } from '@/field-detection/debug';
@@ -14,6 +17,8 @@ import { logger } from '@/utils/logger';
 const isTopFrame = window === window.top;
 const watcher = new FieldWatcher(document);
 let started = false;
+/** Outcomes of the last autofill run in this frame (debug panel). */
+let lastFill: FieldOutcome[] = [];
 
 function startWatching() {
   if (started) return;
@@ -100,7 +105,7 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
       import('@/autofill')
         .then(({ planPage }) => planPage(watcher.scanNow()))
         .then((items) =>
-          sendResponse({ ok: true, items } satisfies MessageResponse<'AUTOFILL_PLAN'>),
+          sendResponse({ ok: true, items, lastFill } satisfies MessageResponse<'AUTOFILL_PLAN'>),
         )
         .catch((err: unknown) => {
           logger.error('autofill plan failed', err);
@@ -119,9 +124,10 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
             adapter: adapterFor(location.href, document),
           }),
         )
-        .then((summary) =>
-          sendResponse({ ok: true, summary } satisfies MessageResponse<'AUTOFILL_EXECUTE'>),
-        )
+        .then((summary) => {
+          lastFill = summary.outcomes ?? [];
+          sendResponse({ ok: true, summary } satisfies MessageResponse<'AUTOFILL_EXECUTE'>);
+        })
         .catch((err: unknown) => {
           logger.error('autofill failed', err);
           sendResponse({
@@ -129,6 +135,33 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
             message: 'Autofill failed.',
           } satisfies MessageResponse<'AUTOFILL_EXECUTE'>);
         });
+      return true;
+    }
+    case 'ATTACH_RESUME': {
+      const field = watcher.scanNow().find((f) => f.descriptor.id === message.fieldId);
+      if (!field) {
+        sendResponse({
+          ok: false,
+          message: 'That upload field is no longer on the page.',
+        } satisfies MessageResponse<'ATTACH_RESUME'>);
+        return false;
+      }
+      import('@/autofill')
+        .then(({ attachResumeTo }) => attachResumeTo(field))
+        .then((res) => {
+          if (res.ok) {
+            lastFill = lastFill.map((o) =>
+              o.fieldId === message.fieldId ? { ...o, status: 'filled', reason: undefined } : o,
+            );
+          }
+          sendResponse(res satisfies MessageResponse<'ATTACH_RESUME'>);
+        })
+        .catch(() =>
+          sendResponse({
+            ok: false,
+            message: 'Couldn’t attach the resume.',
+          } satisfies MessageResponse<'ATTACH_RESUME'>),
+        );
       return true;
     }
     // ---- Optional AI answers: context for ONE question, and inserting the chosen answer.

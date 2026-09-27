@@ -116,9 +116,11 @@ const schemas = {
   ),
   skills: z.object({ technical: tags, soft: tags, languages: tags }),
   links: z.object({
+    resumeUrl: optionalUrl,
     linkedin: optionalUrl,
     github: optionalUrl,
     portfolio: optionalUrl,
+    x: optionalUrl,
     website: optionalUrl,
     other: z.array(
       z.object({
@@ -228,9 +230,11 @@ const cleaners: { [K in SectionId]: (value: SectionValue<K>) => SectionValue<K> 
       .filter((c) => !isBlank(c)),
   skills: (v) => trimStrings(v),
   links: (v) => ({
+    resumeUrl: normalizeUrl(v.resumeUrl),
     linkedin: normalizeUrl(v.linkedin),
     github: normalizeUrl(v.github),
     portfolio: normalizeUrl(v.portfolio),
+    x: normalizeUrl(v.x),
     website: normalizeUrl(v.website),
     other: v.other
       .map((l) => ({ ...l, label: l.label.trim(), url: normalizeUrl(l.url) }))

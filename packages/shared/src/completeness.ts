@@ -84,7 +84,7 @@ export function computeCompleteness(profile: Profile): Completeness {
       weight: 10,
       ...fraction([
         [
-          Boolean(links.linkedin || links.github || links.portfolio || links.website),
+          Boolean(links.linkedin || links.github || links.portfolio || links.x || links.website),
           'A profile link',
         ],
       ]),

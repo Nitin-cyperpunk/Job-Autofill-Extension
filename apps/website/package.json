@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:seo": "node scripts/check-seo.mjs",
+    "verify": "next build && node scripts/check-seo.mjs"
   },
   "dependencies": {
     "next": "16.3.6",

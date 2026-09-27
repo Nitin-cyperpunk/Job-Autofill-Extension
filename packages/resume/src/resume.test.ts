@@ -12,6 +12,7 @@ import {
   pdfToText,
 } from './index';
 import { InflateLimitError, inflate } from './inflate';
+import { relsToLinks } from './docx';
 import { SAMPLE_RESUME } from './test-fixtures';
 
 const RESUME = SAMPLE_RESUME;
@@ -114,7 +115,14 @@ describe('parseResumeText', () => {
       'Jane Doe\njane.doe@mail.example.org | +1 415 555 0100\n\nSKILLS\nGo',
     );
     expect(r2.personal.email).toBe('jane.doe@mail.example.org');
-    expect(r2.links).toEqual({ linkedin: '', github: '', portfolio: '', website: '' });
+    expect(r2.links).toEqual({
+      resumeUrl: '',
+      linkedin: '',
+      github: '',
+      portfolio: '',
+      x: '',
+      website: '',
+    });
   });
 
   it('leaves fields empty rather than guessing', () => {
@@ -377,5 +385,61 @@ describe('review: never overwrite silently', () => {
     const review = buildReview(profile, extracted);
     applyReview(profile, extracted, review, review.defaults);
     expect(JSON.stringify(profile)).toBe(before);
+  });
+});
+
+describe('links behind the text', () => {
+  it('reads hyperlink targets from PDF link annotations ("LinkedIn" with the URL behind it)', async () => {
+    const content = deflateSync(
+      Buffer.from(
+        'BT /F1 12 Tf 72 720 Td (ADA LOVELACE) Tj 0 -14 Td (ada@example.com | LinkedIn | GitHub | Portfolio) Tj 0 -14 Td (Staff Software Engineer at Analytical Engines) Tj ET',
+        'latin1',
+      ),
+    );
+    const pdf = makePdf([
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R /Annots [6 0 R 7 0 R 8 0 R 9 0 R] >>',
+      { dict: '<< /Filter /FlateDecode >>', stream: content },
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+      '<< /Type /Annot /Subtype /Link /A << /S /URI /URI (https://in.linkedin.com/in/ada-lovelace/) >> >>',
+      '<< /Type /Annot /Subtype /Link /A << /S /URI /URI (https://github.com/ada) >> >>',
+      '<< /Type /Annot /Subtype /Link /A << /S /URI /URI (https://ada.dev) >> >>',
+      '<< /Type /Annot /Subtype /Link /A << /S /URI /URI (mailto:ada@example.com) >> >>',
+    ]);
+    const { text, links } = await extractResumeText(pdf, 'resume.pdf');
+    expect(links).toEqual([
+      'https://in.linkedin.com/in/ada-lovelace/',
+      'https://github.com/ada',
+      'https://ada.dev',
+    ]);
+    expect(parseResumeText(text, links).links).toMatchObject({
+      linkedin: 'https://in.linkedin.com/in/ada-lovelace/',
+      github: 'https://github.com/ada',
+      portfolio: 'https://ada.dev',
+    });
+  });
+
+  it('reads DOCX hyperlink relationships', () => {
+    const rels = `<?xml version="1.0"?><Relationships>
+      <Relationship Id="rId1" Type=".../styles" Target="styles.xml"/>
+      <Relationship Id="rId5" Type=".../hyperlink" Target="https://www.linkedin.com/in/ada?trk=a&amp;b=c" TargetMode="External"/>
+      <Relationship Id="rId6" Type=".../hyperlink" Target="https://x.com/ada_l" TargetMode="External"/>
+    </Relationships>`;
+    expect(relsToLinks(rels)).toEqual([
+      'https://www.linkedin.com/in/ada?trk=a&b=c',
+      'https://x.com/ada_l',
+    ]);
+  });
+
+  it('recognises X / Twitter profiles and resume drive links, not posts or company pages', () => {
+    const r = parseResumeText(
+      'Ada Lovelace\nada@example.com\nlinkedin.com/company/engines | x.com/intent/tweet | twitter.com/ada_l | linkedin.com/in/ada\nResume: drive.google.com/file/d/abc123/view',
+    );
+    expect(r.links).toMatchObject({
+      linkedin: 'https://linkedin.com/in/ada',
+      x: 'https://twitter.com/ada_l',
+      resumeUrl: 'https://drive.google.com/file/d/abc123/view',
+    });
   });
 });

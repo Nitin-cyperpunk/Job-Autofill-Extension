@@ -109,7 +109,7 @@ describe('Lever-style application', () => {
       'Current location': 'personal.location',
       'Current company': 'professional.currentCompany',
       'LinkedIn URL': 'links.linkedin',
-      'Twitter URL': 'unmapped', // not the candidate's website
+      'Twitter URL': 'links.x', // X / Twitter, not the candidate's website
       'GitHub URL': 'links.github',
       'Portfolio URL': 'links.portfolio',
       'Will you require visa sponsorship to work here?': 'professional.requiresSponsorship',

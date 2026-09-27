@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { sampleProfile } from '../../field-mapper/src/test-helpers';
+import { BackendProvider } from './providers/backend';
 import {
   AIError,
   GeminiProvider,
@@ -172,15 +173,18 @@ describe('providers', () => {
   it('registry refuses incomplete or disabled configurations', () => {
     expect(() => createProvider(DEFAULT_AI_SETTINGS)).toThrow(/turned off/);
     expect(() => createProvider({ ...DEFAULT_AI_SETTINGS, enabled: true })).toThrow(/API key/);
+    // Not released: refused even when fully configured.
     expect(() =>
       createProvider({
         ...DEFAULT_AI_SETTINGS,
         enabled: true,
         provider: 'backend',
         apiKey: 't',
-        baseUrl: 'http://insecure',
+        baseUrl: 'https://service.example',
       }),
-    ).toThrow(/https/);
+    ).toThrow(/isn’t available/);
+    // …and the service itself only ever talks https.
+    expect(() => new BackendProvider({ baseUrl: 'http://insecure', token: 't' })).toThrow(/https/);
     const compatible = createProvider({
       enabled: true,
       provider: 'openai-compatible',

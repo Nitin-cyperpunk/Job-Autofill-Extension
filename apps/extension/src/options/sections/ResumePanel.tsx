@@ -3,7 +3,13 @@ import { RESUME_ACCEPT_ATTR, formatBytes } from '@jobfill/shared';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { DownloadIcon, FileTextIcon, TrashIcon, UploadIcon } from '@/components/ui/icons';
+import {
+  CheckIcon,
+  DownloadIcon,
+  FileTextIcon,
+  TrashIcon,
+  UploadIcon,
+} from '@/components/ui/icons';
 import { useProfile } from '@/profile/profile-context';
 import { loadResume } from '@/storage';
 import { base64ToBlob, downloadBlob } from '@/utils/file';
@@ -62,15 +68,18 @@ export function ResumePanel() {
   return (
     <div className="space-y-3">
       {resume ? (
-        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-brand-600 ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-subtle p-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface text-accent ring-1 ring-line">
             <FileTextIcon className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-slate-900">{resume.fileName}</p>
-            <p className="text-xs text-slate-500">
+            <p className="truncate text-sm font-medium text-fg">{resume.fileName}</p>
+            <p className="text-xs text-muted">
               {formatBytes(resume.sizeBytes)} · Uploaded{' '}
               {new Date(resume.uploadedAt).toLocaleDateString()}
+            </p>
+            <p className="mt-1 flex animate-fade items-center gap-1 text-xs font-medium text-ok">
+              <CheckIcon className="h-3.5 w-3.5 animate-pop" /> Resume saved locally
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -84,7 +93,7 @@ export function ResumePanel() {
               loading={busy}
               onClick={() => inputRef.current?.click()}
             >
-              Replace
+              Replace Resume
             </Button>
             <Button
               variant="danger-ghost"
@@ -92,7 +101,7 @@ export function ResumePanel() {
               icon={<TrashIcon />}
               onClick={() => setConfirmDelete(true)}
             >
-              Delete
+              Remove
             </Button>
           </div>
           {picker}
@@ -106,24 +115,24 @@ export function ResumePanel() {
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           className={cx(
-            'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors focus-within:ring-2 focus-within:ring-brand-100',
+            'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors focus-within:ring-2 focus-within:ring-accent-line',
             dragging
-              ? 'border-brand-500 bg-brand-50'
-              : 'border-slate-300 hover:border-brand-500 hover:bg-slate-50',
+              ? 'border-accent bg-accent-soft'
+              : 'border-line-strong hover:border-accent hover:bg-subtle',
           )}
         >
           {picker}
-          <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
             {busy ? (
               <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-r-transparent" />
             ) : (
               <UploadIcon className="h-5 w-5" />
             )}
           </span>
-          <span className="text-sm font-medium text-slate-900">
+          <span className="text-sm font-medium text-fg">
             {busy ? 'Saving…' : 'Drop your resume here, or click to browse'}
           </span>
-          <span className="mt-1 text-xs text-slate-500">
+          <span className="mt-1 text-xs text-muted">
             PDF, DOC or DOCX · up to 5 MB · stored only on this device
           </span>
         </label>
@@ -133,9 +142,9 @@ export function ResumePanel() {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete your resume?"
+        title="Remove your resume?"
         description="The file will be removed from this device. You can upload it again at any time."
-        confirmLabel="Delete resume"
+        confirmLabel="Remove resume"
         tone="danger"
         onConfirm={async () => {
           await removeResume();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { SectionId } from '@jobfill/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -12,10 +12,18 @@ export function SectionCard({
   id,
   editing,
   onEditingChange,
+  title,
+  lead,
+  editLabel = 'Edit',
 }: {
   id: SectionId;
   editing: boolean;
   onEditingChange: (editing: boolean) => void;
+  /** Override the section title (e.g. to group it with related content). */
+  title?: ReactNode;
+  /** Content shown above the summary / editor, e.g. the resume file panel. */
+  lead?: ReactNode;
+  editLabel?: string;
 }) {
   const def = SECTIONS[id];
   const [justSaved, setJustSaved] = useState(false);
@@ -29,7 +37,7 @@ export function SectionCard({
   return (
     <div id={`section-${id}`} className="scroll-mt-6">
       <Card
-        title={def.title}
+        title={title ?? def.title}
         description={editing ? def.description : undefined}
         icon={def.icon}
         actions={
@@ -38,9 +46,9 @@ export function SectionCard({
               {justSaved && (
                 <span
                   role="status"
-                  className="flex items-center gap-1 text-xs font-medium text-emerald-700"
+                  className="flex animate-fade items-center gap-1 text-xs font-medium text-ok"
                 >
-                  <CheckIcon className="h-3.5 w-3.5" /> Saved
+                  <CheckIcon className="h-3.5 w-3.5 animate-pop" /> Saved
                 </span>
               )}
               <Button
@@ -49,12 +57,13 @@ export function SectionCard({
                 icon={<PencilIcon />}
                 onClick={() => onEditingChange(true)}
               >
-                Edit
+                {editLabel}
               </Button>
             </>
           )
         }
       >
+        {lead}
         {editing ? (
           <SectionEditor
             id={id}
@@ -75,7 +84,9 @@ export function SectionCard({
             )}
           />
         ) : (
-          <SectionSummary id={id} />
+          <div className="animate-fade">
+            <SectionSummary id={id} />
+          </div>
         )}
       </Card>
     </div>

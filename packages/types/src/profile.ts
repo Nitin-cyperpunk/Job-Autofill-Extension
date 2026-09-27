@@ -106,9 +106,13 @@ export interface OtherLink {
 }
 
 export interface LinksInfo {
+  /** Shareable link to the resume (Google Drive, Dropbox, OneDrive…) for "link to your resume" fields. */
+  resumeUrl: string;
   linkedin: string;
   github: string;
   portfolio: string;
+  /** X / Twitter profile. */
+  x: string;
   website: string;
   other: OtherLink[];
 }

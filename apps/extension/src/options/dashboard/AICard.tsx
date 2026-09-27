@@ -33,7 +33,7 @@ export function AICard() {
   return (
     <Card title="AI answers (optional)">
       <div className="space-y-4">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted">
           Get draft answers for open questions like “Why do you want to work here?”. JobFill works
           fully without this.
         </p>
@@ -105,7 +105,7 @@ export function AICard() {
                     Remove key
                   </Button>
                 )}
-                {saved && <span className="self-center text-xs text-emerald-700">Saved</span>}
+                {saved && <span className="self-center text-xs text-ok">Saved</span>}
               </div>
             </div>
           </>

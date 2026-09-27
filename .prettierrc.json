@@ -4,5 +4,13 @@
   "trailingComma": "all",
   "printWidth": 100,
   "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "./apps/extension/src/index.css"
+  "tailwindStylesheet": "./apps/extension/src/index.css",
+  "overrides": [
+    {
+      "files": "apps/website/**",
+      "options": {
+        "tailwindStylesheet": "./apps/website/app/globals.css"
+      }
+    }
+  ]
 }

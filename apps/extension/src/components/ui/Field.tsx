@@ -31,10 +31,10 @@ export function Field({ label, hint, error, required, className, children }: Fie
   const errorId = error ? `${id}-error` : undefined;
   return (
     <div className={cx('flex flex-col gap-1.5', className)}>
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="text-sm font-medium text-body">
         {label}
         {required && (
-          <span className="ml-0.5 text-red-600" aria-hidden="true">
+          <span className="ml-0.5 text-danger" aria-hidden="true">
             *
           </span>
         )}
@@ -46,11 +46,11 @@ export function Field({ label, hint, error, required, className, children }: Fie
         'aria-required': required || undefined,
       })}
       {error ? (
-        <p id={errorId} className="text-xs font-medium text-red-600">
+        <p id={errorId} className="text-xs font-medium text-danger">
           {error}
         </p>
       ) : hint ? (
-        <p id={hintId} className="text-xs text-slate-500">
+        <p id={hintId} className="text-xs text-muted">
           {hint}
         </p>
       ) : null}
@@ -185,11 +185,11 @@ export function CheckboxField({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-brand-600"
+        className="mt-0.5 h-4 w-4 rounded border-line-strong accent-brand-600"
       />
       <label htmlFor={id} className="text-sm">
-        <span className="font-medium text-slate-700">{label}</span>
-        {description && <span className="block text-xs text-slate-500">{description}</span>}
+        <span className="font-medium text-body">{label}</span>
+        {description && <span className="block text-xs text-muted">{description}</span>}
       </label>
     </div>
   );

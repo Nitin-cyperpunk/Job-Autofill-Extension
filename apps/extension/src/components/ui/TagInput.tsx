@@ -62,22 +62,22 @@ export function TagInput({
       {(control) => (
         <div
           className={cx(
-            'flex min-h-10 flex-wrap items-center gap-1.5 rounded-lg border bg-white px-2 py-1.5 shadow-sm focus-within:ring-2',
+            'flex min-h-10 flex-wrap items-center gap-1.5 rounded-lg border bg-surface px-2 py-1.5 shadow-card focus-within:ring-2',
             error
-              ? 'border-red-400 focus-within:ring-red-100'
-              : 'border-slate-300 focus-within:border-brand-500 focus-within:ring-brand-100',
+              ? 'border-danger focus-within:ring-danger-line'
+              : 'border-line-strong focus-within:border-accent focus-within:ring-accent-line',
           )}
         >
           {value.map((tag, i) => (
             <span
               key={`${tag}-${i}`}
-              className="inline-flex items-center gap-1 rounded-md bg-brand-50 py-0.5 pr-1 pl-2 text-xs font-medium text-brand-700"
+              className="inline-flex items-center gap-1 rounded-md bg-accent-soft py-0.5 pr-1 pl-2 text-xs font-medium text-accent"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => remove(i)}
-                className="rounded p-0.5 hover:bg-brand-100"
+                className="rounded p-0.5 hover:bg-accent-soft"
                 aria-label={`Remove ${tag}`}
               >
                 <XIcon className="h-3 w-3" />
@@ -92,7 +92,7 @@ export function TagInput({
             onPaste={onPaste}
             onBlur={() => text.trim() && add(text)}
             placeholder={value.length ? '' : placeholder}
-            className="min-w-32 flex-1 border-0 bg-transparent px-1 py-0.5 text-sm outline-none placeholder:text-slate-400"
+            className="min-w-32 flex-1 border-0 bg-transparent px-1 py-0.5 text-sm outline-none placeholder:text-faint"
           />
         </div>
       )}

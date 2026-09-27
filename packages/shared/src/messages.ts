@@ -1,7 +1,7 @@
 import type { FieldDescriptor } from '@jobfill/types';
 import type { PlanItem } from '@jobfill/field-mapper';
 import type { AnswerRequest, AnswerVariants, JobContext } from '@jobfill/ai';
-import type { FillSummary } from './autofill';
+import type { FieldOutcome, FillSummary } from './autofill';
 
 /**
  * Typed message contract between popup, background and content scripts.
@@ -19,6 +19,8 @@ export type ExtensionMessage =
   | { type: 'AUTOFILL_PLAN' }
   /** Fill the page. `fieldIds` limits it to fields the user approved in the preview. */
   | { type: 'AUTOFILL_EXECUTE'; fieldIds?: string[] }
+  /** Popup → content (frame): attach the saved résumé to one file field (user clicked "Attach Resume"). */
+  | { type: 'ATTACH_RESUME'; fieldId: string }
   /** Dev/debug builds only: show or hide the in-page field overlay. */
   | { type: 'DEBUG_OVERLAY'; show: boolean }
   /** Popup → background: is AI configured, and where would data go? (No key returned.) */
@@ -38,7 +40,14 @@ export interface MessageResponseMap {
     fields: FieldDescriptor[];
     stats: { scans: number; mutationBatches: number; ignoredBatches: number; lastScanMs: number };
   };
-  AUTOFILL_PLAN: { ok: true; items: PlanItem[] } | { ok: false; message: string };
+  AUTOFILL_PLAN:
+    | {
+        ok: true;
+        items: PlanItem[];
+        /** This frame's last fill run, for the debug panel. */ lastFill?: FieldOutcome[];
+      }
+    | { ok: false; message: string };
+  ATTACH_RESUME: { ok: boolean; message?: string };
   AUTOFILL_EXECUTE: { ok: true; summary: FillSummary } | { ok: false; message: string };
   DEBUG_OVERLAY: { ok: boolean };
   ANNOUNCE_FRAMES: { ok: true };

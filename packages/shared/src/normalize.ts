@@ -8,6 +8,7 @@ import {
 } from '@jobfill/types';
 import { createEmptyProfile } from './default-profile';
 import { createId } from './ids';
+import { liftLegacyLinks } from './legacy-links';
 
 /**
  * Lenient parsing for data we did not just validate ourselves: what is in storage
@@ -120,9 +121,11 @@ const skillsSchema = z
 
 const linksSchema = z
   .object({
+    resumeUrl: text,
     linkedin: text,
     github: text,
     portfolio: text,
+    x: text,
     website: text,
     other: entryList(z.object({ id, label: text, url: text })),
   })
@@ -156,7 +159,7 @@ const profileSchema = z
   .catch(() => createEmptyProfile());
 
 export function normalizeProfile(raw: unknown): Profile {
-  return profileSchema.parse(raw ?? empty);
+  return profileSchema.parse(liftLegacyLinks(raw ?? empty));
 }
 
 export function normalizeResumeMeta(raw: unknown): ResumeMeta | null {

@@ -20,7 +20,7 @@ export function PrivacyNotice({
     return (
       <span
         className={cx(
-          'inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 ring-1 ring-emerald-200',
+          'inline-flex items-center gap-1.5 rounded-full bg-ok-soft px-2.5 py-1 text-xs font-medium text-ok ring-1 ring-ok-line',
           className,
         )}
       >
@@ -32,11 +32,11 @@ export function PrivacyNotice({
   return (
     <div
       className={cx(
-        'flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900',
+        'flex items-start gap-3 rounded-xl border border-ok-line bg-ok-soft px-4 py-3 text-sm text-ok',
         className,
       )}
     >
-      <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+      <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-ok" />
       <p>
         <strong className="font-semibold">{PRIVACY_MESSAGE}</strong> JobFill has no accounts and no
         servers of its own. Nothing you enter is uploaded — unless you turn on optional AI answers,

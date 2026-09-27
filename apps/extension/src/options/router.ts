@@ -9,11 +9,16 @@ import { SECTION_ORDER } from './sections/registry';
 
 export type StepId = 'welcome' | 'start' | SectionId | 'resume' | 'review' | 'complete';
 
+/**
+ * "Resume & Professional Links" comes first: the resume file plus the drive link, LinkedIn,
+ * portfolio, GitHub and X are what application forms ask for most. In onboarding the
+ * Links section lives inside that step, so it has no step of its own.
+ */
 export const STEP_ORDER: StepId[] = [
   'welcome',
   'start',
-  ...SECTION_ORDER,
   'resume',
+  ...SECTION_ORDER.filter((id) => id !== 'links'),
   'review',
   'complete',
 ];
@@ -50,6 +55,13 @@ export function parseHash(hash: string): Route | null {
   }
   const match = /^\/onboarding\/([a-z]+)$/.exec(path);
   const step = match?.[1] as StepId | undefined;
+  // Old links to the separate Links step land on the combined Resume & Links step.
+  if (step === 'links')
+    return {
+      name: 'onboarding',
+      step: 'resume',
+      returnTo: params.get('return') === 'review' ? 'review' : undefined,
+    };
   if (step && STEP_ORDER.includes(step)) {
     const notice = params.get('notice');
     return {

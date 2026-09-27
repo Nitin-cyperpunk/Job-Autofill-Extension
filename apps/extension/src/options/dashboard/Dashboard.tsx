@@ -3,6 +3,7 @@ import type { SectionId } from '@jobfill/types';
 import { formatBytes, fullName, type CompletenessArea } from '@jobfill/shared';
 import { CompletenessMeter } from '@/components/CompletenessMeter';
 import { Logo } from '@/components/Logo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { PrivacyNotice } from '@/components/PrivacyNotice';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -45,27 +46,33 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <Logo />
-          <PrivacyNotice variant="badge" />
+          <div className="flex flex-wrap items-center gap-3">
+            <PrivacyNotice variant="badge" className="hidden sm:inline-flex" />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl animate-enter px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {name || 'Your profile'}
-          </h1>
-          <p className="mt-1 text-slate-600">
+          <p className="text-xs font-semibold tracking-wide text-accent uppercase">Profile</p>
+          <h1 className="text-2xl font-bold tracking-tight text-fg">{name || 'Your profile'}</h1>
+          <p className="mt-1 text-muted">
             {profile.professional.currentTitle ||
               'Keep your details up to date so every application fills correctly.'}
+          </p>
+          <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted">
+            <LockIcon className="h-3.5 w-3.5 text-ok" />
+            Your profile is stored locally on this device.
           </p>
         </div>
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_20rem]">
           <div className="min-w-0 space-y-6">
-            {SECTION_ORDER.map((id) => (
+            {SECTION_ORDER.filter((id) => id !== 'links').map((id) => (
               <SectionCard
                 key={id}
                 id={id}
@@ -73,10 +80,24 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
                 onEditingChange={(on) => setSectionEditing(id, on)}
               />
             ))}
+            {/* Resume file and professional links belong together: both are "send them my …". */}
             <div id="section-resume" className="scroll-mt-6">
-              <Card title="Resume" icon={<FileTextIcon />}>
-                <ResumePanel />
-              </Card>
+              <SectionCard
+                id="links"
+                title="Resume & Professional Links"
+                editLabel="Edit links"
+                editing={editing.has('links')}
+                onEditingChange={(on) => setSectionEditing('links', on)}
+                lead={
+                  <>
+                    <div className="mb-6 border-b border-line pb-6">
+                      <h3 className="mb-3 text-sm font-semibold text-fg">Resume</h3>
+                      <ResumePanel />
+                    </div>
+                    <h3 className="mb-3 text-sm font-semibold text-fg">Professional links</h3>
+                  </>
+                }
+              />
             </div>
           </div>
 
@@ -86,12 +107,12 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
             </Card>
 
             <Card title="Your data" icon={<ShieldCheckIcon />}>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted">
                 Your profile is stored locally on this device. Back it up or move it to another
                 browser with export and import.
               </p>
               {bytesInUse !== null && (
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-muted">
                   Using {formatBytes(bytesInUse)} of local extension storage.
                 </p>
               )}
@@ -116,8 +137,8 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
                 </Button>
               </div>
 
-              <div className="mt-6 space-y-3 border-t border-slate-100 pt-5">
-                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              <div className="mt-6 space-y-3 border-t border-line pt-5">
+                <p className="text-xs font-semibold tracking-wide text-muted uppercase">
                   Danger zone
                 </p>
                 <ResetProfileButton

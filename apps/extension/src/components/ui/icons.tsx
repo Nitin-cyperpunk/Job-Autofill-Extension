@@ -172,3 +172,31 @@ export const ClipboardCheckIcon = icon(
   </>,
   'ClipboardCheckIcon',
 );
+
+/* Professional-link icons (simplified marks, stroke style to match the set). */
+export const LinkedInIcon = icon(
+  <>
+    <rect x="3" y="3" width="18" height="18" rx="3" />
+    <path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7" />
+  </>,
+  'LinkedInIcon',
+);
+export const GitHubIcon = icon(
+  <path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" />,
+  'GitHubIcon',
+);
+export const XLogoIcon = icon(<path d="m4 4 16 16M20 4 4 20" />, 'XLogoIcon');
+export const GlobeIcon = icon(
+  <>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+  </>,
+  'GlobeIcon',
+);
+export const CloudFileIcon = icon(
+  <>
+    <path d="M7 18a4 4 0 0 1-.6-8A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9Z" />
+    <path d="M12 12v5m-2-2 2 2 2-2" />
+  </>,
+  'CloudFileIcon',
+);

@@ -237,3 +237,66 @@ describe('export / import', () => {
     expect(result.ok && result.warnings).toHaveLength(1);
   });
 });
+
+describe('legacy link fields', () => {
+  it('lifts linkedinUrl / linkedinProfile / linkedinProfileUrl into links.linkedin', () => {
+    for (const key of ['linkedinUrl', 'linkedinProfile', 'linkedinProfileUrl']) {
+      const p = normalizeProfile({ links: { [key]: 'https://linkedin.com/in/ada' } });
+      expect(p.links.linkedin, key).toBe('https://linkedin.com/in/ada');
+    }
+    // Also from personal.* and the top level, where some older builds kept it.
+    expect(
+      normalizeProfile({ personal: { linkedinUrl: 'linkedin.com/in/ada' } }).links.linkedin,
+    ).toBe('linkedin.com/in/ada');
+    expect(normalizeProfile({ twitter: 'https://x.com/ada' }).links.x).toBe('https://x.com/ada');
+    expect(
+      normalizeProfile({ resume: { resumeDriveUrl: 'https://drive.google.com/x' } }).links
+        .resumeUrl,
+    ).toBe('https://drive.google.com/x');
+  });
+
+  it('never overwrites the canonical value and is idempotent', () => {
+    const raw = {
+      links: {
+        linkedin: 'https://linkedin.com/in/current',
+        linkedinUrl: 'https://linkedin.com/in/old',
+        other: [
+          { id: 'a', label: 'GitHub', url: 'https://github.com/ada' },
+          { id: 'b', label: 'Blog', url: 'https://ada.blog' },
+        ],
+      },
+    };
+    const once = normalizeProfile(raw);
+    expect(once.links.linkedin).toBe('https://linkedin.com/in/current');
+    expect(once.links.github).toBe('https://github.com/ada');
+    expect(once.links.other).toEqual([{ id: 'b', label: 'Blog', url: 'https://ada.blog' }]);
+    expect(normalizeProfile(once)).toEqual(once);
+  });
+
+  it('keeps existing profiles intact (new keys default to empty)', () => {
+    const p = normalizeProfile({
+      links: { linkedin: 'https://linkedin.com/in/ada', github: '', portfolio: '', website: '' },
+    });
+    expect(p.links).toMatchObject({
+      linkedin: 'https://linkedin.com/in/ada',
+      x: '',
+      resumeUrl: '',
+    });
+  });
+
+  it('normalises bare domains when a section is saved, leaving full URLs alone', () => {
+    const { value } = prepareSection('links', {
+      ...createEmptyProfile().links,
+      linkedin: 'linkedin.com/in/example',
+      github: 'github.com/example',
+      x: 'x.com/example',
+      portfolio: 'https://example.dev/work?tab=1',
+    });
+    expect(value).toMatchObject({
+      linkedin: 'https://linkedin.com/in/example',
+      github: 'https://github.com/example',
+      x: 'https://x.com/example',
+      portfolio: 'https://example.dev/work?tab=1',
+    });
+  });
+});

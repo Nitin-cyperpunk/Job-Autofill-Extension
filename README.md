@@ -34,7 +34,7 @@ there is one place to audit what is stored.
 apps/
   extension/            Chrome MV3 extension (Vite + React + Tailwind)
     test-pages/         Fixture forms (Google Forms, Greenhouse, Lever, Workday, React, …)
-  website/              Placeholder for the future Next.js marketing site
+  website/              Next.js marketing site (SEO pages, blog) — standalone install, see its README
 packages/
   types/                @jobfill/types        — Profile, FieldDescriptor, FieldKey, export format
   shared/               @jobfill/shared       — validation, normalisation, migration, completeness,

@@ -54,7 +54,12 @@ describe('fillPage on the simple form', () => {
     expect(review['Are you legally authorized to work here?']).toMatch(/Legal question/);
     expect(review['Country']).toMatch(/No option matches/); // only India / US offered
     expect(review['I agree to the privacy policy']).toMatch(/Consent/);
-    expect(review['Upload resume']).toMatch(/Couldn’t fill/); // no stored file in this test
+    // No stored file in this test: offered as "Attach Resume", never claimed as uploaded.
+    expect(review['Upload resume']).toMatch(/Resume detected/);
+    expect(summary.outcomes?.find((o) => o.label === 'Upload resume')).toMatchObject({
+      status: 'needs-review',
+      resume: true,
+    });
   });
 
   it('never submits, never ticks consent boxes, never touches hidden fields', async () => {

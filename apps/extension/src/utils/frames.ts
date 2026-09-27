@@ -1,4 +1,4 @@
-import type { ExtensionMessage, FillSummary, MessageResponse } from '@jobfill/shared';
+import type { ExtensionMessage, FieldOutcome, FillSummary, MessageResponse } from '@jobfill/shared';
 import type { PlanItem } from '@jobfill/field-mapper';
 import { targetTabId } from './messaging';
 
@@ -52,11 +52,13 @@ function splitUid(id: string): [number, string] {
   return [Number(id.slice(0, at)), id.slice(at + 1)];
 }
 
+export type PlanItemWithOutcome = PlanItem & { lastFill?: FieldOutcome };
+
 /** Plan across all frames. Throws only if the top frame is unreachable. */
-export async function planAllFrames(): Promise<PlanItem[]> {
+export async function planAllFrames(): Promise<PlanItemWithOutcome[]> {
   const tabId = await targetTabId();
   const frames = await framesWithFields(tabId);
-  const items: PlanItem[] = [];
+  const items: PlanItemWithOutcome[] = [];
   for (const frameId of frames) {
     const res = await sendToFrame(tabId, frameId, { type: 'AUTOFILL_PLAN' }).catch(
       (err: unknown) => {
@@ -64,8 +66,20 @@ export async function planAllFrames(): Promise<PlanItem[]> {
         return null;
       },
     );
-    if (res?.ok)
-      items.push(...res.items.map((item) => ({ ...item, fieldId: uid(frameId, item.fieldId) })));
+    if (!res?.ok) continue;
+    const last = new Map((res.lastFill ?? []).map((o) => [o.fieldId, o]));
+    items.push(
+      ...res.items.map((item) => {
+        const lastFill = last.get(item.fieldId);
+        return {
+          ...item,
+          fieldId: uid(frameId, item.fieldId),
+          ...(lastFill
+            ? { lastFill: { ...lastFill, fieldId: uid(frameId, lastFill.fieldId) } }
+            : {}),
+        };
+      }),
+    );
   }
   return items;
 }
@@ -87,6 +101,7 @@ export async function fillAllFrames(approvedIds?: string[]): Promise<FillSummary
     skipped: 0,
     revealed: 0,
     questions: [],
+    outcomes: [],
   };
   for (const frameId of frames) {
     if (approvedIds && !byFrame.has(frameId)) continue;
@@ -109,6 +124,19 @@ export async function fillAllFrames(approvedIds?: string[]): Promise<FillSummary
     merged.skipped += s.skipped;
     merged.revealed = (merged.revealed ?? 0) + (s.revealed ?? 0);
     merged.questions!.push(...(s.questions ?? []).map(tag));
+    merged.outcomes!.push(...(s.outcomes ?? []).map(tag));
   }
   return merged;
+}
+
+/** "Attach Resume" for one namespaced file field. */
+export async function attachResumeInFrame(
+  namespacedId: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const tabId = await targetTabId();
+  const [frameId, fieldId] = splitUid(namespacedId);
+  return sendToFrame(tabId, frameId, { type: 'ATTACH_RESUME', fieldId }).catch(() => ({
+    ok: false,
+    message: 'The page is no longer reachable — reload it and try again.',
+  }));
 }

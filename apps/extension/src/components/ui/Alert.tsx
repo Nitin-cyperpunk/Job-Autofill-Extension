@@ -3,9 +3,9 @@ import { cx } from '@/utils/cx';
 import { AlertCircleIcon, CheckIcon } from './icons';
 
 const tones = {
-  error: 'border-red-200 bg-red-50 text-red-800',
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-  info: 'border-brand-100 bg-brand-50 text-brand-700',
+  error: 'border-danger-line bg-danger-soft text-danger',
+  success: 'border-ok-line bg-ok-soft text-ok',
+  info: 'border-accent-line bg-accent-soft text-accent',
 };
 
 export function Alert({
