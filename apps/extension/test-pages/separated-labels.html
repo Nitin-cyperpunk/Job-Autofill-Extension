@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Visually separated labels</title>
+    <!--
+      Real ATS markup often has no <label> at all: the "label" is a sibling div,
+      a table cell, loose text, or a heading far from the input. Names are opaque.
+    -->
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 8px;
+        margin: 8px 0;
+      }
+      td {
+        padding: 4px 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <h2>Candidate information</h2>
+
+      <!-- 1. Grid: label div and input in sibling cells -->
+      <div class="row">
+        <div class="lbl">First name <span class="req">*</span></div>
+        <div class="ctl"><input name="field_101" /></div>
+      </div>
+      <div class="row">
+        <div class="lbl">Surname</div>
+        <div class="ctl"><input name="field_102" /></div>
+      </div>
+
+      <!-- 2. Table layout -->
+      <table>
+        <tr>
+          <td>Email address</td>
+          <td><input name="q2" /></td>
+        </tr>
+      </table>
+
+      <!-- 3. Loose text node before the input -->
+      <p>Phone: <input name="x3" /></p>
+
+      <!-- 4. Text in a span, separated by <br> -->
+      <div><span class="question">LinkedIn profile URL</span><br /><input id="a7" /></div>
+
+      <!-- 5. Two inputs in one row: the second must NOT borrow the first's label -->
+      <div class="row">
+        <span>City</span>
+        <div><input name="c1" /> <input name="c2" placeholder="State / Province" /></div>
+      </div>
+
+      <!-- 6. aria-labelledby pointing at a heading far away -->
+      <h3 id="gpa-q">Cumulative GPA</h3>
+      <p>Use your university's scale.</p>
+      <div>
+        <div><input aria-labelledby="gpa-q" name="z9" /></div>
+      </div>
+
+      <!-- 7. Radio question in a <p>; options labelled by the text after each radio -->
+      <p>Will you now or in the future require sponsorship? *</p>
+      <div>
+        <input type="radio" name="spons" value="1" /> Yes
+        <input type="radio" name="spons" value="0" /> No
+      </div>
+
+      <h2>Education</h2>
+      <div class="row">
+        <div class="lbl">School</div>
+        <div class="ctl"><input name="edu_0_a" /></div>
+      </div>
+    </form>
+  </body>
+</html>

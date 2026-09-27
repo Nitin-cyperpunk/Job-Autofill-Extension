@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Simple application form</title>
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+      label,
+      fieldset {
+        display: block;
+        margin: 0.75rem 0;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+      .honeypot {
+        position: absolute;
+        left: -10000px;
+        top: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Apply: Senior Engineer</h1>
+    <form
+      id="apply"
+      action="#"
+      onsubmit="
+        window.__submitted = true;
+        return false;
+      "
+    >
+      <h2>Personal details</h2>
+      <label for="first">First Name *</label>
+      <input id="first" name="first_name" placeholder="Enter first name" required />
+
+      <label>Last name <input name="last_name" autocomplete="family-name" required /></label>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" autocomplete="email" aria-required="true" />
+
+      <input type="tel" name="phone" placeholder="Phone number" />
+
+      <label for="country">Country</label>
+      <select id="country" name="country" required>
+        <option value="">Select…</option>
+        <option value="IN">India</option>
+        <option value="US">United States</option>
+      </select>
+
+      <fieldset>
+        <legend>Are you legally authorized to work here? *</legend>
+        <label><input type="radio" name="authorized" value="yes" /> Yes</label>
+        <label><input type="radio" name="authorized" value="no" /> No</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Preferred work arrangement</legend>
+        <label><input type="checkbox" name="arrangement[]" value="remote" /> Remote</label>
+        <label><input type="checkbox" name="arrangement[]" value="hybrid" checked /> Hybrid</label>
+        <label><input type="checkbox" name="arrangement[]" value="onsite" /> On-site</label>
+      </fieldset>
+
+      <label for="resume">Upload resume</label>
+      <input id="resume" class="sr-only" type="file" name="resume" accept=".pdf,.doc,.docx" />
+
+      <label for="cover">Cover letter</label>
+      <textarea id="cover" name="cover_letter"></textarea>
+
+      <div
+        aria-label="Additional information"
+        contenteditable="true"
+        style="min-height: 3rem; border: 1px solid #ccc"
+      ></div>
+
+      <label><input type="checkbox" name="privacy" required /> I agree to the privacy policy</label>
+
+      <!-- Not fields: -->
+      <input type="hidden" name="csrf" value="abc" />
+      <input type="password" name="password" />
+      <input type="submit" value="Apply" />
+      <button type="button">Save draft</button>
+      <!-- Honeypot: bots fill it, humans never see it. -->
+      <input class="honeypot" name="website_url" tabindex="-1" autocomplete="off" />
+      <input name="disabled_field" disabled />
+    </form>
+  </body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>React form</title>
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+      .field,
+      .check {
+        display: block;
+        margin: 0.75rem 0;
+      }
+      .field label {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { createElement } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { App } from './react-form.js';
+      createRoot(document.getElementById('root')).render(createElement(App));
+    </script>
+  </body>
+</html>

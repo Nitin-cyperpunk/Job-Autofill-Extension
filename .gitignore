@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-debug
+*.zip
+*.log
+.DS_Store
+.vite
+*.tsbuildinfo
+.env*

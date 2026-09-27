@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Google Forms–style application</title>
+    <!--
+      Mirrors the markup patterns of Google Forms: questions in role="listitem",
+      titles in role="heading" linked via aria-labelledby, ARIA radios / checkboxes /
+      listbox made of divs, obfuscated class names and no name attributes.
+    -->
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+      [role='listitem'] {
+        margin: 1rem 0;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      [role='radio'],
+      [role='checkbox'] {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #555;
+        margin-right: 6px;
+      }
+      [role='radio'] {
+        border-radius: 50%;
+      }
+      [role='option'] {
+        padding: 2px 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <div role="list" class="o3Dpx">
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i1" class="M7eMe">
+              Full name<span class="vnumgf" aria-label="Required question"> *</span>
+            </div>
+            <div class="rFrNMe">
+              <input
+                type="text"
+                class="whsOnd zHQkBf"
+                jsname="YPqjbf"
+                autocomplete="off"
+                aria-labelledby="i1"
+                aria-describedby="i2"
+                required
+                dir="auto"
+              />
+            </div>
+            <div id="i2" class="RHiWt">As it appears on your passport</div>
+          </div>
+        </div>
+
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i5" class="M7eMe">
+              Email<span class="vnumgf" aria-label="Required question"> *</span>
+            </div>
+            <input
+              type="email"
+              class="whsOnd zHQkBf"
+              jsname="YPqjbf"
+              autocomplete="email"
+              aria-labelledby="i5"
+              required
+            />
+          </div>
+        </div>
+
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i9" class="M7eMe">
+              Years of experience<span class="vnumgf" aria-label="Required question"> *</span>
+            </div>
+            <div role="radiogroup" aria-labelledby="i9" class="lLfZXe">
+              <span role="presentation">
+                <label class="docssharedWizToggleLabeledContainer"
+                  ><div
+                    role="radio"
+                    class="Od2TWd"
+                    data-value="0-2"
+                    aria-label="0-2"
+                    aria-checked="false"
+                  ></div>
+                  <span class="aDTYNe">0-2</span></label
+                >
+                <label class="docssharedWizToggleLabeledContainer"
+                  ><div
+                    role="radio"
+                    class="Od2TWd"
+                    data-value="3-5"
+                    aria-label="3-5"
+                    aria-checked="true"
+                  ></div>
+                  <span class="aDTYNe">3-5</span></label
+                >
+                <label class="docssharedWizToggleLabeledContainer"
+                  ><div
+                    role="radio"
+                    class="Od2TWd"
+                    data-value="6+"
+                    aria-label="6+"
+                    aria-checked="false"
+                  ></div>
+                  <span class="aDTYNe">6+</span></label
+                >
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i15" class="M7eMe">
+              Which roles interest you?
+            </div>
+            <div class="Y6Myld">
+              <div class="eBFwI">
+                <label
+                  ><div
+                    role="checkbox"
+                    class="uVccjd"
+                    data-answer-value="Engineering"
+                    aria-label="Engineering"
+                    aria-checked="false"
+                  ></div>
+                  <span>Engineering</span></label
+                >
+              </div>
+              <div class="eBFwI">
+                <label
+                  ><div
+                    role="checkbox"
+                    class="uVccjd"
+                    data-answer-value="Design"
+                    aria-label="Design"
+                    aria-checked="false"
+                  ></div>
+                  <span>Design</span></label
+                >
+              </div>
+              <div class="eBFwI">
+                <label
+                  ><div
+                    role="checkbox"
+                    class="uVccjd"
+                    data-answer-value="Product"
+                    aria-label="Product"
+                    aria-checked="false"
+                  ></div>
+                  <span>Product</span></label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i20" class="M7eMe">Country of residence</div>
+            <div role="listbox" aria-labelledby="i20" class="MocG8c" tabindex="0">
+              <div role="option" data-value="" aria-selected="true"><span>Choose</span></div>
+              <div role="option" data-value="India" aria-selected="false"><span>India</span></div>
+              <div role="option" data-value="Germany" aria-selected="false">
+                <span>Germany</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i25" class="M7eMe">
+              Why do you want to join us?
+            </div>
+            <textarea
+              class="KHxj8b tL9Q4c"
+              jsname="YPqjbf"
+              aria-labelledby="i25"
+              dir="auto"
+            ></textarea>
+          </div>
+        </div>
+
+        <div role="listitem" class="Qr7Oae">
+          <div class="geS5n">
+            <div role="heading" aria-level="3" id="i30" class="M7eMe">Earliest start date</div>
+            <input type="date" class="whsOnd zHQkBf" aria-labelledby="i30" />
+          </div>
+        </div>
+      </div>
+      <div role="button" tabindex="0">Submit</div>
+    </form>
+    <script>
+      // Minimal stand-in for Google Forms' widget behaviour: ARIA radios and
+      // checkboxes toggle aria-checked on click (the real site does this too).
+      document.addEventListener('click', (e) => {
+        const radio = e.target.closest('[role="radio"]');
+        if (radio) {
+          radio
+            .closest('[role="radiogroup"]')
+            .querySelectorAll('[role="radio"]')
+            .forEach((r) => r.setAttribute('aria-checked', String(r === radio)));
+        }
+        const box = e.target.closest('[role="checkbox"]');
+        if (box)
+          box.setAttribute('aria-checked', String(box.getAttribute('aria-checked') !== 'true'));
+      });
+      document.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        window.__submitted = true;
+      });
+    </script>
+  </body>
+</html>

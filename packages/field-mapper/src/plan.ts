@@ -1,0 +1,224 @@
+import type { FieldDescriptor, FieldKey, Profile } from '@jobfill/types';
+import { matchField, REVIEW_CONFIDENCE } from './match';
+import { chooseOptions, optionPolarity, type OptionChoice } from './options';
+import { describeValue, isIndexedKey, resolveProfileValue, type ProfileValue } from './values';
+
+/**
+ * Turns detected fields + the profile into a fill plan. Pure and deterministic:
+ * the popup previews exactly what the content script will do.
+ */
+
+export type FillAction =
+  | { kind: 'text'; text: string }
+  | { kind: 'options'; indices: number[] } // select / radio / checkbox group
+  | { kind: 'check'; checked: boolean } // lone checkbox
+  | { kind: 'file' };
+
+/**
+ * fill         – confident; will be filled.
+ * fill-review  – will be filled, but the user should double-check it.
+ * review       – not filled; needs the user (required, sensitive, no data, no option).
+ * skip         – left alone (already filled, optional without data, unrelated).
+ */
+export type PlanStatus = 'fill' | 'fill-review' | 'review' | 'skip';
+
+export interface PlanItem {
+  fieldId: string;
+  label: string;
+  type: FieldDescriptor['type'];
+  required: boolean;
+  key: FieldKey | null;
+  confidence: number;
+  status: PlanStatus;
+  action: FillAction | null;
+  /** What will be entered, for display. */
+  preview: string;
+  /** Why an item needs review or was skipped. */
+  reason: string;
+}
+
+/** Legal questions: always double-checked even when the mapping is certain. */
+const ALWAYS_REVIEW = new Set<FieldKey>([
+  'professional.workAuthorization',
+  'professional.requiresSponsorship',
+]);
+
+const TEXT_INPUTS = new Set([
+  'text',
+  'email',
+  'tel',
+  'url',
+  'number',
+  'textarea',
+  'contenteditable',
+]);
+
+export function displayLabel(field: FieldDescriptor): string {
+  return field.label || field.placeholder || field.ariaLabel || field.name || 'Unlabelled field';
+}
+
+export function planFill(fields: FieldDescriptor[], profile: Profile): PlanItem[] {
+  const occurrences = new Map<FieldKey, number>();
+  return fields.map((field) => planOne(field, profile, occurrences));
+}
+
+function planOne(
+  field: FieldDescriptor,
+  profile: Profile,
+  occurrences: Map<FieldKey, number>,
+): PlanItem {
+  const base = {
+    fieldId: field.id,
+    label: displayLabel(field),
+    type: field.type,
+    required: field.required,
+    key: null as FieldKey | null,
+    confidence: 0,
+    action: null as FillAction | null,
+    preview: '',
+  };
+  const leave = (reason: string, key: FieldKey | null = null): PlanItem => ({
+    ...base,
+    key,
+    status: field.required ? 'review' : 'skip',
+    reason,
+  });
+
+  const match = matchField(field);
+  if (match.kind === 'sensitive') {
+    return leave(
+      match.reason === 'consent'
+        ? 'Consent or agreement — confirm it yourself'
+        : 'Personal question — answer it yourself',
+    );
+  }
+  if (match.kind === 'none') return leave('No matching profile field');
+
+  const { key, confidence } = match;
+  // Occurrence counting keeps repeated sections in order (2nd "School" → 2nd school).
+  const index = occurrences.get(key) ?? 0;
+  if (isIndexedKey(key)) occurrences.set(key, index + 1);
+
+  if (field.hasValue) return { ...base, key, confidence, status: 'skip', reason: 'Already filled' };
+
+  const value = resolveProfileValue(profile, key, index);
+  if (!value) return leave('Not in your profile yet', key);
+
+  const action = actionFor(field, key, value);
+  if ('problem' in action) {
+    // We know the answer but can't enter it (custom dropdown, no matching option…):
+    // always tell the user, even for optional fields, and show them the value.
+    return {
+      ...base,
+      key,
+      confidence,
+      status: 'review',
+      preview: describeValue(value),
+      reason: action.problem,
+    };
+  }
+
+  const review =
+    confidence < REVIEW_CONFIDENCE || action.confidence < 0.8 || ALWAYS_REVIEW.has(key);
+  return {
+    ...base,
+    key,
+    confidence,
+    action: action.action,
+    preview: action.preview,
+    status: review ? 'fill-review' : 'fill',
+    reason: review ? reviewReason(key, confidence, action.confidence) : '',
+  };
+}
+
+function reviewReason(key: FieldKey, confidence: number, optionConfidence: number): string {
+  if (ALWAYS_REVIEW.has(key)) return 'Legal question — confirm the answer';
+  if (confidence < REVIEW_CONFIDENCE) return 'Best guess from the page text — please check';
+  if (optionConfidence < 0.8) return 'Closest option chosen — please check';
+  return 'Please check';
+}
+
+type ActionResult =
+  { action: FillAction; preview: string; confidence: number } | { problem: string };
+
+function actionFor(field: FieldDescriptor, key: FieldKey, value: ProfileValue): ActionResult {
+  // ---- files
+  if (field.type === 'file') {
+    return value.kind === 'file'
+      ? { action: { kind: 'file' }, preview: value.fileName, confidence: 1 }
+      : { problem: 'Unsupported file field' };
+  }
+
+  // ---- lone checkbox ("I currently work here", "Willing to relocate")
+  if (field.type === 'checkbox' && !field.multiple) {
+    if (value.kind !== 'bool') return { problem: 'Couldn’t decide how to answer this checkbox' };
+    return {
+      action: { kind: 'check', checked: value.value },
+      preview: value.value ? 'Checked' : 'Unchecked',
+      confidence: 1,
+    };
+  }
+
+  // ---- choices: select, radio group, checkbox group
+  if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
+    if (field.widget === 'aria' && field.type === 'select') {
+      return { problem: 'Custom dropdown — choose the option yourself' };
+    }
+    let choice: OptionChoice | null = chooseOptions(field.options, value, field.multiple);
+    let confidence = choice?.confidence ?? 0;
+    // Yes/No question answered from free text (e.g. work authorization status).
+    if (!choice && value.kind === 'text' && key === 'professional.workAuthorization') {
+      const authorized = !/\b(requir|need|not|no)\w*/i.test(value.text);
+      choice = chooseOptions(field.options, { kind: 'bool', value: authorized });
+      confidence = 0.6;
+    }
+    if (!choice) return { problem: `No option matches “${describeValue(value)}”` };
+    const labels = choice.indices.map((i) => field.options[i]?.label ?? '').join(', ');
+    return { action: { kind: 'options', indices: choice.indices }, preview: labels, confidence };
+  }
+
+  // ---- dates in date/month inputs
+  if (field.type === 'date' || field.type === 'month') {
+    if (value.kind !== 'month') return { problem: 'Not a date in your profile' };
+    const text = field.type === 'month' ? value.month : `${value.month}-01`;
+    return { action: { kind: 'text', text }, preview: value.month, confidence: 1 };
+  }
+
+  // ---- free text
+  if (TEXT_INPUTS.has(field.type)) {
+    const text = textFor(value);
+    if (!text) return { problem: 'Nothing suitable to type here' };
+    if (field.type === 'number' && value.kind !== 'number' && !/^\d+(\.\d+)?$/.test(text)) {
+      return { problem: 'Field expects a number' };
+    }
+    if (field.type === 'contenteditable') {
+      return { problem: 'Rich-text box — paste this yourself: ' + text.slice(0, 60) };
+    }
+    return { action: { kind: 'text', text }, preview: text, confidence: 1 };
+  }
+
+  return { problem: 'Unsupported field type' };
+}
+
+function textFor(value: ProfileValue): string {
+  switch (value.kind) {
+    case 'text':
+    case 'number':
+      return value.text;
+    case 'bool':
+      return value.value ? 'Yes' : 'No';
+    case 'list':
+      return value.items.join(', ');
+    case 'month': {
+      const [year, month] = value.month.split('-');
+      return `${month}/${year}`;
+    }
+    case 'file':
+      return '';
+  }
+}
+
+/** Convenience for callers that just want "is this yes/no-shaped". */
+export function isYesNoQuestion(field: FieldDescriptor): boolean {
+  return field.options.length > 0 && field.options.every((o) => optionPolarity(o.label) !== null);
+}

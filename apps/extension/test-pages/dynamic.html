@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Dynamic form</title>
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+      label {
+        display: block;
+        margin: 0.5rem 0;
+      }
+      .step.hidden {
+        display: none;
+      }
+      .pulse {
+        outline: 1px solid transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Dynamic application</h1>
+    <p>Ticks: <span id="ticker">0</span></p>
+    <form id="form">
+      <label>Full name <input name="name" id="name" /></label>
+      <div id="late"></div>
+      <div id="education"></div>
+      <button type="button" id="add-edu">Add education</button>
+      <div class="step hidden" id="step2">
+        <h2>Step 2</h2>
+        <label>Expected salary <input name="salary" /></label>
+      </div>
+    </form>
+
+    <template id="edu-template">
+      <fieldset class="edu">
+        <legend>Education</legend>
+        <label>School <input name="school" /></label>
+        <label>Degree <input name="degree" /></label>
+      </fieldset>
+    </template>
+
+    <script>
+      // 1. Fields that arrive after page load (e.g. fetched config).
+      setTimeout(() => {
+        document.getElementById('late').innerHTML =
+          '<label>Email <input type="email" name="email" /></label>' +
+          '<label>Phone <input type="tel" name="phone" /></label>';
+      }, 300);
+
+      // 2. "Add another" repeatable sections.
+      document.getElementById('add-edu').addEventListener('click', () => {
+        const tpl = document.getElementById('edu-template');
+        document.getElementById('education').append(tpl.content.cloneNode(true));
+      });
+
+      // 3. Multi-step: a hidden step revealed by a class change.
+      setTimeout(() => document.getElementById('step2').classList.remove('hidden'), 700);
+
+      // 4. Noise that must NOT cause rescans: text updates and class churn on a control.
+      let ticks = 0;
+      const noise = setInterval(() => {
+        document.getElementById('ticker').textContent = String(++ticks);
+        document.getElementById('name').classList.toggle('pulse');
+        if (ticks >= 60) clearInterval(noise);
+      }, 20);
+    </script>
+  </body>
+</html>

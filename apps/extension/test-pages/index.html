@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>JobFill detection test pages</title>
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+      li {
+        margin: 0.5rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>JobFill detection test pages</h1>
+    <p>
+      Load a debug build (<code>npm run build:debug</code> or <code>npm run dev</code>), open a
+      page, then use the popup's debug panel or <code>jobfill.overlay()</code> in the JobFill
+      console context.
+    </p>
+    <ul>
+      <li>
+        <a href="simple.html">Simple HTML form</a> — labels, fieldsets, file, contenteditable,
+        honeypot
+      </li>
+      <li>
+        <a href="google-forms.html">Google Forms–style</a> — ARIA radios/checkboxes/listbox,
+        aria-labelledby
+      </li>
+      <li><a href="react.html">React form</a> — controlled inputs, useId, conditional field</li>
+      <li>
+        <a href="dynamic.html">Dynamic form</a> — late fields, "add another", hidden steps, DOM
+        noise
+      </li>
+      <li>
+        <a href="separated-labels.html">Visually separated labels</a> — grids, tables, loose text
+      </li>
+    </ul>
+  </body>
+</html>

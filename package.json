@@ -1,0 +1,53 @@
+{
+  "name": "jobfill",
+  "private": true,
+  "version": "0.1.0",
+  "description": "JobFill — privacy-first, local-only job application autofill.",
+  "type": "module",
+  "workspaces": [
+    "apps/extension",
+    "packages/types",
+    "packages/shared",
+    "packages/field-mapper"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @jobfill/extension",
+    "build": "npm run build -w @jobfill/extension",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:debug": "npm run build:debug -w @jobfill/extension",
+    "test-pages": "npm run test-pages -w @jobfill/extension"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^3.0.0",
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/chrome": "^0.3.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.1",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}

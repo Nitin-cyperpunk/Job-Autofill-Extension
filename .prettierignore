@@ -1,0 +1,5 @@
+node_modules
+dist
+dist-debug
+package-lock.json
+*.zip
