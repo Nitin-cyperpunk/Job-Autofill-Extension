@@ -13,6 +13,7 @@ export {
 } from './dictionary';
 export {
   matchField,
+  explainMatch,
   phraseScore,
   sectionContext,
   MIN_CONFIDENCE,

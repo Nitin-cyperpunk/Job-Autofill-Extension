@@ -1,5 +1,5 @@
 import type { FieldDescriptor, FieldKey, Profile } from '@jobfill/types';
-import { matchField, REVIEW_CONFIDENCE } from './match';
+import { explainMatch, matchField, REVIEW_CONFIDENCE } from './match';
 import { chooseOptions, optionPolarity, type OptionChoice } from './options';
 import { describeValue, isIndexedKey, resolveProfileValue, type ProfileValue } from './values';
 
@@ -12,7 +12,9 @@ export type FillAction =
   | { kind: 'text'; text: string }
   | { kind: 'options'; indices: number[] } // select / radio / checkbox group
   | { kind: 'check'; checked: boolean } // lone checkbox
-  | { kind: 'file' };
+  | { kind: 'file' }
+  /** Custom dropdown whose options may only exist once opened: match live options against `value`. */
+  | { kind: 'dropdown'; value: ProfileValue; search: string };
 
 /**
  * fill         – confident; will be filled.
@@ -35,6 +37,8 @@ export interface PlanItem {
   preview: string;
   /** Why an item needs review or was skipped. */
   reason: string;
+  /** Why it was mapped (or not): "label \"Email\" matched \"email\"". For the debug view. */
+  why: string;
 }
 
 /** Legal questions: always double-checked even when the mapping is certain. */
@@ -76,6 +80,7 @@ function planOne(
     confidence: 0,
     action: null as FillAction | null,
     preview: '',
+    why: '',
   };
   const leave = (reason: string, key: FieldKey | null = null): PlanItem => ({
     ...base,
@@ -85,6 +90,7 @@ function planOne(
   });
 
   const match = matchField(field);
+  base.why = explainMatch(field, match);
   if (match.kind === 'sensitive') {
     return leave(
       match.reason === 'consent'
@@ -161,8 +167,12 @@ function actionFor(field: FieldDescriptor, key: FieldKey, value: ProfileValue): 
 
   // ---- choices: select, radio group, checkbox group
   if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
-    if (field.widget === 'aria' && field.type === 'select') {
-      return { problem: 'Custom dropdown — choose the option yourself' };
+    // Custom dropdowns: options are often only rendered once opened (react-select,
+    // Workday). Use known options when present; otherwise match live at fill time.
+    if (field.widget === 'aria' && field.type === 'select' && field.options.length === 0) {
+      if (value.kind === 'file') return { problem: 'Unsupported value for a dropdown' };
+      const search = value.kind === 'list' ? (value.items[0] ?? '') : describeValue(value);
+      return { action: { kind: 'dropdown', value, search }, preview: describeValue(value), confidence: 0.85 };
     }
     let choice: OptionChoice | null = chooseOptions(field.options, value, field.multiple);
     let confidence = choice?.confidence ?? 0;

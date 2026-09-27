@@ -1,6 +1,6 @@
 import type { PlanItem } from '@jobfill/field-mapper';
 import type { FillResultItem, FillSummary } from '@jobfill/shared';
-import { planForFields } from '@/field-mapping';
+import { planForFields } from '@/mapping';
 import { loadProfile, loadResume } from '@/storage';
 import type { DetectedField } from '@/types';
 import { base64ToBlob } from '@/utils/file';

@@ -26,6 +26,7 @@ export type MatchSource =
   | 'placeholder'
   | 'name'
   | 'htmlId'
+  | 'dataHints'
   | 'nearbyText'
   | 'type';
 
@@ -40,6 +41,7 @@ const SOURCE_WEIGHT: Record<Exclude<MatchSource, 'autocomplete' | 'type'>, numbe
   placeholder: 0.85,
   name: 0.8,
   htmlId: 0.75,
+  dataHints: 0.75,
   nearbyText: 0.7,
 };
 
@@ -116,6 +118,7 @@ function signals(
     ['placeholder', normalizeText(field.placeholder)],
     ['name', normalizeText(field.name)],
     ['htmlId', normalizeText(field.htmlId)],
+    ['dataHints', normalizeText(field.dataHints)],
     ['nearbyText', normalizeText(field.nearbyText)],
   ];
 }
@@ -128,7 +131,10 @@ function findPhrase(texts: string[], phrases: string[]): string | null {
 
 export function matchField(field: FieldDescriptor): MatchResult {
   const texts = signals(field);
-  const humanTexts = [texts[0]![1], texts[1]![1], texts[2]![1], texts[5]![1]];
+  // Sensitive/consent checks only look at what a human reads, not ids.
+  const humanTexts = texts
+    .filter(([source]) => source === 'label' || source === 'ariaLabel' || source === 'placeholder' || source === 'nearbyText')
+    .map(([, text]) => text);
 
   // 1. Never answer demographic, identity or consent questions for the user.
   const sensitive = findPhrase(humanTexts, SENSITIVE);
@@ -185,4 +191,46 @@ export function matchField(field: FieldDescriptor): MatchResult {
 
 function round(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+const SOURCE_LABELS: Record<MatchSource, string> = {
+  autocomplete: 'autocomplete',
+  label: 'label',
+  ariaLabel: 'aria-label',
+  placeholder: 'placeholder',
+  name: 'name',
+  htmlId: 'id',
+  dataHints: 'data attribute',
+  nearbyText: 'nearby text',
+  type: 'input type',
+};
+
+/** One-line human explanation of a mapping decision, for the debug view. */
+export function explainMatch(field: FieldDescriptor, result: MatchResult): string {
+  if (result.kind === 'none') return 'No dictionary phrase matched the label, name, id or nearby text';
+  if (result.kind === 'sensitive') {
+    return result.reason === 'consent'
+      ? `Consent question ("${result.phrase}") — never answered automatically`
+      : `Personal question ("${result.phrase}") — never answered automatically`;
+  }
+  switch (result.source) {
+    case 'autocomplete':
+      return `autocomplete="${result.phrase}"`;
+    case 'type':
+      return `input type="${field.type}"`;
+    default: {
+      const raw: Record<string, string> = {
+        label: field.label,
+        ariaLabel: field.ariaLabel,
+        placeholder: field.placeholder,
+        name: field.name,
+        htmlId: field.htmlId,
+        dataHints: field.dataHints,
+        nearbyText: field.nearbyText,
+      };
+      const text = raw[result.source] ?? '';
+      const shown = text.length > 60 ? `${text.slice(0, 57)}…` : text;
+      return `${SOURCE_LABELS[result.source]} "${shown}" matched "${result.phrase}"`;
+    }
+  }
 }
