@@ -8,7 +8,7 @@ during the 2026-09-28 audit (see [AUDIT.md](AUDIT.md)). Recheck them after any c
 - [ ] **Support email:** a real inbox you monitor, for example `support@<your-domain>`. It goes
       in the dashboard, the privacy policy, the Support page and the FAQ.
 - [ ] **Domain / website URL:** the site defaults to the placeholder `https://www.jobfill.app`.
-      Register it or pick another, then set `NEXT_PUBLIC_SITE_URL`.
+      Register it or pick another, then set `NEXT_PUBLIC_APP_URL` (the old `NEXT_PUBLIC_SITE_URL` still works).
 - [ ] **Publisher name:** shown on the listing and in the privacy policy ("Crafted by
       Nitinverse" on the site suggests _Nitinverse_; confirm).
 - [ ] **Version:** keep `0.1.0` or ship as `1.0.0` (`apps/extension/package.json`).
@@ -48,12 +48,16 @@ during the 2026-09-28 audit (see [AUDIT.md](AUDIT.md)). Recheck them after any c
 
 - [x] ✅ Universal-claim wording fixed, "tested on sample pages" notes added, and Chrome's exact
       permission warning is on `/install`.
-- [ ] Decide on the GitHub "coming soon" card: set `NEXT_PUBLIC_GITHUB_URL` or hide it.
-      Reviewers can treat placeholders as an unfinished site.
+- [x] ✅ No "coming soon" cards left. GitHub (the repo) and Buy Me a Coffee are live, and
+      "Report a bug" goes to the repo's /issues page.
+- [ ] If the repo is public, check that its README and issue templates are ready for visitors.
+      If it's private, set `NEXT_PUBLIC_GITHUB_URL` to something public, because store users
+      will land there.
 - [ ] Decide on the resume line "stays on this device unless you choose an AI/cloud feature"
       (extension import screen and website). See AUDIT.md §11–13 for a more accurate
       alternative.
-- [ ] Deploy with `NEXT_PUBLIC_SITE_URL` set, plus `NEXT_PUBLIC_CHROME_WEB_STORE_URL` after the
+- [ ] Deploy on Vercel with Root Directory `apps/website` (steps in `apps/website/README.md`;
+      variables in `apps/website/.env.example`), with `NEXT_PUBLIC_APP_URL` set, plus `NEXT_PUBLIC_CHROME_WEB_STORE_URL` after the
       listing is approved.
 - [ ] Run `npm run verify -w @jobfill/website` (build + SEO check) and open every page on a phone.
 

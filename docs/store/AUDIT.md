@@ -161,8 +161,8 @@ and no runtime errors.
   JobFill attaches it to an application you're filling." The store docs here already describe it
   that way.
 
-- ⚠️ **Your decision: placeholders.** The website's GitHub card still shows "coming soon", because
-  your spec asked for marked placeholders. Store reviewers sometimes treat placeholders as an
-  unfinished site. Set the URL or hide the card before submitting.
+- ✅ **Placeholders:** none left on /support. GitHub now defaults to
+  https://github.com/Nitin-cyperpunk/Job-Autofill-Extension, and "Report a bug" goes to its
+  /issues page. Buy Me a Coffee is live.
 - ⚠️ **No support email or domain exists yet.** Every ⟨…⟩ placeholder in these documents
   depends on them.
