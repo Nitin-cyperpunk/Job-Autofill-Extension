@@ -7,21 +7,21 @@ scanned for remote code and secrets. The full test suite was run (vitest, 19+ fi
 
 Status key: ✅ passes · 🔧 fixed in this audit · ⚠️ open, needs action before submission · ℹ️ note
 
-| #  | Area                        | Status | Summary                                                                                              |
-| -- | --------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
-| 1  | Manifest V3 compliance      | 🔧 ✅  | MV3 with a module service worker and no deprecated keys. Name and description changed for the listing. |
-| 2  | Permissions                 | ✅     | `storage` only. Pinned by a test.                                                                     |
-| 3  | Host permissions            | ✅ ℹ️  | No `host_permissions`. The content script matches `http(s)://*/*` in all frames. Justification written. |
-| 4  | Content Security Policy     | ✅     | Default MV3 CSP (`script-src 'self'`). Verified: inline script injection is blocked on extension pages. |
-| 5  | Extension security          | 🔧 ✅  | Unreleased AI "JobFill service" provider could be selected by a stored setting. Now refused.         |
-| 6  | No exposed secrets          | ✅     | No keys, tokens or `.env` in source or bundle. The packager blocks secret-like strings.              |
-| 7  | Production build            | ✅     | Minified, no source maps, no dev-server references. The ZIP loads and works in Chromium.             |
-| 8  | Error handling              | ✅     | No runtime errors on any page. Unreachable tabs, quota and parse errors are shown to the user.       |
-| 9  | Accessibility               | ⚠️     | 2 serious and 3 moderate axe issues on some options pages. Fixes handed to the UI owner.             |
-| 10 | Performance                 | 🔧 ✅  | Code loaded on every page cut from about 117 KB to about 22 KB.                                      |
-| 11 | Privacy disclosures         | 🔧 ⚠️  | Policy written. Website privacy page lacks the Limited Use statement, contact and date.             |
-| 12 | Data usage disclosures      | ✅     | Dashboard answers drafted in PRIVACY_PRACTICES.md.                                                   |
-| 13 | User-facing permission text | 🔧     | Listing, FAQ and policy quote Chrome's exact warning and explain it.                                 |
+| #   | Area                        | Status | Summary                                                                                                 |
+| --- | --------------------------- | ------ | ------------------------------------------------------------------------------------------------------- |
+| 1   | Manifest V3 compliance      | 🔧 ✅  | MV3 with a module service worker and no deprecated keys. Name and description changed for the listing.  |
+| 2   | Permissions                 | ✅     | `storage` only. Pinned by a test.                                                                       |
+| 3   | Host permissions            | ✅ ℹ️  | No `host_permissions`. The content script matches `http(s)://*/*` in all frames. Justification written. |
+| 4   | Content Security Policy     | ✅     | Default MV3 CSP (`script-src 'self'`). Verified: inline script injection is blocked on extension pages. |
+| 5   | Extension security          | 🔧 ✅  | Unreleased AI "JobFill service" provider could be selected by a stored setting. Now refused.            |
+| 6   | No exposed secrets          | ✅     | No keys, tokens or `.env` in source or bundle. The packager blocks secret-like strings.                 |
+| 7   | Production build            | ✅     | Minified, no source maps, no dev-server references. The ZIP loads and works in Chromium.                |
+| 8   | Error handling              | ✅     | No runtime errors on any page. Unreachable tabs, quota and parse errors are shown to the user.          |
+| 9   | Accessibility               | ⚠️     | 2 serious and 3 moderate axe issues on some options pages. Fixes handed to the UI owner.                |
+| 10  | Performance                 | 🔧 ✅  | Code loaded on every page cut from about 117 KB to about 22 KB.                                         |
+| 11  | Privacy disclosures         | 🔧 ⚠️  | Policy written. Website privacy page lacks the Limited Use statement, contact and date.                 |
+| 12  | Data usage disclosures      | ✅     | Dashboard answers drafted in PRIVACY_PRACTICES.md.                                                      |
+| 13  | User-facing permission text | 🔧     | Listing, FAQ and policy quote Chrome's exact warning and explain it.                                    |
 
 ---
 
@@ -113,13 +113,13 @@ placeholders. `scripts/package-extension.mjs` refuses to package if secret-like 
 
 ## 9. Accessibility (axe-core 4, WCAG 2.1 A/AA + best practice)
 
-| Page                         | Result                                                                  |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| Welcome, Start, Privacy      | ✅ 0 issues                                                             |
-| Popup                        | ⚠️ moderate: no `<h1>`                                                  |
-| Onboarding: Resume & Links, Personal | ⚠️ moderate: no `<h1>`                                          |
-| Review, Profile dashboard    | ⚠️ **serious:** `aria-label` on a role-less `<span>` (6); **serious:** "Not added" text contrast 2.56:1 (13–14) |
-| Import resume                | ⚠️ moderate: no `<main>` landmark                                       |
+| Page                                 | Result                                                                                                          |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Welcome, Start, Privacy              | ✅ 0 issues                                                                                                     |
+| Popup                                | ⚠️ moderate: no `<h1>`                                                                                          |
+| Onboarding: Resume & Links, Personal | ⚠️ moderate: no `<h1>`                                                                                          |
+| Review, Profile dashboard            | ⚠️ **serious:** `aria-label` on a role-less `<span>` (6); **serious:** "Not added" text contrast 2.56:1 (13–14) |
+| Import resume                        | ⚠️ moderate: no `<main>` landmark                                                                               |
 
 The fixes (role or sr-only text, raising the faint text to slate-500 or higher, `<h1>`, `<main>`)
 were sent to the session doing the UI theme pass, which owns those files right now. ⚠️ Rerun the
@@ -153,6 +153,6 @@ axe check on the final build before submitting (see the checklist).
   - a privacy page missing the Limited Use sentence, the no-sale statement, a contact method and
     a visible date;
   - a Support page that has no way to get help, plus "coming soon" placeholders.
-  The full list with fixes was handed over. It must be fixed before the store listing links to it.
+    The full list with fixes was handed over. It must be fixed before the store listing links to it.
 - ⚠️ **No support email or domain exists yet.** Every ⟨…⟩ placeholder in these documents
   depends on them.

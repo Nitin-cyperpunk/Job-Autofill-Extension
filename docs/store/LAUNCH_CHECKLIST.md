@@ -10,7 +10,7 @@ during the 2026-09-28 audit (see [AUDIT.md](AUDIT.md)). Recheck them after any c
 - [ ] **Domain / website URL:** the site defaults to the placeholder `https://www.jobfill.app`.
       Register it or pick another, then set `NEXT_PUBLIC_SITE_URL`.
 - [ ] **Publisher name:** shown on the listing and in the privacy policy ("Crafted by
-      Nitinverse" on the site suggests *Nitinverse*; confirm).
+      Nitinverse" on the site suggests _Nitinverse_; confirm).
 - [ ] **Version:** keep `0.1.0` or ship as `1.0.0` (`apps/extension/package.json`).
 - [ ] **Developer account:** Chrome Web Store developer registration (one-time fee),
       2-step verification on, and the contact email verified.

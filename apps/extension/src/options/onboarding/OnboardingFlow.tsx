@@ -92,7 +92,7 @@ export function OnboardingFlow({
             >
               <ResumePanel />
               <div className="mt-8 border-t border-line pt-6">
-                <h3 className="text-base font-semibold text-fg">Professional links</h3>
+                <h2 className="text-base font-semibold text-fg">Professional links</h2>
                 <p className="mt-1 mb-4 text-sm text-muted">
                   Resume drive link, LinkedIn, portfolio, GitHub and X — all optional. JobFill fills
                   these into the matching fields on application forms.

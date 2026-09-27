@@ -33,6 +33,7 @@ resume link) and common screening questions your profile answers.
 
 **Why wasn't a field filled?**
 The popup's summary gives the reason for every field. Usually one of these applies:
+
 - the field already had a value (JobFill never overwrites what you typed);
 - it's a demographic, identity or consent question, which JobFill always leaves for you;
 - your profile doesn't have that information yet;

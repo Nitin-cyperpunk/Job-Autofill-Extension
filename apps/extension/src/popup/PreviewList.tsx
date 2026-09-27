@@ -85,7 +85,9 @@ export function PreviewList({
         </details>
       )}
       {skipped > 0 && (
-        <p className="text-xs text-muted">{skipped} other fields left as they are.</p>
+        <p className="text-xs text-muted">
+          {skipped} other {skipped === 1 ? 'field' : 'fields'} left as they are.
+        </p>
       )}
 
       <div className="flex gap-2">

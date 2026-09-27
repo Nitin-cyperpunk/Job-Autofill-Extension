@@ -51,17 +51,17 @@ data counts as collected when it is transmitted off the device. JobFill keeps da
 except for the optional, user-started AI feature, which sends a user-approved subset directly to
 the user's own AI provider. Tick these boxes to disclose that flow:
 
-| Dashboard category                    | Tick? | Why                                                                                                                                                                                             |
-| ------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Personally identifiable information   | ✅    | The profile (name, email, phone, address) is stored locally. None of it is ever sent to AI (`NEVER_SENT_TO_AI`), but it's stored and entered into forms the user chooses, so disclose it.    |
-| Health information                    | ❌    | Not asked for or stored. Disability questions are deliberately never answered.                                                                                                                 |
-| Financial and payment information     | ❌    | Only an optional free-text "expected salary". No payment data. Salary is never sent to AI.                                                                                                     |
-| Authentication information            | ✅    | The user's own AI API key (optional) is stored locally and sent only to the provider it belongs to.                                                                                            |
-| Personal communications               | ❌    |                                                                                                                                                                                                 |
-| Location                              | ✅    | City / state / country in the profile (stored locally, entered into forms). No GPS or IP geolocation.                                                                                          |
-| Web history                           | ❌    | No browsing or application history is kept.                                                                                                                                                    |
-| User activity                         | ❌    | No clicks, keystrokes or usage analytics are recorded.                                                                                                                                         |
-| Website content                       | ✅    | When the user asks for an AI answer, the question text and the job posting's text (first 3,000 chars) from the current page are sent to their chosen AI provider.                             |
+| Dashboard category                  | Tick? | Why                                                                                                                                                                                       |
+| ----------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Personally identifiable information | ✅    | The profile (name, email, phone, address) is stored locally. None of it is ever sent to AI (`NEVER_SENT_TO_AI`), but it's stored and entered into forms the user chooses, so disclose it. |
+| Health information                  | ❌    | Not asked for or stored. Disability questions are deliberately never answered.                                                                                                            |
+| Financial and payment information   | ❌    | Only an optional free-text "expected salary". No payment data. Salary is never sent to AI.                                                                                                |
+| Authentication information          | ✅    | The user's own AI API key (optional) is stored locally and sent only to the provider it belongs to.                                                                                       |
+| Personal communications             | ❌    |                                                                                                                                                                                           |
+| Location                            | ✅    | City / state / country in the profile (stored locally, entered into forms). No GPS or IP geolocation.                                                                                     |
+| Web history                         | ❌    | No browsing or application history is kept.                                                                                                                                               |
+| User activity                       | ❌    | No clicks, keystrokes or usage analytics are recorded.                                                                                                                                    |
+| Website content                     | ✅    | When the user asks for an AI answer, the question text and the job posting's text (first 3,000 chars) from the current page are sent to their chosen AI provider.                         |
 
 > Ticking PII and Location overstates what leaves the device, because those stay local. Google's
 > guidance counts data the extension "handles" in some reviews, so over-disclosing is the safe

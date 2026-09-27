@@ -1,8 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import { SITE } from '@/lib/site';
 
 /** The shared social card (1200×630), rendered once at build time. */
 export const dynamic = 'force-static';
+
+// The app icon, read at build time and embedded (ImageResponse can't fetch relative URLs).
+const ICON = `data:image/png;base64,${readFileSync(join(process.cwd(), 'public', 'logo-128.png')).toString('base64')}`;
 
 export function GET() {
   return new ImageResponse(
@@ -20,23 +25,7 @@ export function GET() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 16,
-            background: '#2f6fed',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            gap: 7,
-            padding: '0 14px',
-          }}
-        >
-          <div style={{ height: 7, width: 36, background: 'white', borderRadius: 2 }} />
-          <div style={{ height: 7, width: 36, background: 'white', borderRadius: 2 }} />
-          <div style={{ height: 7, width: 22, background: 'white', borderRadius: 2 }} />
-        </div>
+        <img src={ICON} width={72} height={72} alt="" />
         <div style={{ fontSize: 44, fontWeight: 700 }}>{SITE.name}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

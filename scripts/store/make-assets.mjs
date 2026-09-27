@@ -1,3 +1,4 @@
+/* global chrome -- used inside callbacks that run in the extension (Playwright evaluate) */
 // Chrome Web Store assets for JobFill, rendered in Chromium from the production build.
 //
 //   npm run build
@@ -33,10 +34,18 @@ function findChrome() {
     'ms-playwright',
   );
   const dir = fs.existsSync(base)
-    ? fs.readdirSync(base).filter((d) => /^chromium-\d+$/.test(d)).sort().pop()
+    ? fs
+        .readdirSync(base)
+        .filter((d) => /^chromium-\d+$/.test(d))
+        .sort()
+        .pop()
     : undefined;
   if (!dir) throw new Error('No Chromium found. Run: npx playwright-core install chromium');
-  for (const rel of ['chrome-win64/chrome.exe', 'chrome-linux/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium']) {
+  for (const rel of [
+    'chrome-win64/chrome.exe',
+    'chrome-linux/chrome',
+    'chrome-mac/Chromium.app/Contents/MacOS/Chromium',
+  ]) {
     const p = path.join(base, dir, rel);
     if (fs.existsSync(p)) return p;
   }
@@ -47,17 +56,13 @@ function findChrome() {
 
 const BRAND = { 600: '#1f5ad6', 500: '#2f6fed', 700: '#1a47a8', 900: '#0f2557' };
 
-/** The JobFill mark: a rounded tile with three "form lines". `size` is the tile, not the canvas. */
+/**
+ * The JobFill mark, from the master app icon (docs/store/assets/app-icon-master.png, 1024 px,
+ * transparent corners). Every icon and tile is derived from it, so there is one source of truth.
+ */
+const MASTER = fs.readFileSync(path.join(OUT, 'app-icon-master.png')).toString('base64');
 function mark(size) {
-  const r = size * 0.22;
-  const bar = (y, w) =>
-    `<rect x="${size * 0.22}" y="${size * y}" width="${size * w}" height="${size * 0.12}" rx="${size * 0.02}" fill="#fff"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${BRAND[500]}"/><stop offset="1" stop-color="${BRAND[700]}"/></linearGradient></defs>
-    <rect width="${size}" height="${size}" rx="${r}" fill="url(#g)"/>
-    ${bar(0.25, 0.56)}${bar(0.44, 0.44)}${bar(0.63, 0.3)}
-  </svg>`;
+  return `<img src="data:image/png;base64,${MASTER}" width="${size}" height="${size}" style="display:block">`;
 }
 
 const FONT = `font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;`;
@@ -72,7 +77,7 @@ function promoPage(w, h) {
   const big = h >= 500;
   return `<html><body style="margin:0">
   <div style="width:${w}px;height:${h}px;box-sizing:border-box;display:flex;align-items:center;gap:${big ? 56 : 24}px;
-      padding:0 ${big ? 110 : 32}px;background:linear-gradient(135deg,${BRAND[900]} 0%,#0f2f75 55%,${BRAND[600]} 100%);${FONT}color:#fff">
+      padding:0 ${big ? 110 : 32}px;background:linear-gradient(135deg,#0b1033 0%,#16237a 55%,#4a3ae0 100%);${FONT}color:#fff">
     ${mark(big ? 200 : 96)}
     <div>
       <div style="font-size:${big ? 76 : 40}px;font-weight:700;letter-spacing:-0.02em">JobFill</div>
@@ -93,9 +98,22 @@ async function shoot(browser, html, { width, height, file, transparent = false }
 
 async function makeIcons() {
   const browser = await chromium.launch({ executablePath: findChrome() });
-  await shoot(browser, iconPage(), { width: 128, height: 128, file: 'store-icon-128.png', transparent: true });
-  await shoot(browser, promoPage(440, 280), { width: 440, height: 280, file: 'promo-small-440x280.png' });
-  await shoot(browser, promoPage(1400, 560), { width: 1400, height: 560, file: 'promo-marquee-1400x560.png' });
+  await shoot(browser, iconPage(), {
+    width: 128,
+    height: 128,
+    file: 'store-icon-128.png',
+    transparent: true,
+  });
+  await shoot(browser, promoPage(440, 280), {
+    width: 440,
+    height: 280,
+    file: 'promo-small-440x280.png',
+  });
+  await shoot(browser, promoPage(1400, 560), {
+    width: 1400,
+    height: 560,
+    file: 'promo-marquee-1400x560.png',
+  });
   await browser.close();
 }
 
@@ -132,17 +150,37 @@ const FORM = `<!doctype html><html><head><meta charset="utf-8"><title>Northwind 
 const PROFILE = {
   schemaVersion: 2,
   personal: {
-    firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', phone: '+44 20 7946 0000',
-    city: 'London', country: 'United Kingdom',
+    firstName: 'Ada',
+    lastName: 'Lovelace',
+    email: 'ada@example.com',
+    phone: '+44 20 7946 0000',
+    city: 'London',
+    country: 'United Kingdom',
   },
-  professional: { currentTitle: 'Staff Software Engineer', currentCompany: 'Analytical Engines Ltd', yearsOfExperience: '7' },
+  professional: {
+    currentTitle: 'Staff Software Engineer',
+    currentCompany: 'Analytical Engines Ltd',
+    yearsOfExperience: '7',
+  },
   skills: { technical: ['TypeScript', 'React', 'SQL'], soft: [], languages: ['English', 'French'] },
   links: {
-    linkedin: 'https://linkedin.com/in/ada-lovelace', github: 'https://github.com/ada', portfolio: 'https://ada.dev',
-    x: '', resumeUrl: '', website: '', other: [],
+    linkedin: 'https://linkedin.com/in/ada-lovelace',
+    github: 'https://github.com/ada',
+    portfolio: 'https://ada.dev',
+    x: '',
+    resumeUrl: '',
+    website: '',
+    other: [],
   },
-  resume: { fileName: 'ada-lovelace-resume.pdf', mimeType: 'application/pdf', sizeBytes: 48213, uploadedAt: '2026-09-01T09:00:00.000Z' },
-  createdAt: '2026-09-01T09:00:00.000Z', updatedAt: '2026-09-01T09:00:00.000Z', onboardingCompletedAt: '2026-09-01T09:00:00.000Z',
+  resume: {
+    fileName: 'ada-lovelace-resume.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 48213,
+    uploadedAt: '2026-09-01T09:00:00.000Z',
+  },
+  createdAt: '2026-09-01T09:00:00.000Z',
+  updatedAt: '2026-09-01T09:00:00.000Z',
+  onboardingCompletedAt: '2026-09-01T09:00:00.000Z',
 };
 
 function frame({ caption, sub, images }) {
@@ -163,8 +201,11 @@ function frame({ caption, sub, images }) {
 }
 
 async function makeScreenshots() {
-  if (!fs.existsSync(path.join(DIST, 'manifest.json'))) throw new Error('Run `npm run build` first.');
-  const server = http.createServer((_, res) => res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(FORM));
+  if (!fs.existsSync(path.join(DIST, 'manifest.json')))
+    throw new Error('Run `npm run build` first.');
+  const server = http.createServer((_, res) =>
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(FORM),
+  );
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const formUrl = `http://127.0.0.1:${server.address().port}/apply`;
 
@@ -173,11 +214,17 @@ async function makeScreenshots() {
     executablePath: findChrome(),
     headless: false,
     viewport: { width: 1280, height: 800 },
-    args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`, '--window-position=-2400,0'],
+    args: [
+      `--disable-extensions-except=${DIST}`,
+      `--load-extension=${DIST}`,
+      '--window-position=-2400,0',
+    ],
   });
   const sw = ctx.serviceWorkers()[0] ?? (await ctx.waitForEvent('serviceworker'));
   const extId = new URL(sw.url()).host;
-  const pdf = fs.readFileSync(path.join(ROOT, 'packages', 'resume', 'src', 'fixtures', 'chrome-resume.pdf'));
+  const pdf = fs.readFileSync(
+    path.join(ROOT, 'packages', 'resume', 'src', 'fixtures', 'chrome-resume.pdf'),
+  );
   await sw.evaluate(
     async ({ profile, data }) => {
       await chrome.storage.local.clear();
@@ -207,7 +254,11 @@ async function makeScreenshots() {
   await form.setViewportSize({ width: 760, height: 900 });
   await form.goto(formUrl);
   await form.waitForTimeout(1200);
-  const tabId = await sw.evaluate(async () => (await chrome.tabs.query({})).find((t) => !t.url?.startsWith('chrome'))?.id ?? (await chrome.tabs.query({})).at(-1).id);
+  const tabId = await sw.evaluate(
+    async () =>
+      (await chrome.tabs.query({})).find((t) => !t.url?.startsWith('chrome'))?.id ??
+      (await chrome.tabs.query({})).at(-1).id,
+  );
   const popup = await ctx.newPage();
   await popup.setViewportSize({ width: 380, height: 600 });
   const popupUrl = `chrome-extension://${extId}/src/popup/index.html?tabId=${tabId}`;
@@ -231,15 +282,24 @@ async function makeScreenshots() {
   await popup.goto(popupUrl);
   await popup.waitForTimeout(900);
   await popup.getByLabel(/preview fields before filling/i).check();
-  await popup.getByRole('button', { name: /autofill application|preview/i }).first().click();
+  await popup
+    .getByRole('button', { name: /autofill application|preview/i })
+    .first()
+    .click();
   await popup.waitForTimeout(1200);
   const previewShot = await capture(popup, { fullPage: true });
-  await popup.getByLabel(/preview fields before filling/i).uncheck().catch(() => null);
+  await popup
+    .getByLabel(/preview fields before filling/i)
+    .uncheck()
+    .catch(() => null);
 
   await compose('screenshot-1-autofill.png', {
     caption: 'Autofill an application in one click',
     sub: 'JobFill fills what it recognises from your profile and shows you exactly what it did.',
-    images: [{ data: formShot, maxH: 640 }, { data: summaryShot, maxH: 640 }],
+    images: [
+      { data: formShot, maxH: 640 },
+      { data: summaryShot, maxH: 640 },
+    ],
   });
   await compose('screenshot-2-preview.png', {
     caption: 'Preview before anything is filled',
@@ -260,13 +320,19 @@ async function makeScreenshots() {
   });
 
   // 4. Résumé import review.
-  await options.goto(`chrome-extension://${extId}/src/options/index.html#/import-resume?from=profile`);
+  await options.goto(
+    `chrome-extension://${extId}/src/options/index.html#/import-resume?from=profile`,
+  );
   await options.waitForTimeout(800);
-  await options.evaluate(() => chrome.storage.local.set({ 'jobfill.profile.v2': { schemaVersion: 2 } }));
+  await options.evaluate(() =>
+    chrome.storage.local.set({ 'jobfill.profile.v2': { schemaVersion: 2 } }),
+  );
   await options.reload();
   await options.waitForTimeout(800);
   await options.locator('input[type=file]').first().setInputFiles({
-    name: 'ada-lovelace-resume.pdf', mimeType: 'application/pdf', buffer: pdf,
+    name: 'ada-lovelace-resume.pdf',
+    mimeType: 'application/pdf',
+    buffer: pdf,
   });
   await options.waitForTimeout(1800);
   await noScrollbars(options);
@@ -277,7 +343,10 @@ async function makeScreenshots() {
   });
 
   // 5. Privacy & data controls.
-  await sw.evaluate(async (profile) => chrome.storage.local.set({ 'jobfill.profile.v2': profile }), PROFILE);
+  await sw.evaluate(
+    async (profile) => chrome.storage.local.set({ 'jobfill.profile.v2': profile }),
+    PROFILE,
+  );
   await options.goto(`chrome-extension://${extId}/src/options/index.html#/privacy`);
   await options.waitForTimeout(1000);
   await noScrollbars(options);

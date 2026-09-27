@@ -83,16 +83,16 @@ Help and FAQ: ⟨SITE_URL⟩/support
 
 All in [`assets/`](assets/). Regenerate with `node scripts/store/make-assets.mjs` (see the script header).
 
-| Dashboard slot               | File                                 | Size     | Required |
-| ---------------------------- | ------------------------------------ | -------- | -------- |
-| Store icon                   | `store-icon-128.png`                 | 128×128  | yes      |
-| Screenshot 1                 | `screenshot-1-autofill.png`          | 1280×800 | yes (≥1) |
-| Screenshot 2                 | `screenshot-2-preview.png`           | 1280×800 |          |
-| Screenshot 3                 | `screenshot-3-profile.png`           | 1280×800 |          |
-| Screenshot 4                 | `screenshot-4-resume-import.png`     | 1280×800 |          |
-| Screenshot 5                 | `screenshot-5-privacy.png`           | 1280×800 |          |
-| Small promo tile             | `promo-small-440x280.png`            | 440×280  | yes      |
-| Marquee promo tile           | `promo-marquee-1400x560.png`         | 1400×560 | optional |
+| Dashboard slot     | File                             | Size     | Required |
+| ------------------ | -------------------------------- | -------- | -------- |
+| Store icon         | `store-icon-128.png`             | 128×128  | yes      |
+| Screenshot 1       | `screenshot-1-autofill.png`      | 1280×800 | yes (≥1) |
+| Screenshot 2       | `screenshot-2-preview.png`       | 1280×800 |          |
+| Screenshot 3       | `screenshot-3-profile.png`       | 1280×800 |          |
+| Screenshot 4       | `screenshot-4-resume-import.png` | 1280×800 |          |
+| Screenshot 5       | `screenshot-5-privacy.png`       | 1280×800 |          |
+| Small promo tile   | `promo-small-440x280.png`        | 440×280  | yes      |
+| Marquee promo tile | `promo-marquee-1400x560.png`     | 1400×560 | optional |
 
 The icon uses 96×96 artwork centred on a transparent 128×128 canvas, as the store asks. The
 manifest's 128 px icon is the same file. The screenshots show fictional sample data (Ada
