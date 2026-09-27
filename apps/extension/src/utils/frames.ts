@@ -80,7 +80,14 @@ export async function fillAllFrames(approvedIds?: string[]): Promise<FillSummary
     byFrame.set(frameId, [...(byFrame.get(frameId) ?? []), fieldId]);
   }
 
-  const merged: FillSummary = { filledCount: 0, filled: [], review: [], skipped: 0, revealed: 0, questions: [] };
+  const merged: FillSummary = {
+    filledCount: 0,
+    filled: [],
+    review: [],
+    skipped: 0,
+    revealed: 0,
+    questions: [],
+  };
   for (const frameId of frames) {
     if (approvedIds && !byFrame.has(frameId)) continue;
     const res = await sendToFrame(tabId, frameId, {

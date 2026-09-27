@@ -5,7 +5,11 @@ import { TextField } from '@/components/ui/Field';
 import type { SectionFormProps } from './types';
 import { EntrySummary, ExternalLink, NotProvided } from './summary-ui';
 
-export function CertificationsForm({ value, onChange, errors }: SectionFormProps<'certifications'>) {
+export function CertificationsForm({
+  value,
+  onChange,
+  errors,
+}: SectionFormProps<'certifications'>) {
   return (
     <EntryList
       items={value}

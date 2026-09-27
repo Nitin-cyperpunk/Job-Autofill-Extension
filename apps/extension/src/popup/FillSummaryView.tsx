@@ -59,7 +59,8 @@ export function FillSummaryView({
         <div className="rounded-lg border border-slate-200 p-3">
           <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <PencilIcon className="h-4 w-4 shrink-0 text-slate-500" />
-            {questions.length} {questions.length === 1 ? 'question needs' : 'questions need'} your words
+            {questions.length} {questions.length === 1 ? 'question needs' : 'questions need'} your
+            words
           </p>
           <ul className="mt-2 space-y-2 text-xs">
             {questions.map((item) => (

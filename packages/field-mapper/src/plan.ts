@@ -107,7 +107,9 @@ function planOne(
   }
   if (match.kind === 'none') {
     base.openEnded = !field.hasValue && isOpenEndedQuestion(field);
-    return leave(base.openEnded ? 'Open question — write it yourself or use AI' : 'No matching profile field');
+    return leave(
+      base.openEnded ? 'Open question — write it yourself or use AI' : 'No matching profile field',
+    );
   }
 
   const { key, confidence } = match;
@@ -262,7 +264,8 @@ function authorizedAnswer(status: string): ProfileValue {
 }
 
 /** Prompts that ask for the applicant's own words. */
-const ESSAY_START = /^(why|describe|tell|explain|share|please describe|please tell|in your own words)\b/i;
+const ESSAY_START =
+  /^(why|describe|tell|explain|share|please describe|please tell|in your own words)\b/i;
 /** Short factual / yes-no prompts: not essays, even when phrased as questions. */
 const FACTUAL_START =
   /^(how did you (hear|find)|where did you|which|when|are you|do you|did you|have you|will you|can you|is |were you|would you)/i;

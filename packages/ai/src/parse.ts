@@ -16,7 +16,10 @@ export function fitLength(text: string, max?: number): string {
  * surrounding prose; rejects anything without all three non-empty strings.
  */
 export function parseVariants(raw: string, maxLength?: number): AnswerVariants {
-  const text = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const text = raw
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '');
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   let data: unknown;

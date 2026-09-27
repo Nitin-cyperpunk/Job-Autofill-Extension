@@ -8,7 +8,7 @@ export const STORAGE_KEYS = {
   profile: 'jobfill.profile.v2',
   resume: 'jobfill.resume.v1',
   settings: 'jobfill.settings.v1',
-  /** Optional AI settings incl. the user's own API key. Read only by the background worker. */
+  /** Optional AI settings incl. the user's own API key. Read by the background worker (to call the provider) and the settings page (to edit them) — never by content scripts. */
   ai: 'jobfill.ai.v1',
   /** Phase-1 flat profile. Read once, migrated to `profile`, then removed. */
   legacyProfileV1: 'jobfill.profile.v1',

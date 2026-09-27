@@ -4,7 +4,7 @@ import { loadAISettings } from '@/storage/ai-settings';
 import { logger } from '@/utils/logger';
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
-  logger.info('installed:', reason);
+  logger.info(`installed (${reason})`);
   if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
     // First run: send the user straight to the profile page.
     void chrome.runtime.openOptionsPage();
@@ -13,7 +13,9 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
 
 /** Messages from JobFill's own pages (popup / options), not from content scripts in web pages. */
 function fromExtensionPage(sender: chrome.runtime.MessageSender): boolean {
-  return sender.id === chrome.runtime.id && (sender.url ?? '').startsWith(chrome.runtime.getURL(''));
+  return (
+    sender.id === chrome.runtime.id && (sender.url ?? '').startsWith(chrome.runtime.getURL(''))
+  );
 }
 
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
@@ -48,7 +50,10 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
       void (async () => {
         try {
           const provider = createProvider(await loadAISettings());
-          const variants = await provider.generateAnswers(message.request, AbortSignal.timeout(45_000));
+          const variants = await provider.generateAnswers(
+            message.request,
+            AbortSignal.timeout(45_000),
+          );
           sendResponse({ ok: true, variants } satisfies MessageResponse<'AI_GENERATE'>);
         } catch (err) {
           const text =

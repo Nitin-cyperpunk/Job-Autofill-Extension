@@ -12,7 +12,7 @@ export type {
   JobContext,
   ProviderId,
 } from './types';
-export { LIMITS, buildContextItems, buildRequest } from './context';
+export { LIMITS, NEVER_SENT_TO_AI, buildContextItems, buildRequest } from './context';
 export type { ContextItem, ContextItemId, QuestionInput } from './context';
 export { SYSTEM_PROMPT, buildUserPrompt } from './prompt';
 export { fitLength, parseVariants } from './parse';

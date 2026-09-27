@@ -1,49 +1,20 @@
+import { readFileSync } from 'node:fs';
 import { deflateRawSync, deflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { createEmptyProfile } from '@jobfill/shared';
 import { sampleProfile } from '../../field-mapper/src/test-helpers';
-import { applyReview, buildReview, docxToText, extractResumeText, parseResumeText, pdfToText } from './index';
+import {
+  applyReview,
+  buildReview,
+  docxToText,
+  extractResumeText,
+  parseResumeText,
+  pdfToText,
+} from './index';
+import { InflateLimitError, inflate } from './inflate';
+import { SAMPLE_RESUME } from './test-fixtures';
 
-const RESUME = `ADA LOVELACE
-Staff Software Engineer
-ada@example.com | +44 20 7946 0000 | London, UK
-linkedin.com/in/ada-lovelace | github.com/ada | ada.dev
-
-SUMMARY
-Engineer with 7 years building analytical products.
-I care about accessible, reliable software.
-
-EXPERIENCE
-Staff Software Engineer — Analytical Engines Ltd          Mar 2020 – Present
-London, UK
-• Led the difference engine team of 6 engineers.
-• Cut report latency by 40%.
-Software Engineer | Babbage & Co | 07/2016 - 02/2020
-• Built the punch-card compiler.
-
-EDUCATION
-University of London — M.Sc. in Mathematics            2014 – 2016
-GPA: 3.9/4.0
-Cambridge University
-B.Sc. Computer Science, 2013
-
-SKILLS
-Languages: English, French
-Technical: TypeScript, React, SQL, Rust
-Leadership • Mentoring
-
-PROJECTS
-Notes App | React, TypeScript
-• Offline-first notes with sync. https://github.com/ada/notes
-Analytical Engine Emulator
-• Emulates the 1837 design in the browser. https://engine.ada.dev
-
-CERTIFICATIONS
-AWS Certified Solutions Architect — Amazon Web Services, 2022
-Certified Scrum Master (Scrum Alliance) 05/2019
-
-INTERESTS
-Poetry, chess`;
+const RESUME = SAMPLE_RESUME;
 
 describe('parseResumeText', () => {
   const r = parseResumeText(RESUME);
@@ -97,20 +68,39 @@ describe('parseResumeText', () => {
       endDate: '2016-01',
       gpa: '3.9/4.0',
     });
-    expect(r.education[1]).toMatchObject({ institution: 'Cambridge University', degree: 'B.Sc.', fieldOfStudy: 'Computer Science' });
+    expect(r.education[1]).toMatchObject({
+      institution: 'Cambridge University',
+      degree: 'B.Sc.',
+      fieldOfStudy: 'Computer Science',
+    });
   });
 
   it('separates spoken languages from technical skills', () => {
     expect(r.skills.languages).toEqual(['English', 'French']);
-    expect(r.skills.technical).toEqual(['TypeScript', 'React', 'SQL', 'Rust', 'Leadership', 'Mentoring']);
+    expect(r.skills.technical).toEqual([
+      'TypeScript',
+      'React',
+      'SQL',
+      'Rust',
+      'Leadership',
+      'Mentoring',
+    ]);
   });
 
   it('reads projects and certifications', () => {
     expect(r.projects.map((p) => p.name)).toEqual(['Notes App', 'Analytical Engine Emulator']);
-    expect(r.projects[0]).toMatchObject({ technologies: ['React', 'TypeScript'], githubUrl: 'https://github.com/ada/notes' });
+    expect(r.projects[0]).toMatchObject({
+      technologies: ['React', 'TypeScript'],
+      githubUrl: 'https://github.com/ada/notes',
+    });
     expect(r.projects[1]!.url).toBe('https://engine.ada.dev');
     expect(r.certifications).toEqual([
-      { name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', date: '2022-01', url: '' },
+      {
+        name: 'AWS Certified Solutions Architect',
+        issuer: 'Amazon Web Services',
+        date: '2022-01',
+        url: '',
+      },
       { name: 'Certified Scrum Master', issuer: 'Scrum Alliance', date: '2019-05', url: '' },
     ]);
   });
@@ -119,8 +109,18 @@ describe('parseResumeText', () => {
     expect(JSON.stringify(r)).not.toContain('Poetry');
   });
 
+  it('never mistakes parts of an email address for a website', () => {
+    const r2 = parseResumeText(
+      'Jane Doe\njane.doe@mail.example.org | +1 415 555 0100\n\nSKILLS\nGo',
+    );
+    expect(r2.personal.email).toBe('jane.doe@mail.example.org');
+    expect(r2.links).toEqual({ linkedin: '', github: '', portfolio: '', website: '' });
+  });
+
   it('leaves fields empty rather than guessing', () => {
-    const sparse = parseResumeText('Just some notes\nabout nothing in particular\n\nHOBBIES\nKnitting');
+    const sparse = parseResumeText(
+      'Just some notes\nabout nothing in particular\n\nHOBBIES\nKnitting',
+    );
     expect(sparse.personal).toMatchObject({ firstName: '', email: '', phone: '' });
     expect(sparse.experience).toEqual([]);
   });
@@ -140,7 +140,10 @@ function crc32(buf: Uint8Array): number {
 /** A minimal but valid .docx (zip with a deflated word/document.xml). */
 function makeDocx(paragraphs: string[]): Uint8Array {
   const xml = `<?xml version="1.0"?><w:document xmlns:w="w"><w:body>${paragraphs
-    .map((p) => `<w:p><w:r><w:t>${p.replace(/&/g, '&amp;').replace(/\t/g, '</w:t><w:tab/><w:t>')}</w:t></w:r></w:p>`)
+    .map(
+      (p) =>
+        `<w:p><w:r><w:t>${p.replace(/&/g, '&amp;').replace(/\t/g, '</w:t><w:tab/><w:t>')}</w:t></w:r></w:p>`,
+    )
     .join('')}</w:body></w:document>`;
   const data = new TextEncoder().encode(xml);
   const compressed = deflateRawSync(data);
@@ -179,7 +182,12 @@ function makePdf(objects: Array<string | { dict: string; stream: Buffer }>): Uin
   objects.forEach((o, i) => {
     if (typeof o === 'string') parts.push(Buffer.from(`${i + 1} 0 obj\n${o}\nendobj\n`, 'latin1'));
     else {
-      parts.push(Buffer.from(`${i + 1} 0 obj\n${o.dict.replace('>>', ` /Length ${o.stream.length} >>`)}\nstream\n`, 'latin1'));
+      parts.push(
+        Buffer.from(
+          `${i + 1} 0 obj\n${o.dict.replace('>>', ` /Length ${o.stream.length} >>`)}\nstream\n`,
+          'latin1',
+        ),
+      );
       parts.push(o.stream, Buffer.from('\nendstream\nendobj\n', 'latin1'));
     }
   });
@@ -188,14 +196,26 @@ function makePdf(objects: Array<string | { dict: string; stream: Buffer }>): Uin
 }
 
 describe('local text extraction', () => {
+  it('refuses decompression bombs instead of exhausting memory', async () => {
+    const bomb = new Uint8Array(deflateSync(Buffer.alloc(2 * 1024 * 1024)));
+    expect(bomb.length).toBeLessThan(10_000);
+    await expect(inflate(bomb, 'deflate', 1024 * 1024)).rejects.toBeInstanceOf(InflateLimitError);
+    expect((await inflate(bomb, 'deflate')).length).toBe(2 * 1024 * 1024);
+  });
+
   it('reads a .docx (zip + deflate) with paragraphs and tabs', async () => {
-    const text = await docxToText(makeDocx(['ADA LOVELACE', 'ada@example.com', 'Engineer\tLondon']));
+    const text = await docxToText(
+      makeDocx(['ADA LOVELACE', 'ada@example.com', 'Engineer\tLondon']),
+    );
     expect(text).toBe('ADA LOVELACE\nada@example.com\nEngineer\tLondon');
   });
 
   it('reads a compressed PDF with a simple font (Word-style WinAnsi)', async () => {
     const content = deflateSync(
-      Buffer.from('BT /F1 12 Tf 72 720 Td (ADA LOVELACE) Tj 0 -14 Td (ada@example.com) Tj 0 -14 Td [(Staff) -300 (Engineer)] TJ ET', 'latin1'),
+      Buffer.from(
+        'BT /F1 12 Tf 72 720 Td (ADA LOVELACE) Tj 0 -14 Td (ada@example.com) Tj 0 -14 Td [(Staff) -300 (Engineer)] TJ ET',
+        'latin1',
+      ),
     );
     const pdf = makePdf([
       '<< /Type /Catalog /Pages 2 0 R >>',
@@ -207,6 +227,20 @@ describe('local text extraction', () => {
     expect(await pdfToText(pdf)).toBe('ADA LOVELACE\nada@example.com\nStaff Engineer');
   });
 
+  it('tolerates `null` values inside arrays and dictionaries', async () => {
+    const content = deflateSync(
+      Buffer.from('BT /F1 12 Tf 72 720 Td (ADA LOVELACE) Tj ET', 'latin1'),
+    );
+    const pdf = makePdf([
+      '<< /Type /Catalog /Pages 2 0 R /OpenAction [3 0 R /XYZ null null 0] >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /Annots null /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>',
+      { dict: '<< /Filter /FlateDecode >>', stream: content },
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    ]);
+    expect(await pdfToText(pdf)).toBe('ADA LOVELACE');
+  });
+
   it('reads a PDF whose font uses glyph ids + ToUnicode (Google Docs / Word export style)', async () => {
     // Glyph ids 1..5 → "A","d","a"," ","L" etc. via a 2-byte ToUnicode CMap.
     const cmap = `/CIDInit /ProcSet findresource begin 12 dict begin begincmap
@@ -214,7 +248,12 @@ describe('local text extraction', () => {
 2 beginbfchar <0001> <0041> <0002> <0064> endbfchar
 1 beginbfrange <0003> <0004> <0061> endbfrange
 endcmap end end`;
-    const content = deflateSync(Buffer.from('BT /F1 11 Tf 1 0 0 1 72 700 Tm <0001000200030004> Tj 1 0 0 1 72 680 Tm <0001> Tj ET', 'latin1'));
+    const content = deflateSync(
+      Buffer.from(
+        'BT /F1 11 Tf 1 0 0 1 72 700 Tm <0001000200030004> Tj 1 0 0 1 72 680 Tm <0001> Tj ET',
+        'latin1',
+      ),
+    );
     const pdf = makePdf([
       '<< /Type /Catalog /Pages 2 0 R >>',
       '<< /Type /Pages /Kids [3 0 R] /Count 1 /Resources << /Font << /F1 5 0 R >> >> >>',
@@ -226,10 +265,38 @@ endcmap end end`;
     expect(await pdfToText(pdf)).toBe('Adab\nA');
   });
 
+  it('reads a real Chrome/Skia PDF (per-glyph positioning, subset CID fonts)', async () => {
+    // Printed by Chrome from a fictional résumé. Glyphs are placed one by one with Td,
+    // so word breaks must come from glyph widths, not from every reposition.
+    const bytes = new Uint8Array(
+      readFileSync(new URL('./fixtures/chrome-resume.pdf', import.meta.url)),
+    );
+    const text = await pdfToText(bytes);
+    expect(text).toContain('Ada Lovelace');
+    expect(text).toContain('ada.lovelace@example.com | +44 20 7946 0000 | London, UK');
+    expect(text).toMatch(/^EXPERIENCE$/m);
+    expect(text).toContain('Senior Software Engineer — Difference Labs');
+    const parsed = parseResumeText(text);
+    expect(parsed.personal).toMatchObject({
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      phone: '+44 20 7946 0000',
+      city: 'London',
+    });
+    expect(parsed.experience.map((e) => e.company)).toEqual(['Difference Labs', 'Babbage & Co']);
+    expect(parsed.certifications[0]?.name).toBe('AWS Certified Developer');
+  });
+
   it('explains image-only PDFs and unsupported formats instead of guessing', async () => {
-    const scanned = makePdf(['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R >>']);
+    const scanned = makePdf([
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R >>',
+    ]);
     await expect(extractResumeText(scanned, 'scan.pdf')).rejects.toThrow(/scanned image/);
-    await expect(extractResumeText(new Uint8Array([1, 2, 3]), 'old.doc')).rejects.toThrow(/Save it as PDF or DOCX/);
+    await expect(extractResumeText(new Uint8Array([1, 2, 3]), 'old.doc')).rejects.toThrow(
+      /Save it as PDF or DOCX/,
+    );
   });
 
   it('end to end: docx → text → structured profile', async () => {
@@ -262,12 +329,22 @@ describe('review: never overwrite silently', () => {
     profile.professional.currentTitle = 'AI Engineer';
     const review = buildReview(profile, extracted);
     const title = review.items.find((i) => i.id === 'professional.currentTitle');
-    expect(title).toMatchObject({ kind: 'scalar', status: 'conflict', existing: 'AI Engineer', extracted: 'Staff Software Engineer' });
+    expect(title).toMatchObject({
+      kind: 'scalar',
+      status: 'conflict',
+      existing: 'AI Engineer',
+      extracted: 'Staff Software Engineer',
+    });
     expect(review.defaults.has('professional.currentTitle')).toBe(false);
 
     const kept = applyReview(profile, extracted, review, review.defaults);
     expect(kept.professional.currentTitle).toBe('AI Engineer');
-    const used = applyReview(profile, extracted, review, new Set([...review.defaults, 'professional.currentTitle']));
+    const used = applyReview(
+      profile,
+      extracted,
+      review,
+      new Set([...review.defaults, 'professional.currentTitle']),
+    );
     expect(used.professional.currentTitle).toBe('Staff Software Engineer');
   });
 
@@ -275,14 +352,20 @@ describe('review: never overwrite silently', () => {
     const review = buildReview(sampleProfile(), extracted);
     expect(review.items.some((i) => i.id === 'personal.email')).toBe(false); // same email
     expect(review.unchanged).toBeGreaterThan(0);
-    const dup = review.items.find((i) => i.kind === 'entry' && i.title === 'Staff Software Engineer at Analytical Engines Ltd');
-    expect(dup).toMatchObject({ duplicateOf: 'Staff Engineer at Analytical Engines Ltd' === '' ? null : expect.any(String) });
+    const dup = review.items.find(
+      (i) => i.kind === 'entry' && i.title === 'Staff Software Engineer at Analytical Engines Ltd',
+    );
+    // Same company + start date, reworded title → recognised as the same role, not re-added.
+    expect(dup).toMatchObject({ duplicateOf: 'Staff Engineer at Analytical Engines Ltd' });
+    expect(review.defaults.has(dup!.id)).toBe(false);
   });
 
   it('adds only new skills, individually', () => {
     const profile = sampleProfile(); // already has TypeScript, React, SQL
     const review = buildReview(profile, extracted);
-    const tags = review.items.filter((i) => i.kind === 'tag' && i.group === 'skills').map((i) => (i.kind === 'tag' ? i.tag : ''));
+    const tags = review.items
+      .filter((i) => i.kind === 'tag' && i.group === 'skills')
+      .map((i) => (i.kind === 'tag' ? i.tag : ''));
     expect(tags).toEqual(['Rust', 'Leadership', 'Mentoring']);
     const applied = applyReview(profile, extracted, review, new Set(['skills:Rust']));
     expect(applied.skills.technical).toEqual(['TypeScript', 'React', 'SQL', 'Rust']);

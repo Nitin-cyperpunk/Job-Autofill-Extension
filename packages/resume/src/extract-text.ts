@@ -13,7 +13,10 @@ export interface ExtractedText {
  * locally; legacy .doc isn't (it needs a full Word binary parser) — users are asked
  * to save as PDF/DOCX or paste the text instead.
  */
-export async function extractResumeText(bytes: Uint8Array, fileName: string): Promise<ExtractedText> {
+export async function extractResumeText(
+  bytes: Uint8Array,
+  fileName: string,
+): Promise<ExtractedText> {
   const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
   let text: string;
   let format: ExtractedText['format'];
@@ -27,7 +30,9 @@ export async function extractResumeText(bytes: Uint8Array, fileName: string): Pr
     text = new TextDecoder().decode(bytes);
     format = 'text';
   } else if (ext === 'doc') {
-    throw new ResumeTextError('Old Word (.doc) files can’t be read on your device. Save it as PDF or DOCX, or paste the text.');
+    throw new ResumeTextError(
+      'Old Word (.doc) files can’t be read on your device. Save it as PDF or DOCX, or paste the text.',
+    );
   } else {
     throw new ResumeTextError('Use a PDF, DOCX or TXT file — or paste the text.');
   }

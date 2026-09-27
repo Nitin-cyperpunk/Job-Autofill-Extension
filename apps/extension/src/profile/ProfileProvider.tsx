@@ -47,6 +47,7 @@ export function ProfileProvider({
       importProfile: (p, resume) => apply(storage.replaceProfile(p, resume)),
       resetProfile: () => apply(storage.resetProfile()),
       deleteAllData: () => apply(storage.deleteAllProfileData()),
+      updateProfile: (mutate) => apply(storage.updateProfile(mutate)),
     };
   }, [profile]);
 

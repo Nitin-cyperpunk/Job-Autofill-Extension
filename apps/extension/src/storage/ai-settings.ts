@@ -5,17 +5,24 @@ import { getItem, removeItem, setItem } from './local-storage';
 /**
  * Optional AI settings, including the user's own API key (bring-your-own-key).
  *
- * The key lives only in this browser's extension storage. It is read by the
- * background worker when the user clicks "Generate Answer" — never by page
- * scripts or the content script — and "Delete all profile data" removes it.
+ * The key lives only in this browser's extension storage. Only JobFill's settings
+ * page (to show it's saved) and the background worker (to make an approved request)
+ * import this module — never page scripts or the content script. "Delete all
+ * profile data" removes it.
  */
 export async function loadAISettings(): Promise<AISettings> {
   const stored = (await getItem<Partial<AISettings>>(STORAGE_KEYS.ai)) ?? {};
-  const provider: ProviderId = stored.provider && stored.provider in PROVIDERS ? stored.provider : DEFAULT_AI_SETTINGS.provider;
+  const provider: ProviderId =
+    stored.provider && stored.provider in PROVIDERS
+      ? stored.provider
+      : DEFAULT_AI_SETTINGS.provider;
   return {
     enabled: stored.enabled === true,
     provider,
-    model: typeof stored.model === 'string' && stored.model ? stored.model : PROVIDERS[provider].defaultModel,
+    model:
+      typeof stored.model === 'string' && stored.model
+        ? stored.model
+        : PROVIDERS[provider].defaultModel,
     baseUrl: typeof stored.baseUrl === 'string' ? stored.baseUrl : '',
     apiKey: typeof stored.apiKey === 'string' ? stored.apiKey : '',
   };

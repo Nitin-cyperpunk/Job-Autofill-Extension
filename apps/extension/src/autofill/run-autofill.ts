@@ -41,7 +41,14 @@ export async function fillPage(
 ): Promise<FillSummary> {
   const { fieldIds, adapter = null, followUpPasses = 2, settleMs = 450 } = options;
   const approved = fieldIds ? new Set(fieldIds) : null;
-  const summary: FillSummary = { filledCount: 0, filled: [], review: [], skipped: 0, revealed: 0, questions: [] };
+  const summary: FillSummary = {
+    filledCount: 0,
+    filled: [],
+    review: [],
+    skipped: 0,
+    revealed: 0,
+    questions: [],
+  };
   const seen = new Set<string>();
 
   let fields = scan();
@@ -87,7 +94,8 @@ async function fillItems(
       item.action && (approved ? approved.has(item.fieldId) : item.status !== 'review');
     if (!wanted) {
       // Open questions get their own list (write it yourself, or ask AI) rather than ⚠.
-      if (item.openEnded) (summary.questions ??= []).push({ ...result(item, item.reason), openEnded: true });
+      if (item.openEnded)
+        (summary.questions ??= []).push({ ...result(item, item.reason), openEnded: true });
       else if (item.status === 'review') summary.review.push(result(item, item.reason));
       else summary.skipped++;
       continue;

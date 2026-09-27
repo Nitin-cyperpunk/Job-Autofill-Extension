@@ -51,6 +51,10 @@ export function installDebugTools(watcher: FieldWatcher): DebugTools {
   return { setOverlay: (show) => overlay.toggle(show, watcher.getFields()) };
 }
 
+/**
+ * Page field metadata only (labels, names, mapping) — never the field's value and
+ * never the profile value it maps to. Keep it that way: this goes to the console.
+ */
 function summarize(d: FieldDescriptor) {
   const mapping = debugMapping(d);
   return {

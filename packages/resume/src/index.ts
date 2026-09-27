@@ -14,4 +14,11 @@ export {
   type ExtractedProject,
   type ExtractedResume,
 } from './parse';
-export { applyReview, buildReview, type EntryGroup, type ResumeReview, type ReviewItem, type ScalarPath } from './review';
+export {
+  applyReview,
+  buildReview,
+  type EntryGroup,
+  type ResumeReview,
+  type ReviewItem,
+  type ScalarPath,
+} from './review';

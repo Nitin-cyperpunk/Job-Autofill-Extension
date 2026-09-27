@@ -118,6 +118,12 @@ export async function fillDropdown(
       setTextValue(trigger, search, { blur: false }); // type to filter; stay focused
     }
     choice = await waitFor(() => pick(liveOptions(trigger, before)));
+    // Widgets filter by plain substring: typing "M.Sc." hides "Master's Degree". If the
+    // filtered list has nothing acceptable, clear the text and match the full list.
+    if (!choice && trigger instanceof HTMLInputElement && search) {
+      setTextValue(trigger, '', { blur: false });
+      choice = await waitFor(() => pick(liveOptions(trigger, before)));
+    }
   }
   if (!choice) {
     close(trigger);

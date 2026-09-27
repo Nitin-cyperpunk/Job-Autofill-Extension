@@ -16,7 +16,14 @@ You always review and submit the application yourself — JobFill never submits.
 - **Minimal permissions.** Only `storage`. The content script runs on `http(s)` pages (and their
   iframes) to detect fields; it only writes when you click _Autofill_ or _Insert Answer_.
 - **Never answers for you:** demographic, identity and consent questions are always left to you.
-- **No analytics, auth or payments.**
+- **No analytics, telemetry, crash reporting, auth or payments.** Logs never contain candidate
+  data (fixed messages, error names only; `no-console` lint rule).
+- **Privacy settings page** (`#/privacy`): what stays on the device, what may leave it, why and to
+  which provider, plus export, import, forget-AI-key and delete-all controls.
+
+The architecture, data-flow diagram and audit results are in
+[docs/PRIVACY_ARCHITECTURE.md](docs/PRIVACY_ARCHITECTURE.md); the invariants are pinned by
+[privacy-guards.test.ts](apps/extension/src/privacy-guards.test.ts).
 
 All persistence goes through [`apps/extension/src/storage/`](apps/extension/src/storage/), so
 there is one place to audit what is stored.
@@ -36,6 +43,8 @@ packages/
                                                 matching, option matching, fill planning
   ai/                   @jobfill/ai           — optional AI answers: provider interface, data
                                                 minimization, prompts, providers
+  resume/               @jobfill/resume       — résumé → profile: local PDF/DOCX text extraction,
+                                                heuristic parser, review model
 ```
 
 Packages are **source-only TypeScript** (`main` points at `src/index.ts`); Vite compiles them into
@@ -43,21 +52,21 @@ the extension. Everything in `packages/` is DOM-free and unit-tested in isolatio
 
 ### Extension internals (`apps/extension/src`)
 
-| Folder             | Responsibility                                                                         |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| `field-detection/` | Finds and describes fields (`FieldDescriptor`); `FieldWatcher` follows DOM changes.    |
-| `mapping/`         | Bridges live fields to the pure planner in `@jobfill/field-mapper`.                    |
-| `autofill/`        | Executes a plan: framework-safe writes, custom dropdowns, files, follow-up passes.     |
-| `adapters/`        | Site-adapter interface + registry (intentionally empty — generic first).               |
-| `ai/`              | Job context from the page, inserting a chosen AI answer (content-script side).         |
-| `content/`         | Content script (every frame): runs the watcher, answers popup messages.                |
-| `background/`      | Service worker: first-run onboarding, AI requests (the only reader of the API key).    |
-| `popup/`           | Autofill Application, preview (safe mode), summary, AI assistant, debug panel.         |
-| `options/`         | Onboarding wizard + profile dashboard, AI settings, debug-mode toggle.                 |
-| `storage/`         | Typed `chrome.storage.local` access: profile, resume, settings, AI settings.           |
-| `profile/`         | `ProfileProvider` / `useProfile` React state layer.                                    |
-| `components/`      | Reusable UI kit.                                                                       |
-| `utils/`           | Messaging, multi-frame orchestration, file helpers, logger.                            |
+| Folder             | Responsibility                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| `field-detection/` | Finds and describes fields (`FieldDescriptor`); `FieldWatcher` follows DOM changes. |
+| `mapping/`         | Bridges live fields to the pure planner in `@jobfill/field-mapper`.                 |
+| `autofill/`        | Executes a plan: framework-safe writes, custom dropdowns, files, follow-up passes.  |
+| `adapters/`        | Site-adapter interface + registry (intentionally empty — generic first).            |
+| `ai/`              | Job context from the page, inserting a chosen AI answer (content-script side).      |
+| `content/`         | Content script (every frame): runs the watcher, answers popup messages.             |
+| `background/`      | Service worker: first-run onboarding, AI requests (the only reader of the API key). |
+| `popup/`           | Autofill Application, preview (safe mode), summary, AI assistant, debug panel.      |
+| `options/`         | Onboarding wizard + profile dashboard, AI settings, debug-mode toggle.              |
+| `storage/`         | Typed `chrome.storage.local` access: profile, resume, settings, AI settings.        |
+| `profile/`         | `ProfileProvider` / `useProfile` React state layer.                                 |
+| `components/`      | Reusable UI kit.                                                                    |
+| `utils/`           | Messaging, multi-frame orchestration, file helpers, logger.                         |
 
 ### How an autofill works
 
@@ -77,17 +86,17 @@ Popup ◀─ FillSummary (✓ filled · ⚠ needs review · open questions)
 
 ## Candidate profile
 
-Sections: personal, professional, education[], experience[], projects[], skills, links (+ other
-URLs) and a resume file. Types: [packages/types/src/profile.ts](packages/types/src/profile.ts).
+Sections: personal, professional, education[], experience[], projects[], certifications[],
+skills, links (+ other URLs) and a resume file. Types: [packages/types/src/profile.ts](packages/types/src/profile.ts).
 
 ### Storage layout (`chrome.storage.local`)
 
-| Key                   | Contents                                                              |
-| --------------------- | --------------------------------------------------------------------- |
-| `jobfill.profile.v2`  | The `Profile` object (`schemaVersion: 2`), incl. resume metadata.     |
-| `jobfill.resume.v1`   | The resume file: metadata + base64 bytes (PDF/DOC/DOCX, ≤ 5 MB).      |
-| `jobfill.settings.v1` | `previewBeforeFill` (safe mode), `debugMode`.                         |
-| `jobfill.ai.v1`       | Optional AI settings incl. the user's own API key (see PRIVACY.md).   |
+| Key                   | Contents                                                            |
+| --------------------- | ------------------------------------------------------------------- |
+| `jobfill.profile.v2`  | The `Profile` object (`schemaVersion: 2`), incl. resume metadata.   |
+| `jobfill.resume.v1`   | The resume file: metadata + base64 bytes (PDF/DOC/DOCX, ≤ 5 MB).    |
+| `jobfill.settings.v1` | `previewBeforeFill` (safe mode), `debugMode`.                       |
+| `jobfill.ai.v1`       | Optional AI settings incl. the user's own API key (see PRIVACY.md). |
 
 Resume bytes live under their own key and are written in the same `storage.set` call as the
 profile, so they never disagree. A phase-1 profile (`jobfill.profile.v1`) migrates on first load.
@@ -100,8 +109,28 @@ profile, so they never disagree. A phase-1 profile (`jobfill.profile.v1`) migrat
   Education → Experience → Projects → Skills → Links → Resume → Review → Complete. Driven by one
   registry ([options/sections/registry.tsx](apps/extension/src/options/sections/registry.tsx)).
 - **Completeness**: weighted score with a hint for every missing point.
-- **Export / Import / Reset / Delete all profile data** on the dashboard. Delete-all clears
-  every JobFill key, including AI settings.
+- **Export / Import / Reset / Delete all local data** on the dashboard and the Privacy settings
+  page. Delete-all clears every JobFill key, including AI settings and the API key.
+
+## Résumé → profile
+
+**Start from your resume** (onboarding) or **Update from resume** (dashboard):
+upload → extract text → identify fields → review → approve → save locally.
+
+- **Local extraction, no dependencies:** DOCX via a small zip reader + the browser's
+  `DecompressionStream`; PDF via a compact parser (compressed and object streams, ToUnicode font
+  maps, text operators) that handles Word / Google Docs / LaTeX exports. Scanned (image-only) PDFs
+  and legacy `.doc` can't be read locally — the user is told so and can paste the text instead.
+- **Heuristic parsing** ([parse.ts](packages/resume/src/parse.ts)): section headings, contact
+  details, links, date ranges to split roles and schools, title keywords, degree / field / GPA,
+  projects, certifications, spoken vs technical skills. It prefers leaving a field empty to
+  guessing; year-only dates are flagged ("January assumed").
+- **Review, never silent overwrites** ([review.ts](packages/resume/src/review.ts)): new values are
+  pre-accepted; values that differ show **Existing** vs **Resume** with **Keep Existing** (default)
+  / **Use Resume Value**; roles, degrees, projects and certifications are only ever added, and
+  ones matching an existing entry are pre-unticked; new skills are chips you can toggle. Saving
+  applies only what was approved, to the latest stored profile.
+- "Your resume stays on this device unless you choose an AI/cloud feature." — this flow uses no AI.
 
 ## Field detection
 
@@ -208,16 +237,16 @@ npm run test-pages    # serves apps/extension/test-pages on http://localhost:518
 
 ## Scripts (repo root)
 
-| Script                 | What it does                                               |
-| ---------------------- | ---------------------------------------------------------- |
-| `npm run dev`          | Vite dev server with extension hot reload                  |
-| `npm run build`        | Typecheck + production build to `apps/extension/dist`      |
-| `npm run build:debug`  | Debug build to `apps/extension/dist-debug`                 |
-| `npm run test`         | Vitest unit tests (mapping corpus, detection, fill, AI, …) |
-| `npm run test-pages`   | Serve the fixture forms                                    |
-| `npm run typecheck`    | `tsc --noEmit` in every workspace                          |
-| `npm run lint`         | ESLint across the monorepo                                 |
-| `npm run format`       | Prettier write (`format:check` for CI)                     |
+| Script                | What it does                                               |
+| --------------------- | ---------------------------------------------------------- |
+| `npm run dev`         | Vite dev server with extension hot reload                  |
+| `npm run build`       | Typecheck + production build to `apps/extension/dist`      |
+| `npm run build:debug` | Debug build to `apps/extension/dist-debug`                 |
+| `npm run test`        | Vitest unit tests (mapping corpus, detection, fill, AI, …) |
+| `npm run test-pages`  | Serve the fixture forms                                    |
+| `npm run typecheck`   | `tsc --noEmit` in every workspace                          |
+| `npm run lint`        | ESLint across the monorepo                                 |
+| `npm run format`      | Prettier write (`format:check` for CI)                     |
 
 ## Conventions
 

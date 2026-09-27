@@ -16,6 +16,8 @@ export interface ProfileContextValue {
   importProfile: (profile: Profile, resume: StoredResume | null) => Promise<Profile>;
   resetProfile: () => Promise<Profile>;
   deleteAllData: () => Promise<Profile>;
+  /** Read–modify–write against the latest stored profile (e.g. applying a résumé review). */
+  updateProfile: (mutate: (current: Profile) => Profile) => Promise<Profile>;
 }
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);

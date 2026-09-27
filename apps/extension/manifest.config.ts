@@ -2,15 +2,18 @@ import { defineManifest } from '@crxjs/vite-plugin';
 import pkg from './package.json' with { type: 'json' };
 
 /**
- * Permissions are deliberately minimal:
+ * Permissions are deliberately minimal (pinned by src/privacy-guards.test.ts):
  *  - storage:   keep the profile in chrome.storage.local (on-device only)
  *  - content script on http(s) pages: detects and fills forms in-page only
- * No remote code, no analytics, and no network requests carrying profile data.
+ * No host_permissions: optional AI requests go from the background worker to the
+ * user's chosen provider as ordinary CORS requests, without cookies. No remote code,
+ * no analytics; see docs/PRIVACY_ARCHITECTURE.md.
  */
 export default defineManifest({
   manifest_version: 3,
   name: 'JobFill',
-  description: 'Save your information once. Autofill job applications in seconds. 100% local.',
+  description:
+    'Save your details once and autofill job applications in seconds. Local-first: your profile stays on your device.',
   version: pkg.version,
   icons: {
     16: 'icons/icon-16.png',

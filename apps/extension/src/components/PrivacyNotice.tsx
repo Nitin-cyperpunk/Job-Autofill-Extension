@@ -5,7 +5,9 @@ export const PRIVACY_MESSAGE = 'Your profile is stored locally on this device.';
 
 /**
  * The one privacy message users see everywhere. "badge" is for headers,
- * "banner" explains it in a sentence more.
+ * "banner" explains it in a sentence more. Keep both true for every configuration —
+ * including AI turned on — and never claim more than the code guarantees.
+ * The banner is only used on the options page (its link is an options-page route).
  */
 export function PrivacyNotice({
   variant = 'banner',
@@ -36,8 +38,12 @@ export function PrivacyNotice({
     >
       <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
       <p>
-        <strong className="font-semibold">{PRIVACY_MESSAGE}</strong> JobFill has no servers and no
-        accounts — nothing you enter here is uploaded anywhere.
+        <strong className="font-semibold">{PRIVACY_MESSAGE}</strong> JobFill has no accounts and no
+        servers of its own. Nothing you enter is uploaded — unless you turn on optional AI answers,
+        and then only the details you approve for each answer go to the AI provider you chose.{' '}
+        <a href="#/privacy" className="font-medium underline underline-offset-2">
+          Privacy settings
+        </a>
       </p>
     </div>
   );

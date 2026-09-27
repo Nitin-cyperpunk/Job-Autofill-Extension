@@ -17,7 +17,8 @@ type PdfStr = { t: 'str'; b: Uint8Array };
 type PdfRef = { t: 'ref'; n: number };
 type PdfKeyword = { t: 'kw'; v: string };
 type PdfDict = Map<string, PdfValue>;
-type PdfValue = number | boolean | null | PdfName | PdfStr | PdfRef | PdfKeyword | PdfValue[] | PdfDict;
+type PdfValue =
+  number | boolean | null | PdfName | PdfStr | PdfRef | PdfKeyword | PdfValue[] | PdfDict;
 
 const WHITESPACE = new Set([0x00, 0x09, 0x0a, 0x0c, 0x0d, 0x20]);
 const DELIMITERS = new Set(['(', ')', '<', '>', '[', ']', '{', '}', '/', '%']);
@@ -32,7 +33,8 @@ function bytesOf(s: string): Uint8Array {
   return out;
 }
 
-type Token = PdfValue | { t: 'open-dict' } | { t: 'close-dict' } | { t: 'open-array' } | { t: 'close-array' };
+type Token =
+  PdfValue | { t: 'open-dict' } | { t: 'close-dict' } | { t: 'open-array' } | { t: 'close-array' };
 
 class Lexer {
   constructor(
@@ -44,7 +46,8 @@ class Lexer {
     for (;;) {
       while (this.i < this.s.length && isWhite(this.s[this.i]!)) this.i++;
       if (this.s[this.i] === '%') {
-        while (this.i < this.s.length && this.s[this.i] !== '\n' && this.s[this.i] !== '\r') this.i++;
+        while (this.i < this.s.length && this.s[this.i] !== '\n' && this.s[this.i] !== '\r')
+          this.i++;
         continue;
       }
       return;
@@ -89,7 +92,16 @@ class Lexer {
       const c = this.s[this.i++]!;
       if (c === '\\') {
         const n = this.s[this.i++] ?? '';
-        const simple: Record<string, string> = { n: '\n', r: '\r', t: '\t', b: '\b', f: '\f', '(': '(', ')': ')', '\\': '\\' };
+        const simple: Record<string, string> = {
+          n: '\n',
+          r: '\r',
+          t: '\t',
+          b: '\b',
+          f: '\f',
+          '(': '(',
+          ')': ')',
+          '\\': '\\',
+        };
         if (n in simple) out += simple[n];
         else if (/[0-7]/.test(n)) {
           let oct = n;
@@ -121,7 +133,11 @@ class Lexer {
   private name(): PdfName {
     this.i++; // /
     let out = '';
-    while (this.i < this.s.length && !isWhite(this.s[this.i]!) && !DELIMITERS.has(this.s[this.i]!)) {
+    while (
+      this.i < this.s.length &&
+      !isWhite(this.s[this.i]!) &&
+      !DELIMITERS.has(this.s[this.i]!)
+    ) {
       const c = this.s[this.i++]!;
       if (c === '#' && /^[0-9a-fA-F]{2}$/.test(this.s.slice(this.i, this.i + 2))) {
         out += String.fromCharCode(parseInt(this.s.slice(this.i, this.i + 2), 16));
@@ -133,7 +149,8 @@ class Lexer {
 
   private word(): PdfValue {
     const start = this.i;
-    while (this.i < this.s.length && !isWhite(this.s[this.i]!) && !DELIMITERS.has(this.s[this.i]!)) this.i++;
+    while (this.i < this.s.length && !isWhite(this.s[this.i]!) && !DELIMITERS.has(this.s[this.i]!))
+      this.i++;
     const w = this.s.slice(start, this.i);
     if (!w) {
       this.i++;
@@ -148,7 +165,14 @@ class Lexer {
 }
 
 function isKw(v: unknown, word?: string): v is PdfKeyword {
-  return typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Map) && (v as PdfKeyword).t === 'kw' && (word === undefined || (v as PdfKeyword).v === word);
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    !Array.isArray(v) &&
+    !(v instanceof Map) &&
+    (v as PdfKeyword).t === 'kw' &&
+    (word === undefined || (v as PdfKeyword).v === word)
+  );
 }
 
 /** Parse one value; handles "n g R" references. */
@@ -162,8 +186,8 @@ function parseValue(lx: Lexer): PdfValue | undefined {
       for (;;) {
         const save = lx.i;
         const key = lx.next();
-        if (key === undefined || (key as { t: string }).t === 'close-dict') break;
-        if ((key as { t: string }).t !== 'name') {
+        if (key === undefined || (key as { t?: string } | null)?.t === 'close-dict') break;
+        if ((key as { t?: string } | null)?.t !== 'name') {
           lx.i = save + 1;
           continue;
         }
@@ -178,7 +202,7 @@ function parseValue(lx: Lexer): PdfValue | undefined {
       for (;;) {
         const save = lx.i;
         const next = lx.next();
-        if (next === undefined || (next as { t: string }).t === 'close-array') break;
+        if (next === undefined || (next as { t?: string } | null)?.t === 'close-array') break;
         lx.i = save;
         const value = parseValue(lx);
         if (value === undefined) break;
@@ -209,7 +233,13 @@ function asDict(v: PdfValue | undefined): PdfDict | undefined {
   return v instanceof Map ? v : undefined;
 }
 function nameOf(v: PdfValue | undefined): string | undefined {
-  return typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Map) && (v as PdfName).t === 'name' ? (v as PdfName).v : undefined;
+  return typeof v === 'object' &&
+    v !== null &&
+    !Array.isArray(v) &&
+    !(v instanceof Map) &&
+    (v as PdfName).t === 'name'
+    ? (v as PdfName).v
+    : undefined;
 }
 
 class PdfDocument {
@@ -234,7 +264,8 @@ class PdfDocument {
         if (text[start] === '\n') start++;
         const length = asDict(value)?.get('Length');
         let end = typeof length === 'number' ? start + length : -1;
-        if (end < 0 || text.slice(end, end + 30).indexOf('endstream') < 0) end = text.indexOf('endstream', start);
+        if (end < 0 || text.slice(end, end + 30).indexOf('endstream') < 0)
+          end = text.indexOf('endstream', start);
         if (end > start) obj.raw = this.bytes.subarray(start, end);
         re.lastIndex = Math.max(re.lastIndex, end);
       }
@@ -262,7 +293,13 @@ class PdfDocument {
 
   resolve(v: PdfValue | undefined, depth = 0): PdfValue | undefined {
     if (depth > 20) return undefined;
-    if (typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Map) && (v as PdfRef).t === 'ref') {
+    if (
+      typeof v === 'object' &&
+      v !== null &&
+      !Array.isArray(v) &&
+      !(v instanceof Map) &&
+      (v as PdfRef).t === 'ref'
+    ) {
       return this.resolve(this.objects.get((v as PdfRef).n)?.value, depth + 1);
     }
     return v;
@@ -271,14 +308,25 @@ class PdfDocument {
   private async decodeStream(obj: PdfObject): Promise<Uint8Array | null> {
     if (!obj.raw) return null;
     const filter = this.resolve(asDict(obj.value)?.get('Filter'));
-    const filters = Array.isArray(filter) ? filter.map((f) => nameOf(f)) : filter ? [nameOf(filter)] : [];
+    const filters = Array.isArray(filter)
+      ? filter.map((f) => nameOf(f))
+      : filter
+        ? [nameOf(filter)]
+        : [];
     if (filters.length === 0) return obj.raw;
     if (filters.length === 1 && filters[0] === 'FlateDecode') return inflateLenient(obj.raw);
     return null; // other filters (images, ASCII85…) don't carry résumé text
   }
 
   async streamOf(ref: PdfValue | undefined): Promise<Uint8Array | null> {
-    if (typeof ref !== 'object' || ref === null || Array.isArray(ref) || ref instanceof Map || (ref as PdfRef).t !== 'ref') return null;
+    if (
+      typeof ref !== 'object' ||
+      ref === null ||
+      Array.isArray(ref) ||
+      ref instanceof Map ||
+      (ref as PdfRef).t !== 'ref'
+    )
+      return null;
     const n = (ref as PdfRef).n;
     if (!this.decoded.has(n)) {
       const obj = this.objects.get(n);
@@ -290,14 +338,17 @@ class PdfDocument {
   /** Pages in reading order, each with inherited resources. */
   pages(): Array<{ page: PdfDict; resources: PdfDict | undefined }> {
     const out: Array<{ page: PdfDict; resources: PdfDict | undefined }> = [];
-    const catalog = [...this.objects.values()].map((o) => asDict(o.value)).find((d) => nameOf(d?.get('Type')) === 'Catalog');
+    const catalog = [...this.objects.values()]
+      .map((o) => asDict(o.value))
+      .find((d) => nameOf(d?.get('Type')) === 'Catalog');
     const visit = (node: PdfDict | undefined, inherited: PdfDict | undefined, depth: number) => {
       if (!node || depth > 50) return;
       const resources = asDict(this.resolve(node.get('Resources'))) ?? inherited;
       const type = nameOf(node.get('Type'));
       if (type === 'Page') return void out.push({ page: node, resources });
       const kids = this.resolve(node.get('Kids'));
-      if (Array.isArray(kids)) for (const kid of kids) visit(asDict(this.resolve(kid)), resources, depth + 1);
+      if (Array.isArray(kids))
+        for (const kid of kids) visit(asDict(this.resolve(kid)), resources, depth + 1);
     };
     visit(asDict(this.resolve(catalog?.get('Pages'))), undefined, 0);
     if (out.length) return out;
@@ -319,7 +370,8 @@ interface CMap {
 
 function utf16be(hex: string): string {
   let out = '';
-  for (let i = 0; i + 4 <= hex.length; i += 4) out += String.fromCharCode(parseInt(hex.slice(i, i + 4), 16));
+  for (let i = 0; i + 4 <= hex.length; i += 4)
+    out += String.fromCharCode(parseInt(hex.slice(i, i + 4), 16));
   if (hex.length === 2) out += String.fromCharCode(parseInt(hex, 16));
   return out;
 }
@@ -329,10 +381,13 @@ export function parseToUnicode(text: string): CMap {
   const space = /begincodespacerange\s*<([0-9a-fA-F]+)>/.exec(text);
   const bytes: 1 | 2 = space && space[1]!.length <= 2 ? 1 : 2;
   for (const block of text.matchAll(/beginbfchar([\s\S]*?)endbfchar/g)) {
-    for (const m of block[1]!.matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]*)>/g)) map.set(parseInt(m[1]!, 16), utf16be(m[2]!));
+    for (const m of block[1]!.matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]*)>/g))
+      map.set(parseInt(m[1]!, 16), utf16be(m[2]!));
   }
   for (const block of text.matchAll(/beginbfrange([\s\S]*?)endbfrange/g)) {
-    for (const m of block[1]!.matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*(<([0-9a-fA-F]+)>|\[([^\]]*)\])/g)) {
+    for (const m of block[1]!.matchAll(
+      /<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*(<([0-9a-fA-F]+)>|\[([^\]]*)\])/g,
+    )) {
       const lo = parseInt(m[1]!, 16);
       const hi = parseInt(m[2]!, 16);
       if (hi - lo > 0xffff) continue;
@@ -340,7 +395,8 @@ export function parseToUnicode(text: string): CMap {
         const base = m[4];
         const prefix = base.slice(0, -4);
         const start = parseInt(base.slice(-4), 16);
-        for (let c = lo; c <= hi; c++) map.set(c, utf16be(prefix + (start + c - lo).toString(16).padStart(4, '0')));
+        for (let c = lo; c <= hi; c++)
+          map.set(c, utf16be(prefix + (start + c - lo).toString(16).padStart(4, '0')));
       } else {
         const list = [...m[5]!.matchAll(/<([0-9a-fA-F]+)>/g)].map((x) => x[1]!);
         list.forEach((hex, k) => map.set(lo + k, utf16be(hex)));
@@ -351,36 +407,176 @@ export function parseToUnicode(text: string): CMap {
 }
 
 /** WinAnsi quirks worth fixing for résumés (quotes, dashes, bullets). */
-const WIN_ANSI: Record<number, string> = { 0x91: '‘', 0x92: '’', 0x93: '“', 0x94: '”', 0x95: '•', 0x96: '–', 0x97: '—', 0x85: '…' };
+const WIN_ANSI: Record<number, string> = {
+  0x91: '‘',
+  0x92: '’',
+  0x93: '“',
+  0x94: '”',
+  0x95: '•',
+  0x96: '–',
+  0x97: '—',
+  0x85: '…',
+};
 
-function decodeText(bytes: Uint8Array, cmap: CMap | undefined): string {
-  if (!cmap) return [...bytes].map((b) => WIN_ANSI[b] ?? String.fromCharCode(b)).join('');
-  let out = '';
-  for (let i = 0; i < bytes.length; i += cmap.bytes) {
-    const code = cmap.bytes === 2 ? (bytes[i]! << 8) | (bytes[i + 1] ?? 0) : bytes[i]!;
-    out += cmap.map.get(code) ?? (cmap.bytes === 1 ? String.fromCharCode(code) : '');
+/**
+ * What we need from a font: how to turn codes into text (ToUnicode) and how far
+ * each glyph advances (widths) — the latter decides where the spaces are.
+ */
+interface FontInfo {
+  cmap?: CMap;
+  /** Bytes per character code: 2 for composite (Type0) fonts, 1 otherwise. */
+  bytes: 1 | 2;
+  /** Glyph widths in 1/1000 em by character code. */
+  widths: Map<number, number>;
+  defaultWidth: number;
+}
+
+function* codes(bytes: Uint8Array, size: 1 | 2): Generator<number> {
+  for (let i = 0; i < bytes.length; i += size) {
+    yield size === 2 ? (bytes[i]! << 8) | (bytes[i + 1] ?? 0) : bytes[i]!;
   }
-  return out;
+}
+
+function charFor(code: number, font: FontInfo | undefined): string {
+  if (font?.cmap)
+    return font.cmap.map.get(code) ?? (font.bytes === 1 ? String.fromCharCode(code) : '');
+  if (font?.bytes === 2) return ''; // composite font without ToUnicode: codes are glyph ids
+  return WIN_ANSI[code] ?? String.fromCharCode(code);
+}
+
+async function loadFont(
+  doc: PdfDocument,
+  dict: PdfDict | undefined,
+  cmapCache: Map<number, CMap | undefined>,
+): Promise<FontInfo> {
+  const subtype = nameOf(dict?.get('Subtype'));
+  const composite = subtype === 'Type0';
+  const widths = new Map<number, number>();
+  let defaultWidth = composite ? 1000 : 500;
+
+  const toUnicode = dict?.get('ToUnicode');
+  let cmap: CMap | undefined;
+  if (typeof toUnicode === 'object' && toUnicode !== null && (toUnicode as PdfRef).t === 'ref') {
+    const key = (toUnicode as PdfRef).n;
+    if (!cmapCache.has(key)) {
+      const data = await doc.streamOf(toUnicode);
+      cmapCache.set(key, data ? parseToUnicode(latin1(data)) : undefined);
+    }
+    cmap = cmapCache.get(key);
+  }
+
+  if (composite) {
+    // Widths live on the descendant CIDFont: /DW default, /W [c [w…] | c1 c2 w …].
+    const descendants = doc.resolve(dict?.get('DescendantFonts'));
+    const cid = asDict(doc.resolve(Array.isArray(descendants) ? descendants[0] : undefined));
+    const dw = doc.resolve(cid?.get('DW'));
+    if (typeof dw === 'number') defaultWidth = dw;
+    const w = doc.resolve(cid?.get('W'));
+    if (Array.isArray(w)) {
+      for (let i = 0; i < w.length;) {
+        const first = doc.resolve(w[i]);
+        const next = doc.resolve(w[i + 1]);
+        if (typeof first !== 'number') break;
+        if (Array.isArray(next)) {
+          next.forEach((width, k) => {
+            const value = doc.resolve(width);
+            if (typeof value === 'number') widths.set(first + k, value);
+          });
+          i += 2;
+        } else {
+          const last = next;
+          const width = doc.resolve(w[i + 2]);
+          if (typeof last !== 'number' || typeof width !== 'number') break;
+          for (let c = first; c <= last && c - first < 65536; c++) widths.set(c, width);
+          i += 3;
+        }
+      }
+    }
+  } else {
+    const first = doc.resolve(dict?.get('FirstChar'));
+    const list = doc.resolve(dict?.get('Widths'));
+    if (typeof first === 'number' && Array.isArray(list)) {
+      list.forEach((width, k) => {
+        const value = doc.resolve(width);
+        if (typeof value === 'number') widths.set(first + k, value);
+      });
+    }
+    const descriptor = asDict(doc.resolve(dict?.get('FontDescriptor')));
+    const missing = doc.resolve(descriptor?.get('MissingWidth'));
+    if (typeof missing === 'number' && missing > 0) defaultWidth = missing;
+  }
+  return { cmap, bytes: composite ? 2 : (cmap?.bytes ?? 1), widths, defaultWidth };
 }
 
 // ---- Content streams -----------------------------------------------------------------------
 
-function interpret(content: string, fonts: Map<string, CMap | undefined>): string {
+type Matrix = [number, number, number, number, number, number];
+const IDENTITY: Matrix = [1, 0, 0, 1, 0, 0];
+
+/**
+ * Run the text operators, tracking the text and line matrices like a viewer does.
+ * Word breaks come from geometry: a gap wider than a fraction of the font size
+ * between where the last glyph ended and where the next one starts is a space;
+ * a vertical jump is a new line. This handles per-glyph positioning (Chrome/Skia),
+ * per-word runs (Word) and kerned TJ arrays (LaTeX) alike.
+ */
+function interpret(content: string, fonts: Map<string, FontInfo>): string {
   const lx = new Lexer(content);
   const operands: PdfValue[] = [];
-  let font: CMap | undefined;
+  let font: FontInfo | undefined;
+  let fontSize = 1;
+  let charSpacing = 0;
+  let wordSpacing = 0;
+  let hScale = 1;
+  let leading = 0;
+  let tm: Matrix = [...IDENTITY];
+  let lm: Matrix = [...IDENTITY];
+  let pen: { x: number; y: number; size: number } | null = null;
   let out = '';
-  let lastY: number | null = null;
-  const newline = () => {
-    if (out && !out.endsWith('\n')) out += '\n';
+
+  const scale = () => Math.hypot(tm[0], tm[1]) || Math.hypot(tm[2], tm[3]) || 1;
+  const translate = (tx: number, ty: number) => {
+    lm = [
+      lm[0],
+      lm[1],
+      lm[2],
+      lm[3],
+      lm[4] + lm[0] * tx + lm[2] * ty,
+      lm[5] + lm[1] * tx + lm[3] * ty,
+    ];
+    tm = [...lm];
   };
-  const space = () => {
-    if (out && !/\s$/.test(out)) out += ' ';
-  };
+
   const show = (v: PdfValue | undefined) => {
-    if (typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Map) && (v as PdfStr).t === 'str') {
-      out += decodeText((v as PdfStr).b, font);
+    if (
+      typeof v !== 'object' ||
+      v === null ||
+      Array.isArray(v) ||
+      v instanceof Map ||
+      (v as PdfStr).t !== 'str'
+    )
+      return;
+    const bytes = (v as PdfStr).b;
+    if (!bytes.length) return;
+    const size = Math.abs(fontSize) * scale();
+    const x = tm[4];
+    const y = tm[5];
+    if (pen && out) {
+      if (Math.abs(y - pen.y) > Math.max(size, pen.size) * 0.5) {
+        if (!out.endsWith('\n')) out += '\n';
+      } else if (Math.abs(x - pen.x) > Math.max(size, pen.size) * 0.15 && !/\s$/.test(out)) {
+        out += ' ';
+      }
     }
+    for (const code of codes(bytes, font?.bytes ?? 1)) {
+      out += charFor(code, font);
+      const width = (font?.widths.get(code) ?? font?.defaultWidth ?? 500) / 1000;
+      const advance =
+        (width * fontSize + charSpacing + (code === 32 && font?.bytes !== 2 ? wordSpacing : 0)) *
+        hScale;
+      tm = [tm[0], tm[1], tm[2], tm[3], tm[4] + tm[0] * advance, tm[5] + tm[1] * advance];
+    }
+    pen = { x: tm[4], y: tm[5], size };
   };
 
   for (;;) {
@@ -392,50 +588,66 @@ function interpret(content: string, fonts: Map<string, CMap | undefined>): strin
     }
     const op = value.v;
     const nums = operands.filter((o): o is number => typeof o === 'number');
+    const last = operands[operands.length - 1];
     switch (op) {
+      case 'BT':
+        tm = [...IDENTITY];
+        lm = [...IDENTITY];
+        break;
       case 'Tf':
         font = fonts.get(nameOf(operands[operands.length - 2]) ?? '');
+        fontSize = nums[nums.length - 1] ?? fontSize;
+        break;
+      case 'Tc':
+        charSpacing = nums[0] ?? 0;
+        break;
+      case 'Tw':
+        wordSpacing = nums[0] ?? 0;
+        break;
+      case 'Tz':
+        hScale = (nums[0] ?? 100) / 100;
+        break;
+      case 'TL':
+        leading = nums[0] ?? 0;
         break;
       case 'Td':
-      case 'TD': {
-        const [tx = 0, ty = 0] = nums.slice(-2);
-        if (Math.abs(ty) > 0.5) newline();
-        else if (tx > 0.5) space();
+        translate(nums[0] ?? 0, nums[1] ?? 0);
         break;
-      }
-      case 'Tm': {
-        const y = nums[5] ?? 0;
-        if (lastY !== null && Math.abs(y - lastY) > 1) newline();
-        else space();
-        lastY = y;
+      case 'TD':
+        leading = -(nums[1] ?? 0);
+        translate(nums[0] ?? 0, nums[1] ?? 0);
         break;
-      }
+      case 'Tm':
+        if (nums.length >= 6) {
+          lm = nums.slice(-6) as Matrix;
+          tm = [...lm];
+        }
+        break;
       case 'T*':
-        newline();
+        translate(0, -leading);
         break;
       case 'Tj':
-        show(operands[operands.length - 1]);
+        show(last);
         break;
       case "'":
-        newline();
-        show(operands[operands.length - 1]);
+        translate(0, -leading);
+        show(last);
         break;
       case '"':
-        newline();
-        show(operands[operands.length - 1]);
+        wordSpacing = nums[0] ?? wordSpacing;
+        charSpacing = nums[1] ?? charSpacing;
+        translate(0, -leading);
+        show(last);
         break;
-      case 'TJ': {
-        const arr = operands[operands.length - 1];
-        if (Array.isArray(arr)) {
-          for (const item of arr) {
+      case 'TJ':
+        if (Array.isArray(last)) {
+          for (const item of last) {
             if (typeof item === 'number') {
-              if (item < -200) space();
+              const adjust = (-item / 1000) * fontSize * hScale;
+              tm = [tm[0], tm[1], tm[2], tm[3], tm[4] + tm[0] * adjust, tm[5] + tm[1] * adjust];
             } else show(item);
           }
         }
-        break;
-      }
-      case 'ET':
         break;
       case 'ID': {
         // Inline image data: skip to "EI".
@@ -450,27 +662,27 @@ function interpret(content: string, fonts: Map<string, CMap | undefined>): strin
 }
 
 export async function pdfToText(bytes: Uint8Array): Promise<string> {
-  if (latin1(bytes.subarray(0, 1024)).indexOf('%PDF') < 0) throw new Error('This doesn’t look like a PDF file.');
+  if (latin1(bytes.subarray(0, 1024)).indexOf('%PDF') < 0)
+    throw new Error('This doesn’t look like a PDF file.');
   const doc = new PdfDocument(bytes);
   await doc.load();
   const pageTexts: string[] = [];
   const cmapCache = new Map<number, CMap | undefined>();
+  const fontCache = new Map<PdfDict, FontInfo>();
 
   for (const { page, resources } of doc.pages()) {
-    const fonts = new Map<string, CMap | undefined>();
+    const fonts = new Map<string, FontInfo>();
     const fontDict = asDict(doc.resolve(resources?.get('Font')));
     for (const [name, ref] of fontDict ?? []) {
-      const font = asDict(doc.resolve(ref));
-      const toUnicode = font?.get('ToUnicode');
-      const key = typeof toUnicode === 'object' && toUnicode !== null && (toUnicode as PdfRef).t === 'ref' ? (toUnicode as PdfRef).n : -1;
-      if (key >= 0 && !cmapCache.has(key)) {
-        const data = await doc.streamOf(toUnicode);
-        cmapCache.set(key, data ? parseToUnicode(latin1(data)) : undefined);
-      }
-      fonts.set(name, key >= 0 ? cmapCache.get(key) : undefined);
+      const dict = asDict(doc.resolve(ref));
+      if (!dict) continue;
+      if (!fontCache.has(dict)) fontCache.set(dict, await loadFont(doc, dict, cmapCache));
+      fonts.set(name, fontCache.get(dict)!);
     }
     const contents = page.get('Contents');
-    const refs = Array.isArray(doc.resolve(contents)) ? (doc.resolve(contents) as PdfValue[]) : [contents];
+    const refs = Array.isArray(doc.resolve(contents))
+      ? (doc.resolve(contents) as PdfValue[])
+      : [contents];
     let content = '';
     for (const ref of refs) {
       const data = await doc.streamOf(ref as PdfValue);

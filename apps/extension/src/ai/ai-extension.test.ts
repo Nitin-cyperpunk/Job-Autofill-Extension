@@ -32,17 +32,21 @@ describe('extractJobContext', () => {
 
 describe('insertAnswer', () => {
   it('writes into an empty textarea with framework-safe events', () => {
-    document.body.innerHTML = '<label for="q">Why do you want to work here?</label><textarea id="q"></textarea>';
+    document.body.innerHTML =
+      '<label for="q">Why do you want to work here?</label><textarea id="q"></textarea>';
     let inputs = 0;
     document.getElementById('q')!.addEventListener('input', () => inputs++);
     const [f] = detectFields(document, { isVisible });
     expect(insertAnswer(f!, 'Because I love accessible products.')).toEqual({ ok: true });
-    expect((document.getElementById('q') as HTMLTextAreaElement).value).toBe('Because I love accessible products.');
+    expect((document.getElementById('q') as HTMLTextAreaElement).value).toBe(
+      'Because I love accessible products.',
+    );
     expect(inputs).toBe(1);
   });
 
   it('asks before replacing text the user already wrote', () => {
-    document.body.innerHTML = '<label for="q">Why us?</label><textarea id="q">My own words</textarea>';
+    document.body.innerHTML =
+      '<label for="q">Why us?</label><textarea id="q">My own words</textarea>';
     const [f] = detectFields(document, { isVisible });
     expect(insertAnswer(f!, 'AI text')).toMatchObject({ ok: false, hasValue: true });
     expect((document.getElementById('q') as HTMLTextAreaElement).value).toBe('My own words');
@@ -50,7 +54,8 @@ describe('insertAnswer', () => {
   });
 
   it('never submits the form', () => {
-    document.body.innerHTML = '<form><label for="q">Why us?</label><textarea id="q"></textarea><button>Submit</button></form>';
+    document.body.innerHTML =
+      '<form><label for="q">Why us?</label><textarea id="q"></textarea><button>Submit</button></form>';
     let submitted = false;
     document.querySelector('form')!.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -63,7 +68,8 @@ describe('insertAnswer', () => {
 });
 
 describe('open questions (where AI can be offered)', () => {
-  const plan = (overrides: Parameters<typeof field>[0]) => planFill([field(overrides)], sampleProfile())[0]!;
+  const plan = (overrides: Parameters<typeof field>[0]) =>
+    planFill([field(overrides)], sampleProfile())[0]!;
 
   it('flags unanswerable free-text questions', () => {
     expect(plan({ label: 'Why do you want to work here?', type: 'textarea' }).openEnded).toBe(true);
@@ -74,7 +80,9 @@ describe('open questions (where AI can be offered)', () => {
   it('never offers AI for mapped, filled, sensitive or consent fields', () => {
     expect(plan({ label: 'Email', type: 'email' }).openEnded).toBe(false);
     expect(plan({ label: 'Why us?', type: 'textarea', hasValue: true }).openEnded).toBe(false);
-    expect(plan({ label: 'Describe your gender identity', type: 'textarea' }).openEnded).toBe(false);
+    expect(plan({ label: 'Describe your gender identity', type: 'textarea' }).openEnded).toBe(
+      false,
+    );
     expect(plan({ label: 'Reference number', type: 'text' }).openEnded).toBe(false);
   });
 });

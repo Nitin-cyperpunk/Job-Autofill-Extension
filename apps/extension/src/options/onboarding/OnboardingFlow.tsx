@@ -48,7 +48,12 @@ export function OnboardingFlow({
     );
   } else if (step === 'start') {
     content = (
-      <StartStep onScratch={() => go('personal')} onImported={() => go('review')} onBack={back} />
+      <StartStep
+        onResume={() => navigate({ name: 'resume-import', from: 'onboarding' })}
+        onScratch={() => go('personal')}
+        onImported={() => go('review')}
+        onBack={back}
+      />
     );
   } else if (step === 'complete') {
     content = <CompleteStep onViewProfile={() => navigate({ name: 'profile' })} />;

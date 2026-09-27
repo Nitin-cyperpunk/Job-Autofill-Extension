@@ -4,7 +4,7 @@ import { SECTION_ORDER } from './sections/registry';
 
 /**
  * Minimal hash router for the options page: #/onboarding/<step>?return=review
- * and #/profile. The hash keeps the user's place across reloads.
+ * #/profile, #/privacy and #/import-resume. The hash keeps the user's place across reloads.
  */
 
 export type StepId = 'welcome' | 'start' | SectionId | 'resume' | 'review' | 'complete';
@@ -20,10 +20,16 @@ export const STEP_ORDER: StepId[] = [
 
 export type Route =
   | { name: 'onboarding'; step: StepId; returnTo?: 'review'; notice?: 'deleted' | 'reset' }
-  | { name: 'profile' };
+  | { name: 'profile' }
+  /** What's stored, what can leave the device, and the data controls. */
+  | { name: 'privacy' }
+  /** Résumé → profile import, from onboarding or the dashboard. */
+  | { name: 'resume-import'; from: 'onboarding' | 'profile' };
 
 export function toHash(route: Route): string {
   if (route.name === 'profile') return '#/profile';
+  if (route.name === 'privacy') return '#/privacy';
+  if (route.name === 'resume-import') return `#/import-resume?from=${route.from}`;
   const params = new URLSearchParams();
   if (route.returnTo) params.set('return', route.returnTo);
   if (route.notice) params.set('notice', route.notice);
@@ -35,6 +41,13 @@ export function parseHash(hash: string): Route | null {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
   const params = new URLSearchParams(query);
   if (path === '/profile') return { name: 'profile' };
+  if (path === '/privacy') return { name: 'privacy' };
+  if (path === '/import-resume') {
+    return {
+      name: 'resume-import',
+      from: params.get('from') === 'onboarding' ? 'onboarding' : 'profile',
+    };
+  }
   const match = /^\/onboarding\/([a-z]+)$/.exec(path);
   const step = match?.[1] as StepId | undefined;
   if (step && STEP_ORDER.includes(step)) {

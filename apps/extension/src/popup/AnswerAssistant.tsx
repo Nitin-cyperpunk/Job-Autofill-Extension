@@ -45,9 +45,20 @@ function openSettings() {
  * has seen exactly what will be sent and clicked "Generate Answer"; the chosen
  * answer is only inserted on "Insert Answer"; the form is never submitted.
  */
-export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: string; onClose: () => void }) {
+export function AnswerAssistant({
+  uid,
+  label,
+  onClose,
+}: {
+  uid: string;
+  label: string;
+  onClose: () => void;
+}) {
   const { profile } = useProfile();
-  const [frameId, fieldId] = [Number(uid.slice(0, uid.indexOf(':'))), uid.slice(uid.indexOf(':') + 1)];
+  const [frameId, fieldId] = [
+    Number(uid.slice(0, uid.indexOf(':'))),
+    uid.slice(uid.indexOf(':') + 1),
+  ];
   const [step, setStep] = useState<Step>({ name: 'loading' });
   const [status, setStatus] = useState<Status | null>(null);
   const [question, setQuestion] = useState<QuestionInput | null>(null);
@@ -62,12 +73,18 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
       try {
         const [s, ctx] = await Promise.all([
           sendToBackground({ type: 'AI_STATUS' }),
-          targetTabId().then((tabId) => sendToFrame(tabId, frameId, { type: 'AI_QUESTION_CONTEXT', fieldId })),
+          targetTabId().then((tabId) =>
+            sendToFrame(tabId, frameId, { type: 'AI_QUESTION_CONTEXT', fieldId }),
+          ),
         ]);
         setStatus(s);
         if (!s.configured) return setStep({ name: 'off', status: s });
         if (!ctx.ok) return setStep({ name: 'error', message: ctx.message, retry: null });
-        const q: QuestionInput = { question: ctx.question, kind: ctx.kind, ...(ctx.maxLength ? { maxLength: ctx.maxLength } : {}) };
+        const q: QuestionInput = {
+          question: ctx.question,
+          kind: ctx.kind,
+          ...(ctx.maxLength ? { maxLength: ctx.maxLength } : {}),
+        };
         const offered = buildContextItems(q, profile, ctx.job);
         setQuestion(q);
         setJob(ctx.job);
@@ -75,7 +92,11 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
         setApproved(new Set(offered.filter((i) => i.selected).map((i) => i.id)));
         setStep({ name: 'consent' });
       } catch {
-        setStep({ name: 'error', message: 'JobFill can’t reach this page. Reload the tab and try again.', retry: null });
+        setStep({
+          name: 'error',
+          message: 'JobFill can’t reach this page. Reload the tab and try again.',
+          retry: null,
+        });
       }
     })();
   }, [frameId, fieldId, profile]);
@@ -86,7 +107,12 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
     // Only the approved items go into the request. The background adds credentials, nothing else.
     const request = buildRequest(question, profile, job, approved);
     const res = await sendToBackground({ type: 'AI_GENERATE', request }).catch(() => null);
-    if (!res) return setStep({ name: 'error', message: 'Couldn’t reach JobFill’s background worker.', retry: 'generate' });
+    if (!res)
+      return setStep({
+        name: 'error',
+        message: 'Couldn’t reach JobFill’s background worker.',
+        retry: 'generate',
+      });
     if (!res.ok) return setStep({ name: 'error', message: res.message, retry: 'generate' });
     setChosen('answer');
     setDraft(res.variants.answer);
@@ -95,8 +121,18 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
 
   async function insert(text: string, replace = false) {
     const tabId = await targetTabId();
-    const res = await sendToFrame(tabId, frameId, { type: 'AI_INSERT', fieldId, text, replace }).catch(() => null);
-    if (!res) return setStep({ name: 'error', message: 'JobFill can’t reach this page any more.', retry: null });
+    const res = await sendToFrame(tabId, frameId, {
+      type: 'AI_INSERT',
+      fieldId,
+      text,
+      replace,
+    }).catch(() => null);
+    if (!res)
+      return setStep({
+        name: 'error',
+        message: 'JobFill can’t reach this page any more.',
+        retry: null,
+      });
     if (res.ok) return setStep({ name: 'inserted' });
     if (res.hasValue) return setStep({ name: 'confirm-replace', text });
     setStep({ name: 'error', message: res.message, retry: 'insert' });
@@ -113,7 +149,9 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
   return (
     <div className="space-y-3">
       <div>
-        <p className="text-xs font-semibold tracking-wide text-brand-700 uppercase">AI-assisted answer</p>
+        <p className="text-xs font-semibold tracking-wide text-brand-700 uppercase">
+          AI-assisted answer
+        </p>
         <h2 className="text-sm font-semibold text-slate-900">“{label}”</h2>
       </div>
 
@@ -152,12 +190,19 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
                   />
                   <span className="min-w-0 flex-1">
                     <span className="font-medium text-slate-900">{item.label}</span>
-                    <span className="text-xs text-slate-500"> · from {item.source === 'page' ? 'this page' : 'your profile'}</span>
+                    <span className="text-xs text-slate-500">
+                      {' '}
+                      · from {item.source === 'page' ? 'this page' : 'your profile'}
+                    </span>
                   </span>
                 </label>
                 <details className="ml-6 text-xs text-slate-600">
-                  <summary className="cursor-pointer text-brand-600">Show exactly what’s sent</summary>
-                  <p className="mt-1 max-h-24 overflow-y-auto whitespace-pre-line">{item.preview}</p>
+                  <summary className="cursor-pointer text-brand-600">
+                    Show exactly what’s sent
+                  </summary>
+                  <p className="mt-1 max-h-24 overflow-y-auto whitespace-pre-line">
+                    {item.preview}
+                  </p>
                 </details>
               </li>
             ))}
@@ -192,7 +237,11 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
 
       {step.name === 'choose' && (
         <div className="space-y-3">
-          <div className="flex gap-1 rounded-lg bg-slate-100 p-1" role="radiogroup" aria-label="Answer version">
+          <div
+            className="flex gap-1 rounded-lg bg-slate-100 p-1"
+            role="radiogroup"
+            aria-label="Answer version"
+          >
             {VARIANTS.map(({ key, label: text }) => (
               <button
                 key={key}
@@ -220,7 +269,10 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
             className="w-full rounded-lg border border-slate-300 p-2 text-sm"
           />
           <p className="text-xs text-slate-500">
-            Check it’s accurate and sounds like you — AI can get details wrong. {question?.maxLength ? `Limit: ${question.maxLength} characters (${draft.length} used).` : ''}
+            Check it’s accurate and sounds like you — AI can get details wrong.{' '}
+            {question?.maxLength
+              ? `Limit: ${question.maxLength} characters (${draft.length} used).`
+              : ''}
           </p>
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => setStep({ name: 'consent' })}>
@@ -249,7 +301,9 @@ export function AnswerAssistant({ uid, label, onClose }: { uid: string; label: s
 
       {step.name === 'inserted' && (
         <div className="space-y-3">
-          <Alert tone="success">Answer inserted. Review it on the page — JobFill never submits applications.</Alert>
+          <Alert tone="success">
+            Answer inserted. Review it on the page — JobFill never submits applications.
+          </Alert>
           <Button className="w-full" variant="secondary" onClick={onClose}>
             Done
           </Button>

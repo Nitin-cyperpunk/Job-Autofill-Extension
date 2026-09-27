@@ -19,7 +19,7 @@ const FEATURES = [
   {
     icon: <LockIcon className="h-5 w-5" />,
     title: 'Private by design',
-    text: 'No account, no servers. Export or delete your data whenever you like.',
+    text: 'No account and no JobFill servers — your data stays on this device unless you turn on optional AI. Export or delete it whenever you like.',
   },
 ];
 

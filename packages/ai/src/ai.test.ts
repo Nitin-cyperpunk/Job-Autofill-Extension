@@ -18,7 +18,8 @@ const profile = sampleProfile();
 const job = {
   title: 'Senior Frontend Engineer',
   company: 'Example Co',
-  description: 'We build React and TypeScript products. You will lead a small team and mentor engineers.',
+  description:
+    'We build React and TypeScript products. You will lead a small team and mentor engineers.',
 };
 const question = { question: 'Why are you interested in this position?', kind: 'long' as const };
 
@@ -55,14 +56,32 @@ describe('data minimization', () => {
   });
 
   it('adds education only when the question is about it', () => {
-    const edu = buildContextItems({ question: 'What did you study at university?', kind: 'long' }, profile, job);
+    const edu = buildContextItems(
+      { question: 'What did you study at university?', kind: 'long' },
+      profile,
+      job,
+    );
     expect(edu.some((i) => i.id === 'education')).toBe(true);
     expect(buildContextItems(question, profile, job).some((i) => i.id === 'education')).toBe(false);
   });
 
   it('never includes contact, identity, salary or authorization data — even with everything approved', () => {
-    const everything = new Set<ContextItemId>(['jobTitle', 'company', 'jobDescription', 'currentRole', 'skills', 'experience', 'education', 'summary']);
-    const request = buildRequest({ question: 'Tell us about your education', kind: 'long' }, profile, job, everything);
+    const everything = new Set<ContextItemId>([
+      'jobTitle',
+      'company',
+      'jobDescription',
+      'currentRole',
+      'skills',
+      'experience',
+      'education',
+      'summary',
+    ]);
+    const request = buildRequest(
+      { question: 'Tell us about your education', kind: 'long' },
+      profile,
+      job,
+      everything,
+    );
     const sent = JSON.stringify(request) + buildUserPrompt(request);
     for (const value of PRIVATE_VALUES) expect(sent).not.toContain(value);
   });
@@ -86,9 +105,14 @@ describe('data minimization', () => {
 
 describe('response parsing', () => {
   it('accepts fenced JSON and enforces max length at a sentence boundary', () => {
-    const raw = '```json\n{"answer":"First sentence. Second sentence that is long.","concise":"Short.","professional":"Formal answer."}\n```';
+    const raw =
+      '```json\n{"answer":"First sentence. Second sentence that is long.","concise":"Short.","professional":"Formal answer."}\n```';
     const v = parseVariants(raw, 20);
-    expect(v).toEqual({ answer: 'First sentence.', concise: 'Short.', professional: 'Formal answer.' });
+    expect(v).toEqual({
+      answer: 'First sentence.',
+      concise: 'Short.',
+      professional: 'Formal answer.',
+    });
   });
 
   it('rejects incomplete replies', () => {
@@ -124,7 +148,9 @@ describe('providers', () => {
   });
 
   it('Gemini: key in x-goog-api-key header, never in the URL', async () => {
-    const fetchImpl = mockFetch({ candidates: [{ content: { parts: [{ text: JSON.stringify(REPLY) }] } }] });
+    const fetchImpl = mockFetch({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(REPLY) }] } }],
+    });
     const provider = new GeminiProvider({ apiKey: 'g-key', model: 'gemini-test', fetchImpl });
     expect(await provider.generateAnswers(request)).toEqual(REPLY);
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
@@ -133,7 +159,11 @@ describe('providers', () => {
   });
 
   it('maps HTTP errors to helpful messages', async () => {
-    const provider = new OpenAIProvider({ apiKey: 'bad', model: 'm', fetchImpl: mockFetch({}, 401) });
+    const provider = new OpenAIProvider({
+      apiKey: 'bad',
+      model: 'm',
+      fetchImpl: mockFetch({}, 401),
+    });
     await expect(provider.generateAnswers(request)).rejects.toMatchObject({ kind: 'auth' });
     const limited = new OpenAIProvider({ apiKey: 'k', model: 'm', fetchImpl: mockFetch({}, 429) });
     await expect(limited.generateAnswers(request)).rejects.toMatchObject({ kind: 'rate-limit' });
@@ -142,8 +172,39 @@ describe('providers', () => {
   it('registry refuses incomplete or disabled configurations', () => {
     expect(() => createProvider(DEFAULT_AI_SETTINGS)).toThrow(/turned off/);
     expect(() => createProvider({ ...DEFAULT_AI_SETTINGS, enabled: true })).toThrow(/API key/);
-    expect(() => createProvider({ ...DEFAULT_AI_SETTINGS, enabled: true, provider: 'backend', apiKey: 't', baseUrl: 'http://insecure' })).toThrow(/https/);
-    const compatible = createProvider({ enabled: true, provider: 'openai-compatible', model: 'llama3', baseUrl: 'http://localhost:11434/v1', apiKey: '' });
+    expect(() =>
+      createProvider({
+        ...DEFAULT_AI_SETTINGS,
+        enabled: true,
+        provider: 'backend',
+        apiKey: 't',
+        baseUrl: 'http://insecure',
+      }),
+    ).toThrow(/https/);
+    const compatible = createProvider({
+      enabled: true,
+      provider: 'openai-compatible',
+      model: 'llama3',
+      baseUrl: 'http://localhost:11434/v1',
+      apiKey: '',
+    });
     expect(compatible.destination).toBe('localhost:11434');
+  });
+
+  it('refuses custom endpoints that would send the key or answers unprotected', () => {
+    const compatible = (baseUrl: string) =>
+      createProvider({
+        enabled: true,
+        provider: 'openai-compatible',
+        model: 'm',
+        baseUrl,
+        apiKey: 'k',
+      });
+    expect(() => compatible('http://models.example.com/v1')).toThrow(/https/);
+    expect(() => compatible('ftp://example.com')).toThrow(/https/);
+    expect(() => compatible('not a url')).toThrow(/valid URL/);
+    expect(() => compatible('https://user:pass@example.com/v1')).toThrow(/username/);
+    expect(compatible('http://127.0.0.1:8080/v1').destination).toBe('127.0.0.1:8080');
+    expect(compatible('https://api.groq.com/openai/v1').destination).toBe('api.groq.com');
   });
 });

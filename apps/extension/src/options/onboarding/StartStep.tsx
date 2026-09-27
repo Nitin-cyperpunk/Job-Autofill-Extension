@@ -1,31 +1,50 @@
 import { Button } from '@/components/ui/Button';
-import { ArrowLeftIcon, PencilIcon, UploadIcon } from '@/components/ui/icons';
+import { ArrowLeftIcon, FileTextIcon, PencilIcon, UploadIcon } from '@/components/ui/icons';
 import { ImportProfileButton } from '../data/ImportProfileButton';
 
-/** "Create profile": start from scratch, or restore a JobFill export. */
+/** "Create profile": from your resume, from scratch, or from a JobFill export. */
 export function StartStep({
+  onResume,
   onScratch,
   onImported,
   onBack,
 }: {
+  onResume: () => void;
   onScratch: () => void;
   onImported: () => void;
   onBack: () => void;
 }) {
   return (
-    <div className="mx-auto max-w-2xl py-6">
+    <div className="mx-auto max-w-3xl py-6">
       <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900">
         Create your profile
       </h1>
       <p className="mt-3 text-center text-slate-600">How would you like to begin?</p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+      <div className="mt-10 grid gap-4 sm:grid-cols-3">
         <button
           type="button"
-          onClick={onScratch}
+          onClick={onResume}
           className="group rounded-2xl border-2 border-brand-500 bg-white p-6 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-white">
+            <FileTextIcon className="h-5 w-5" />
+          </span>
+          <p className="mt-4 font-semibold text-slate-900">Start from your resume</p>
+          <p className="mt-1 text-sm text-slate-600">
+            We read it on this device and fill in what we find. You review everything first.
+          </p>
+          <p className="mt-4 text-sm font-semibold text-brand-600 group-hover:underline">
+            Upload →
+          </p>
+        </button>
+
+        <button
+          type="button"
+          onClick={onScratch}
+          className="group rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
             <PencilIcon className="h-5 w-5" />
           </span>
           <p className="mt-4 font-semibold text-slate-900">Start from scratch</p>

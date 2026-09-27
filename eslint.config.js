@@ -16,7 +16,11 @@ export default tseslint.config(
     },
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // ignoreRestSiblings: `const { omit, ...rest } = obj` is the idiomatic way to drop a key.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
     },
   },
   {
@@ -28,8 +32,25 @@ export default tseslint.config(
     },
   },
   {
+    // Privacy: candidate data must never reach a console. All logging goes through
+    // utils/logger.ts (fixed messages, error names only); the opt-in field debugger
+    // prints page field metadata, never values.
+    files: ['apps/extension/src/**/*.{ts,tsx}', 'packages/*/src/**/*.ts'],
+    ignores: [
+      '**/*.test.{ts,tsx}',
+      'apps/extension/src/utils/logger.ts',
+      'apps/extension/src/field-detection/debug.ts',
+    ],
+    rules: { 'no-console': 'error' },
+  },
+  {
     files: ['**/*.config.{js,ts}', '**/scripts/**/*.{js,mjs}'],
     languageOptions: { globals: globals.node },
+  },
+  {
+    // Fixture pages' scripts run in the browser.
+    files: ['apps/extension/test-pages/**/*.js'],
+    languageOptions: { globals: globals.browser },
   },
   prettier,
 );

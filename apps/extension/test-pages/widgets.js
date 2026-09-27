@@ -147,7 +147,8 @@ export function installListboxButtons(root = document) {
       button.dataset.openOn === 'pointerdown' ? 'pointerdown' : 'click',
       (e) => {
         if (button.dataset.openOn === 'pointerdown') e.preventDefault();
-        popup ? close() : open();
+        if (popup) close();
+        else open();
       },
     );
     button.addEventListener('keydown', (e) => e.key === 'Escape' && close());

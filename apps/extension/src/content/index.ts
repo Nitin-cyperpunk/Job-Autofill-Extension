@@ -135,7 +135,10 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
     case 'AI_QUESTION_CONTEXT': {
       const field = watcher.scanNow().find((f) => f.descriptor.id === message.fieldId);
       if (!field) {
-        sendResponse({ ok: false, message: 'That field is no longer on the page.' } satisfies MessageResponse<'AI_QUESTION_CONTEXT'>);
+        sendResponse({
+          ok: false,
+          message: 'That field is no longer on the page.',
+        } satisfies MessageResponse<'AI_QUESTION_CONTEXT'>);
         return false;
       }
       void import('@/ai/job-context').then(({ extractJobContext }) => {
@@ -155,11 +158,18 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
     case 'AI_INSERT': {
       const field = watcher.scanNow().find((f) => f.descriptor.id === message.fieldId);
       if (!field) {
-        sendResponse({ ok: false, message: 'That field is no longer on the page.' } satisfies MessageResponse<'AI_INSERT'>);
+        sendResponse({
+          ok: false,
+          message: 'That field is no longer on the page.',
+        } satisfies MessageResponse<'AI_INSERT'>);
         return false;
       }
       void import('@/ai/insert-answer').then(({ insertAnswer }) => {
-        sendResponse(insertAnswer(field, message.text, { replace: message.replace }) satisfies MessageResponse<'AI_INSERT'>);
+        sendResponse(
+          insertAnswer(field, message.text, {
+            replace: message.replace,
+          }) satisfies MessageResponse<'AI_INSERT'>,
+        );
       });
       return true;
     }
@@ -168,4 +178,4 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
   }
 });
 
-logger.info('content script ready', isTopFrame ? '(top frame)' : '(sub-frame)');
+logger.info(isTopFrame ? 'content script ready (top frame)' : 'content script ready (sub-frame)');

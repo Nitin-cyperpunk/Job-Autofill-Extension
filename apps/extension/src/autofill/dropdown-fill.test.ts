@@ -50,11 +50,13 @@ describe('react-select style combobox', () => {
     expect(document.querySelector('[role=listbox]')).toBeNull(); // menu closed
   });
 
-  it('matches options semantically (M.Sc. → Master’s Degree)', async () => {
+  it('matches options semantically (M.Sc. → Master’s Degree), even when typing filters them out', async () => {
+    // The planner searches with the profile value; substring filtering then hides the
+    // right option, so the filler must clear the text and match the full list.
     const ok = await fillDropdown(
       document.getElementById('degree')!,
       { kind: 'text', text: 'M.Sc.' },
-      '',
+      'M.Sc.',
     );
     expect(ok).toBe(true);
     expect(shown('degree')).toBe("Master's Degree");

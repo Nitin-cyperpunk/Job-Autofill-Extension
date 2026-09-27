@@ -21,7 +21,9 @@ const DESCRIPTION_SELECTORS = [
 
 function meta(doc: Document, name: string): string {
   return (
-    doc.querySelector<HTMLMetaElement>(`meta[property="${name}"], meta[name="${name}"]`)?.content?.trim() ?? ''
+    doc
+      .querySelector<HTMLMetaElement>(`meta[property="${name}"], meta[name="${name}"]`)
+      ?.content?.trim() ?? ''
   );
 }
 

@@ -53,16 +53,16 @@ export function DeleteAllDataButton({
   return (
     <>
       <Button variant="danger" icon={<TrashIcon />} onClick={() => setOpen(true)} {...buttonProps}>
-        Delete all profile data
+        Delete all local data
       </Button>
       <ConfirmDialog
         open={open}
-        title="Delete all profile data?"
+        title="Delete all JobFill data on this device?"
         description={
           <>
-            This permanently erases your profile, resume and every JobFill setting from this device.
-            Because nothing is stored on a server, <strong>this can’t be undone</strong> unless you
-            have an exported backup.
+            This permanently erases your profile, resume, settings and any AI settings (including
+            your API key) from this device. Because nothing is stored on a server,{' '}
+            <strong>this can’t be undone</strong> unless you have an exported backup.
           </>
         }
         confirmLabel="Delete everything"

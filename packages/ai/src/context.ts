@@ -12,6 +12,19 @@ import type { AnswerRequest, CandidateContext, JobContext } from './types';
  * salary, work authorization / sponsorship, demographics, resume file.
  */
 
+/** What is never part of an AI request — shown to users on the consent and privacy screens. */
+export const NEVER_SENT_TO_AI = [
+  'your name',
+  'email',
+  'phone',
+  'address',
+  'links',
+  'salary',
+  'work authorization',
+  'demographic answers',
+  'resume file',
+] as const;
+
 export type ContextItemId =
   | 'jobTitle'
   | 'company'
@@ -78,7 +91,8 @@ function period(start: string, end: string, current: boolean): string {
   return [start, current ? 'present' : end].filter(Boolean).join(' – ');
 }
 
-const EDUCATION_QUESTION = /\b(degree|study|studies|studied|education|university|college|school|course|graduat|academic|major)/i;
+const EDUCATION_QUESTION =
+  /\b(degree|study|studies|studied|education|university|college|school|course|graduat|academic|major)/i;
 
 interface Selection {
   candidate: CandidateContext;
@@ -93,13 +107,21 @@ function select(question: QuestionInput, profile: Profile, job: JobContext): Sel
   // Skills mentioned by the question or the job; otherwise a few top skills.
   const allSkills = [...profile.skills.technical, ...profile.skills.soft];
   const relevantSkills = allSkills.filter((s) => [...words(s)].some((w) => vocabulary.has(w)));
-  const skills = (relevantSkills.length ? relevantSkills : profile.skills.technical.slice(0, 5)).slice(0, LIMITS.skills);
+  const skills = (
+    relevantSkills.length ? relevantSkills : profile.skills.technical.slice(0, 5)
+  ).slice(0, LIMITS.skills);
 
   // The roles closest to the job, or the most recent one.
   const ranked = profile.experience
-    .map((e, index) => ({ e, index, score: overlap(`${e.jobTitle} ${e.description} ${e.skills.join(' ')}`, vocabulary) }))
+    .map((e, index) => ({
+      e,
+      index,
+      score: overlap(`${e.jobTitle} ${e.description} ${e.skills.join(' ')}`, vocabulary),
+    }))
     .sort((a, b) => b.score - a.score || a.index - b.index);
-  const roles = (ranked.some((r) => r.score > 0) ? ranked.filter((r) => r.score > 0) : ranked.slice(0, 1))
+  const roles = (
+    ranked.some((r) => r.score > 0) ? ranked.filter((r) => r.score > 0) : ranked.slice(0, 1)
+  )
     .slice(0, LIMITS.roles)
     .map(({ e }) => ({
       title: e.jobTitle,
@@ -109,7 +131,9 @@ function select(question: QuestionInput, profile: Profile, job: JobContext): Sel
     }));
 
   const education = EDUCATION_QUESTION.test(question.question)
-    ? profile.education.slice(0, 2).map((e) => ({ degree: e.degree, field: e.fieldOfStudy, institution: e.institution }))
+    ? profile.education
+        .slice(0, 2)
+        .map((e) => ({ degree: e.degree, field: e.fieldOfStudy, institution: e.institution }))
     : [];
 
   return {
@@ -130,10 +154,20 @@ function select(question: QuestionInput, profile: Profile, job: JobContext): Sel
 }
 
 /** The consent-screen items for one question. Empty items are not offered. */
-export function buildContextItems(question: QuestionInput, profile: Profile, job: JobContext): ContextItem[] {
+export function buildContextItems(
+  question: QuestionInput,
+  profile: Profile,
+  job: JobContext,
+): ContextItem[] {
   const { job: j, candidate: c } = select(question, profile, job);
   const items: ContextItem[] = [];
-  const add = (id: ContextItemId, label: string, preview: string | undefined, source: ContextItem['source'], selected = true) => {
+  const add = (
+    id: ContextItemId,
+    label: string,
+    preview: string | undefined,
+    source: ContextItem['source'],
+    selected = true,
+  ) => {
     if (preview) items.push({ id, label, preview, source, selected });
   };
   add('jobTitle', 'Job title', j.title, 'page');
@@ -142,17 +176,28 @@ export function buildContextItems(question: QuestionInput, profile: Profile, job
   add(
     'currentRole',
     'Current role',
-    [c.currentRole, c.yearsOfExperience && `${c.yearsOfExperience} years of experience`].filter(Boolean).join(' · '),
+    [c.currentRole, c.yearsOfExperience && `${c.yearsOfExperience} years of experience`]
+      .filter(Boolean)
+      .join(' · '),
     'profile',
   );
   add('skills', 'Relevant skills', c.skills?.join(', '), 'profile');
   add(
     'experience',
     'Relevant experience',
-    c.experience?.map((e) => `${e.title} at ${e.company} (${e.period})${e.highlights ? `: ${e.highlights}` : ''}`).join('\n'),
+    c.experience
+      ?.map(
+        (e) => `${e.title} at ${e.company} (${e.period})${e.highlights ? `: ${e.highlights}` : ''}`,
+      )
+      .join('\n'),
     'profile',
   );
-  add('education', 'Education', c.education?.map((e) => `${e.degree} ${e.field}, ${e.institution}`.trim()).join('\n'), 'profile');
+  add(
+    'education',
+    'Education',
+    c.education?.map((e) => `${e.degree} ${e.field}, ${e.institution}`.trim()).join('\n'),
+    'profile',
+  );
   // The free-text summary is the most personal item: offered, but not pre-ticked.
   add('summary', 'Your professional summary', c.summary, 'profile', false);
   return items;
@@ -169,7 +214,10 @@ export function buildRequest(
   const has = (id: ContextItemId) => approved.has(id);
   return {
     question: question.question,
-    constraints: { kind: question.kind, ...(question.maxLength ? { maxLength: question.maxLength } : {}) },
+    constraints: {
+      kind: question.kind,
+      ...(question.maxLength ? { maxLength: question.maxLength } : {}),
+    },
     job: {
       ...(has('jobTitle') && j.title ? { title: j.title } : {}),
       ...(has('company') && j.company ? { company: j.company } : {}),
@@ -177,7 +225,9 @@ export function buildRequest(
     },
     candidate: {
       ...(has('currentRole') && c.currentRole ? { currentRole: c.currentRole } : {}),
-      ...(has('currentRole') && c.yearsOfExperience ? { yearsOfExperience: c.yearsOfExperience } : {}),
+      ...(has('currentRole') && c.yearsOfExperience
+        ? { yearsOfExperience: c.yearsOfExperience }
+        : {}),
       ...(has('skills') && c.skills ? { skills: c.skills } : {}),
       ...(has('experience') && c.experience ? { experience: c.experience } : {}),
       ...(has('education') && c.education ? { education: c.education } : {}),

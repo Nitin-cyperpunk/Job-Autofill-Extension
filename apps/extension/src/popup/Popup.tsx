@@ -82,7 +82,14 @@ function PopupContent() {
 
       <p className="mt-4 flex items-center gap-1.5 border-t border-slate-100 pt-3 text-xs text-slate-500">
         <LockIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-        {PRIVACY_MESSAGE}
+        <span className="flex-1">{PRIVACY_MESSAGE}</span>
+        <button
+          type="button"
+          className="shrink-0 font-medium text-brand-700 hover:underline"
+          onClick={() => openProfile('#/privacy')}
+        >
+          Privacy
+        </button>
       </p>
     </>
   );

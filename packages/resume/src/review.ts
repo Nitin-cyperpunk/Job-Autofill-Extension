@@ -30,7 +30,11 @@ export type ScalarPath =
   | 'links.portfolio'
   | 'links.website';
 
-const SCALARS: Array<{ path: ScalarPath; label: string; group: 'Personal' | 'Professional' | 'Links' }> = [
+const SCALARS: Array<{
+  path: ScalarPath;
+  label: string;
+  group: 'Personal' | 'Professional' | 'Links';
+}> = [
   { path: 'personal.firstName', label: 'First name', group: 'Personal' },
   { path: 'personal.middleName', label: 'Middle name', group: 'Personal' },
   { path: 'personal.lastName', label: 'Last name', group: 'Personal' },
@@ -41,7 +45,11 @@ const SCALARS: Array<{ path: ScalarPath; label: string; group: 'Personal' | 'Pro
   { path: 'personal.country', label: 'Country', group: 'Personal' },
   { path: 'professional.currentTitle', label: 'Current job title', group: 'Professional' },
   { path: 'professional.currentCompany', label: 'Current company', group: 'Professional' },
-  { path: 'professional.yearsOfExperience', label: 'Years of experience (from dates)', group: 'Professional' },
+  {
+    path: 'professional.yearsOfExperience',
+    label: 'Years of experience (from dates)',
+    group: 'Professional',
+  },
   { path: 'professional.summary', label: 'Professional summary', group: 'Professional' },
   { path: 'links.linkedin', label: 'LinkedIn', group: 'Links' },
   { path: 'links.github', label: 'GitHub', group: 'Links' },
@@ -95,7 +103,16 @@ function comparable(path: ScalarPath, value: string): string {
   return v.replace(/\s+/g, ' ');
 }
 
-const key = (...parts: string[]) => parts.map((p) => p.trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()).join('|');
+const key = (...parts: string[]) =>
+  parts
+    .map((p) =>
+      p
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    )
+    .join('|');
 
 export function buildReview(profile: Profile, extracted: ExtractedResume): ResumeReview {
   const items: ReviewItem[] = [];
@@ -119,27 +136,55 @@ export function buildReview(profile: Profile, extracted: ExtractedResume): Resum
     group: EntryGroup,
     list: T[],
     existingKeys: Map<string, string>,
-    describe: (e: T) => { title: string; subtitle: string; details: string; key: string; note?: string },
+    describe: (e: T) => {
+      title: string;
+      subtitle: string;
+      details: string;
+      keys: string[];
+      note?: string;
+    },
   ) =>
     list.forEach((entry, i) => {
       const d = describe(entry);
       if (!d.title) return;
-      const duplicateOf = existingKeys.get(d.key) ?? null;
+      const duplicateOf = d.keys.map((k) => existingKeys.get(k)).find(Boolean) ?? null;
       const id = `${group}:${i}`;
-      items.push({ kind: 'entry', id, group, title: d.title, subtitle: d.subtitle, details: d.details, duplicateOf, note: d.note ?? '' });
+      items.push({
+        kind: 'entry',
+        id,
+        group,
+        title: d.title,
+        subtitle: d.subtitle,
+        details: d.details,
+        duplicateOf,
+        note: d.note ?? '',
+      });
       if (!duplicateOf) defaults.add(id);
     });
 
   addEntries(
     'experience',
     extracted.experience,
-    new Map(profile.experience.map((e) => [key(e.jobTitle, e.company), `${e.jobTitle} at ${e.company}`])),
+    // Same role: same title + company, or same company + start date (titles get reworded).
+    new Map(
+      profile.experience.flatMap((e) => {
+        const label = `${e.jobTitle} at ${e.company}`;
+        return [
+          [key(e.jobTitle, e.company), label],
+          [key(e.company, e.startDate), label],
+        ] as Array<[string, string]>;
+      }),
+    ),
     (e) => ({
       title: [e.jobTitle, e.company].filter(Boolean).join(' at '),
-      subtitle: [formatDateRange(e.startDate, e.endDate, e.isCurrent), e.location].filter(Boolean).join(' · '),
+      subtitle: [formatDateRange(e.startDate, e.endDate, e.isCurrent), e.location]
+        .filter(Boolean)
+        .join(' · '),
       details: e.description,
-      key: key(e.jobTitle, e.company),
-      note: e.monthAssumed ? 'Month not in résumé — January assumed. Adjust after saving if needed.' : '',
+      keys: [key(e.jobTitle, e.company), key(e.company, e.startDate)],
+      note: e.monthAssumed
+        ? 'Month not in résumé — January assumed. Adjust after saving if needed.'
+        : '',
     }),
   );
   addEntries(
@@ -148,24 +193,38 @@ export function buildReview(profile: Profile, extracted: ExtractedResume): Resum
     new Map(profile.education.map((e) => [key(e.institution), e.institution])),
     (e) => ({
       title: e.institution || e.degree,
-      subtitle: [[e.degree, e.fieldOfStudy].filter(Boolean).join(', '), formatDateRange(e.startDate, e.endDate), e.gpa && `GPA ${e.gpa}`]
+      subtitle: [
+        [e.degree, e.fieldOfStudy].filter(Boolean).join(', '),
+        formatDateRange(e.startDate, e.endDate),
+        e.gpa && `GPA ${e.gpa}`,
+      ]
         .filter(Boolean)
         .join(' · '),
       details: e.description,
-      key: key(e.institution || e.degree),
+      keys: [key(e.institution || e.degree)],
     }),
   );
   addEntries(
     'projects',
     extracted.projects,
     new Map(profile.projects.map((p) => [key(p.name), p.name])),
-    (p) => ({ title: p.name, subtitle: p.technologies.join(', '), details: p.description, key: key(p.name) }),
+    (p) => ({
+      title: p.name,
+      subtitle: p.technologies.join(', '),
+      details: p.description,
+      keys: [key(p.name)],
+    }),
   );
   addEntries(
     'certifications',
     extracted.certifications,
     new Map(profile.certifications.map((c) => [key(c.name), c.name])),
-    (c) => ({ title: c.name, subtitle: [c.issuer, c.date].filter(Boolean).join(' · '), details: c.url, key: key(c.name) }),
+    (c) => ({
+      title: c.name,
+      subtitle: [c.issuer, c.date].filter(Boolean).join(' · '),
+      details: c.url,
+      keys: [key(c.name)],
+    }),
   );
 
   const addTags = (group: 'skills' | 'languages', tags: string[], existing: string[]) => {
@@ -187,12 +246,20 @@ export function buildReview(profile: Profile, extracted: ExtractedResume): Resum
 }
 
 /** Apply ONLY the accepted items. Unaccepted conflicts keep the existing value. */
-export function applyReview(profile: Profile, extracted: ExtractedResume, review: ResumeReview, accepted: ReadonlySet<string>): Profile {
+export function applyReview(
+  profile: Profile,
+  extracted: ExtractedResume,
+  review: ResumeReview,
+  accepted: ReadonlySet<string>,
+): Profile {
   const next: Profile = structuredClone(profile);
   for (const item of review.items) {
     if (!accepted.has(item.id)) continue;
     if (item.kind === 'scalar') {
-      const [section, field] = item.id.split('.') as ['personal' | 'professional' | 'links', string];
+      const [section, field] = item.id.split('.') as [
+        'personal' | 'professional' | 'links',
+        string,
+      ];
       (next[section] as unknown as Record<string, string>)[field] = item.extracted;
     } else if (item.kind === 'tag') {
       if (item.group === 'skills') next.skills.technical.push(item.tag);
@@ -201,7 +268,7 @@ export function applyReview(profile: Profile, extracted: ExtractedResume, review
       const index = Number(item.id.split(':')[1]);
       switch (item.group) {
         case 'experience': {
-          const { monthAssumed: _assumed, ...entry } = extracted.experience[index]!;
+          const { monthAssumed, ...entry } = extracted.experience[index]!;
           next.experience.push({ id: createId(), ...entry });
           break;
         }

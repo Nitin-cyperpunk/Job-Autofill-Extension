@@ -36,8 +36,9 @@ export async function clearAll(): Promise<void> {
   await chrome.storage.local.clear();
 }
 
-export async function getBytesInUse(): Promise<number> {
-  return chrome.storage.local.getBytesInUse(null);
+/** Bytes JobFill uses in local storage — in total, or for the given key(s). */
+export async function getBytesInUse(key: string | string[] | null = null): Promise<number> {
+  return chrome.storage.local.getBytesInUse(key);
 }
 
 /** Subscribe to changes of a single key. Returns an unsubscribe function. */

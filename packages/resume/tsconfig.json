@@ -2,7 +2,9 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
-    "types": []
+    // Node types are for the tests, which build real DOCX/PDF fixtures with zlib.
+    // The runtime code uses only web APIs (DecompressionStream, TextDecoder).
+    "types": ["node"]
   },
   "include": ["src"]
 }

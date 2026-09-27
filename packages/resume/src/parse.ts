@@ -59,7 +59,12 @@ export interface ExtractedResume {
     state: string;
     country: string;
   };
-  professional: { currentTitle: string; currentCompany: string; summary: string; yearsOfExperience: string };
+  professional: {
+    currentTitle: string;
+    currentCompany: string;
+    summary: string;
+    yearsOfExperience: string;
+  };
   skills: { technical: string[]; languages: string[] };
   education: ExtractedEducation[];
   experience: ExtractedExperience[];
@@ -70,17 +75,104 @@ export interface ExtractedResume {
 
 // ---- Sections ------------------------------------------------------------------------------------
 
-type Section = 'header' | 'summary' | 'experience' | 'education' | 'skills' | 'projects' | 'certifications' | 'languages' | 'other';
+type Section =
+  | 'header'
+  | 'summary'
+  | 'experience'
+  | 'education'
+  | 'skills'
+  | 'projects'
+  | 'certifications'
+  | 'languages'
+  | 'other';
 
 const HEADINGS: Record<Exclude<Section, 'header'>, string[]> = {
-  summary: ['summary', 'professional summary', 'profile', 'professional profile', 'about me', 'about', 'objective', 'career objective', 'career summary', 'personal statement'],
-  experience: ['experience', 'work experience', 'professional experience', 'employment', 'employment history', 'work history', 'relevant experience', 'career history', 'professional background'],
-  education: ['education', 'academic background', 'education and training', 'education & training', 'qualifications', 'academic qualifications', 'academics'],
-  skills: ['skills', 'technical skills', 'core skills', 'key skills', 'core competencies', 'competencies', 'technologies', 'tools', 'skills & tools', 'skills and tools', 'tech stack', 'expertise', 'areas of expertise', 'skills & technologies', 'technical proficiencies'],
-  projects: ['projects', 'personal projects', 'selected projects', 'key projects', 'side projects', 'open source', 'academic projects', 'project experience'],
-  certifications: ['certifications', 'certificates', 'certification', 'licenses & certifications', 'licenses and certifications', 'licences & certifications', 'courses', 'certifications & courses', 'training & certifications'],
+  summary: [
+    'summary',
+    'professional summary',
+    'profile',
+    'professional profile',
+    'about me',
+    'about',
+    'objective',
+    'career objective',
+    'career summary',
+    'personal statement',
+  ],
+  experience: [
+    'experience',
+    'work experience',
+    'professional experience',
+    'employment',
+    'employment history',
+    'work history',
+    'relevant experience',
+    'career history',
+    'professional background',
+  ],
+  education: [
+    'education',
+    'academic background',
+    'education and training',
+    'education & training',
+    'qualifications',
+    'academic qualifications',
+    'academics',
+  ],
+  skills: [
+    'skills',
+    'technical skills',
+    'core skills',
+    'key skills',
+    'core competencies',
+    'competencies',
+    'technologies',
+    'tools',
+    'skills & tools',
+    'skills and tools',
+    'tech stack',
+    'expertise',
+    'areas of expertise',
+    'skills & technologies',
+    'technical proficiencies',
+  ],
+  projects: [
+    'projects',
+    'personal projects',
+    'selected projects',
+    'key projects',
+    'side projects',
+    'open source',
+    'academic projects',
+    'project experience',
+  ],
+  certifications: [
+    'certifications',
+    'certificates',
+    'certification',
+    'licenses & certifications',
+    'licenses and certifications',
+    'licences & certifications',
+    'courses',
+    'certifications & courses',
+    'training & certifications',
+  ],
   languages: ['languages', 'language skills', 'spoken languages'],
-  other: ['interests', 'hobbies', 'references', 'volunteering', 'volunteer experience', 'awards', 'honors', 'honours', 'publications', 'achievements', 'activities', 'leadership', 'extracurricular activities'],
+  other: [
+    'interests',
+    'hobbies',
+    'references',
+    'volunteering',
+    'volunteer experience',
+    'awards',
+    'honors',
+    'honours',
+    'publications',
+    'achievements',
+    'activities',
+    'leadership',
+    'extracurricular activities',
+  ],
 };
 
 const HEADING_LOOKUP = new Map<string, Section>(
@@ -89,7 +181,11 @@ const HEADING_LOOKUP = new Map<string, Section>(
 
 function headingOf(line: string): Section | null {
   if (line.length > 45) return null;
-  const key = line.toLowerCase().replace(/[:.]+$/, '').replace(/\s+/g, ' ').trim();
+  const key = line
+    .toLowerCase()
+    .replace(/[:.]+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   return HEADING_LOOKUP.get(key) ?? null;
 }
 
@@ -127,7 +223,8 @@ function findPhone(lines: string[]): string {
       if (!m) continue;
       const digits = m[0].replace(/\D/g, '');
       // Not a date range ("2019 - 2021") or a postal code.
-      if (digits.length < 8 || digits.length > 15 || /^\s*\d{4}\s*[-–]\s*\d{4}\s*$/.test(m[0])) continue;
+      if (digits.length < 8 || digits.length > 15 || /^\s*\d{4}\s*[-–]\s*\d{4}\s*$/.test(m[0]))
+        continue;
       return m[0].trim();
     }
   }
@@ -143,20 +240,32 @@ function findLinks(text: string) {
   const links = { linkedin: '', github: '', portfolio: '', website: '' };
   for (const m of text.matchAll(URL_RE)) {
     const url = m[0];
-    if (EMAIL.test(text.slice(Math.max(0, (m.index ?? 0) - 40), (m.index ?? 0) + url.length)) && url.includes('@')) continue;
-    const host = url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').toLowerCase();
+    const start = m.index ?? 0;
+    // Part of an email address ("ada.lovelace@example.com" → neither side is a website).
+    if (text[start - 1] === '@' || text[start + url.length] === '@' || url.includes('@')) continue;
+    const host = url
+      .replace(/^https?:\/\//i, '')
+      .replace(/^www\./i, '')
+      .toLowerCase();
     if (!/^[a-z0-9-]+\.[a-z]{2,}/.test(host) || /^\d/.test(host)) continue;
     if (host.startsWith('linkedin.com/')) links.linkedin ||= normalizeUrl(url);
-    else if (host.startsWith('github.com/') && host.split('/').filter(Boolean).length === 2) links.github ||= normalizeUrl(url);
-    else if (host.startsWith('github.com/')) continue; // a repo link belongs to a project
+    else if (host.startsWith('github.com/') && host.split('/').filter(Boolean).length === 2)
+      links.github ||= normalizeUrl(url);
+    else if (host.startsWith('github.com/'))
+      continue; // a repo link belongs to a project
     else if (/^(gmail|yahoo|outlook|hotmail)\.com/.test(host)) continue;
-    else if (!links.portfolio && /portfolio|behance|dribbble|\.dev\b|\.io\b|\.me\b/.test(host)) links.portfolio = normalizeUrl(url);
+    else if (!links.portfolio && /portfolio|behance|dribbble|\.dev\b|\.io\b|\.me\b/.test(host))
+      links.portfolio = normalizeUrl(url);
     else if (!links.website && host.includes('/') === false) links.website = normalizeUrl(url);
   }
   return links;
 }
 
-const US_STATES = new Set('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC'.split(' '));
+const US_STATES = new Set(
+  'AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC'.split(
+    ' ',
+  ),
+);
 const LOCATION = /^([A-Z][A-Za-z .'-]+?),\s*([A-Z][A-Za-z .'-]+?)(?:,\s*([A-Z][A-Za-z .'-]+))?$/;
 
 function parseLocation(segment: string): { city: string; state: string; country: string } | null {
@@ -186,9 +295,13 @@ function looksLikeName(line: string): boolean {
 // ---- Dates -----------------------------------------------------------------------------------------
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-const MONTH_RE = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+const MONTH_RE =
+  '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
 const DATE_RE = `(?:${MONTH_RE}\\.?\\s*\\d{4}|\\d{1,2}\\s*[/.-]\\s*\\d{4}|\\d{4})`;
-const RANGE = new RegExp(`(${DATE_RE})\\s*(?:-|–|—|to|until)\\s*(${DATE_RE}|present|current|now|today|ongoing)`, 'i');
+const RANGE = new RegExp(
+  `(${DATE_RE})\\s*(?:-|–|—|to|until)\\s*(${DATE_RE}|present|current|now|today|ongoing)`,
+  'i',
+);
 
 function toMonth(date: string): { value: string; monthAssumed: boolean } {
   const d = date.toLowerCase().trim();
@@ -212,7 +325,13 @@ function parseRange(text: string) {
   const start = toMonth(m[1]!);
   const current = /present|current|now|today|ongoing/i.test(m[2]!);
   const end = current ? { value: '', monthAssumed: false } : toMonth(m[2]!);
-  return { start: start.value, end: end.value, current, monthAssumed: start.monthAssumed || end.monthAssumed, match: m[0] };
+  return {
+    start: start.value,
+    end: end.value,
+    current,
+    monthAssumed: start.monthAssumed || end.monthAssumed,
+    match: m[0],
+  };
 }
 
 // ---- Experience ------------------------------------------------------------------------------------
@@ -242,7 +361,11 @@ function isMetaLine(line: string): boolean {
   return (
     line.length < 60 &&
     (Boolean(parseLocation(line)) ||
-      parts.every((p) => /^(remote|hybrid|on-?site|full[- ]time|part[- ]time|contract|internship|freelance)$/i.test(p)))
+      parts.every((p) =>
+        /^(remote|hybrid|on-?site|full[- ]time|part[- ]time|contract|internship|freelance)$/i.test(
+          p,
+        ),
+      ))
   );
 }
 
@@ -251,12 +374,13 @@ function parseExperience(lines: string[]): ExtractedExperience[] {
   const entries: ExtractedExperience[] = [];
   let prevEnd = -1;
   rangeLines.forEach((r, k) => {
-    // Header = the date line plus up to 2 non-bullet lines just above it.
-    let h = r;
-    while (h - 1 > prevEnd && r - (h - 1) <= 2 && !isBullet(lines[h - 1]!) && !RANGE.test(lines[h - 1]!)) h--;
-    const nextStart = k + 1 < rangeLines.length ? findHeaderStart(lines, rangeLines[k + 1]!, r) : lines.length;
+    const h = headerStart(lines, r, prevEnd);
+    const nextStart =
+      k + 1 < rangeLines.length ? headerStart(lines, rangeLines[k + 1]!, r) : lines.length;
     const range = parseRange(lines[r]!)!;
-    const header = lines.slice(h, r + 1).map((l, idx) => (h + idx === r ? l.replace(range.match, '') : l));
+    const header = lines
+      .slice(h, r + 1)
+      .map((l, idx) => (h + idx === r ? l.replace(range.match, '') : l));
     // Short metadata lines right under the dates ("London, UK", "Remote · Full-time")
     // belong to the header, not the description.
     let bodyStart = r + 1;
@@ -276,9 +400,12 @@ function parseExperience(lines: string[]): ExtractedExperience[] {
     }
     const titleIdx = rest.findIndex((p) => TITLE_WORDS.test(p));
     const jobTitle = titleIdx >= 0 ? rest[titleIdx]! : (rest[0] ?? '');
-    const company = rest.find((p, i) => i !== (titleIdx >= 0 ? titleIdx : 0) && !TITLE_WORDS.test(p)) ?? '';
+    const company =
+      rest.find((p, i) => i !== (titleIdx >= 0 ? titleIdx : 0) && !TITLE_WORDS.test(p)) ?? '';
     const description = bodyLines.map(stripBullet).filter(Boolean).join('\n');
-    const skillLine = bodyLines.find((l) => /^(skills|tech(nologies)?|stack|tools)\s*:/i.test(stripBullet(l)));
+    const skillLine = bodyLines.find((l) =>
+      /^(skills|tech(nologies)?|stack|tools)\s*:/i.test(stripBullet(l)),
+    );
 
     entries.push({
       jobTitle,
@@ -296,18 +423,32 @@ function parseExperience(lines: string[]): ExtractedExperience[] {
   return entries.filter((e) => e.jobTitle || e.company);
 }
 
-function findHeaderStart(lines: string[], rangeLine: number, floor: number): number {
+/**
+ * Where a role's header starts: the date line, plus up to 2 lines above it that look
+ * like header text. Stops at bullets, other date lines and sentences — PDF exports
+ * often drop bullet glyphs, so a description line can look like plain text.
+ * If the date line itself already names title and company, nothing above is taken.
+ */
+function headerStart(lines: string[], rangeLine: number, floor: number): number {
+  const own = lines[rangeLine]!.replace(RANGE, '');
+  if (segments(own).length >= 2) return rangeLine;
   let h = rangeLine;
-  while (h - 1 > floor && rangeLine - (h - 1) <= 2 && !isBullet(lines[h - 1]!) && !RANGE.test(lines[h - 1]!)) h--;
+  while (h - 1 > floor && rangeLine - (h - 1) <= 2) {
+    const above = lines[h - 1]!;
+    const sentence = /[.!?]$/.test(above.trim()) || above.length > 80;
+    if (isBullet(above) || RANGE.test(above) || sentence) break;
+    h--;
+  }
   return h;
 }
 
 // ---- Education -------------------------------------------------------------------------------------
 
-const INSTITUTION = /\b(university|college|institute|school|academy|polytechnic|conservatory|iit|nit|mit)\b/i;
+const INSTITUTION =
+  /\b(university|college|institute|school|academy|polytechnic|conservatory|iit|nit|mit)\b/i;
 const DEGREE =
   /\b(bachelor(?:'s|’s)?(?: of [a-z ]+?)?|master(?:'s|’s)?(?: of [a-z ]+?)?|b\.?\s?sc\.?|m\.?\s?sc\.?|b\.?\s?tech\.?|m\.?\s?tech\.?|b\.?\s?eng\.?|m\.?\s?eng\.?|b\.?a\.|m\.?a\.|b\.?s\.|m\.?s\.|mba|ph\.?\s?d\.?|doctorate|diploma|associate(?:'s)? degree|high school|bca|mca|b\.?\s?com|m\.?\s?com|a[- ]levels?|gcse)(?=[\s,.:;(]|$)/i;
-const GPA = /\b(?:c?gpa|grade|cgpa)\s*[:\-]?\s*([\d.]+\s*(?:\/\s*[\d.]+)?)/i;
+const GPA = /\b(?:c?gpa|grade|cgpa)\s*[:-]?\s*([\d.]+\s*(?:\/\s*[\d.]+)?)/i;
 
 /**
  * "M.Sc. in Mathematics" / "B.Sc. Computer Science" / "Bachelor of Science in Physics"
@@ -324,19 +465,38 @@ export function splitDegree(text: string): { degree: string; field: string } {
     degree = `${degree} ${rest}`.trim(); // "Bachelor of Arts": the whole thing is the degree
     rest = '';
   }
-  return { degree, field: rest.replace(/^(in|of)\s+/i, '').replace(/[,.]+$/, '').trim() };
+  return {
+    degree,
+    field: rest
+      .replace(/^(in|of)\s+/i, '')
+      .replace(/[,.]+$/, '')
+      .trim(),
+  };
 }
 
 function parseEducation(lines: string[]): ExtractedEducation[] {
   const entries: ExtractedEducation[] = [];
   let current: ExtractedEducation | null = null;
-  const blank = (): ExtractedEducation => ({ degree: '', fieldOfStudy: '', institution: '', location: '', startDate: '', endDate: '', gpa: '', description: '' });
+  const blank = (): ExtractedEducation => ({
+    degree: '',
+    fieldOfStudy: '',
+    institution: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    gpa: '',
+    description: '',
+  });
 
   for (const raw of lines) {
     const line = stripBullet(raw);
     const hasInstitution = INSTITUTION.test(line);
     const degreeMatch = DEGREE.exec(line);
-    if (!current || (hasInstitution && current.institution) || (degreeMatch && current.degree && !hasInstitution)) {
+    if (
+      !current ||
+      (hasInstitution && current.institution) ||
+      (degreeMatch && current.degree && !hasInstitution)
+    ) {
       if (hasInstitution || degreeMatch || !current) {
         current = blank();
         entries.push(current);
@@ -368,9 +528,16 @@ function parseEducation(lines: string[]): ExtractedEducation[] {
         current.degree = degree;
         if (field && !INSTITUTION.test(field)) current.fieldOfStudy ||= field;
       } else if (!current.location && parseLocation(p)) current.location = p;
-      else if (current.degree && !current.fieldOfStudy && !INSTITUTION.test(p) && p.length < 60 && !/\d/.test(p)) {
+      else if (
+        current.degree &&
+        !current.fieldOfStudy &&
+        !INSTITUTION.test(p) &&
+        p.length < 60 &&
+        !/\d/.test(p)
+      ) {
         current.fieldOfStudy = p;
-      } else if (isBullet(raw)) current.description = [current.description, p].filter(Boolean).join('\n');
+      } else if (isBullet(raw))
+        current.description = [current.description, p].filter(Boolean).join('\n');
     }
   }
   return entries.filter((e) => e.institution || e.degree);
@@ -402,7 +569,8 @@ function parseSkills(lines: string[]) {
     const line = stripBullet(raw);
     const labelled = /^([^:]{2,30}):\s*(.+)$/.exec(line);
     const items = splitList(labelled ? labelled[2]! : line);
-    if (labelled && /language/i.test(labelled[1]!) && !/programming/i.test(labelled[1]!)) languages.push(...items);
+    if (labelled && /language/i.test(labelled[1]!) && !/programming/i.test(labelled[1]!))
+      languages.push(...items);
     else technical.push(...items);
   }
   return { technical: dedupe(technical), languages: dedupe(languages) };
@@ -414,10 +582,20 @@ function parseProjects(lines: string[]): ExtractedProject[] {
   for (const raw of lines) {
     const line = stripBullet(raw);
     const techLine = /^(tech(nologies)?|stack|built with|tools)\s*:\s*(.+)$/i.exec(line);
-    const isTitle = !isBullet(raw) && !techLine && line.length <= 90 && (!current || current.description || /[|—–:]/.test(line) || line.length < 50);
+    const isTitle =
+      !isBullet(raw) &&
+      !techLine &&
+      line.length <= 90 &&
+      (!current || current.description || /[|—–:]/.test(line) || line.length < 50);
     if (isTitle && (!current || current.description || current.technologies.length)) {
       const [name, ...rest] = line.split(/\s+[|—–]\s+|:\s+/);
-      current = { name: (name ?? line).trim(), description: '', technologies: [], url: '', githubUrl: '' };
+      current = {
+        name: (name ?? line).trim(),
+        description: '',
+        technologies: [],
+        url: '',
+        githubUrl: '',
+      };
       const tail = rest.join(' ');
       if (tail && /,/.test(tail) && tail.length < 80) current.technologies = splitList(tail);
       else if (tail) current.description = tail;
@@ -449,8 +627,14 @@ function parseCertifications(lines: string[]): ExtractedCertification[] {
         .split(/\s+[|—–-]\s+|,\s+|\s+\(|\)/)
         .map((s) => s.trim())
         .filter(Boolean);
-      const url = [...line.matchAll(URL_RE)].map((m) => normalizeUrl(m[0])).find((u) => !/@/.test(u)) ?? '';
-      return { name: name ?? '', issuer: issuer && !/^https?:/.test(issuer) ? issuer : '', date, url };
+      const url =
+        [...line.matchAll(URL_RE)].map((m) => normalizeUrl(m[0])).find((u) => !/@/.test(u)) ?? '';
+      return {
+        name: name ?? '',
+        issuer: issuer && !/^https?:/.test(issuer) ? issuer : '',
+        date,
+        url,
+      };
     })
     .filter((c) => c.name.length > 2 && c.name.length < 120);
 }
@@ -460,7 +644,10 @@ function parseCertifications(lines: string[]): ExtractedCertification[] {
 export function parseResumeText(text: string): ExtractedResume {
   const sections = splitSections(text);
   const header = sections.get('header') ?? [];
-  const headerSegments = header.flatMap((l) => l.split(/\s*[|•·]\s*|\t+/)).map((s) => s.trim()).filter(Boolean);
+  const headerSegments = header
+    .flatMap((l) => l.split(/\s*[|•·]\s*|\t+/))
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   // Name: the first header line that looks like one.
   const nameLine = header.find(looksLikeName) ?? '';
@@ -474,15 +661,31 @@ export function parseResumeText(text: string): ExtractedResume {
   const nameIndex = header.indexOf(nameLine);
   const headline = header
     .slice(nameIndex + 1, nameIndex + 3)
-    .find((l) => !EMAIL.test(l) && !PHONE.test(l) && !/https?:|www\.|\.com/i.test(l) && !parseLocation(l) && l.length < 70 && TITLE_WORDS.test(l));
+    .find(
+      (l) =>
+        !EMAIL.test(l) &&
+        !PHONE.test(l) &&
+        !/https?:|www\.|\.com/i.test(l) &&
+        !parseLocation(l) &&
+        l.length < 70 &&
+        TITLE_WORDS.test(l),
+    );
 
   const experience = parseExperience(sections.get('experience') ?? []);
   const current = experience.find((e) => e.isCurrent) ?? experience[0];
   const skills = parseSkills(sections.get('skills') ?? []);
-  const languages = dedupe([...skills.languages, ...parseSkills(sections.get('languages') ?? []).technical]);
+  const languages = dedupe([
+    ...skills.languages,
+    ...parseSkills(sections.get('languages') ?? []).technical,
+  ]);
 
-  const starts = experience.map((e) => e.startDate).filter(Boolean).sort();
-  const years = starts[0] ? (Date.now() - new Date(`${starts[0]}-01`).getTime()) / (365.25 * 24 * 3600 * 1000) : 0;
+  const starts = experience
+    .map((e) => e.startDate)
+    .filter(Boolean)
+    .sort();
+  const years = starts[0]
+    ? (Date.now() - new Date(`${starts[0]}-01`).getTime()) / (365.25 * 24 * 3600 * 1000)
+    : 0;
 
   return {
     personal: {

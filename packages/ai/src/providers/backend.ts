@@ -1,6 +1,6 @@
 import { fitLength } from '../parse';
 import { AIError, type AIProvider, type AnswerRequest, type AnswerVariants } from '../types';
-import { hostOf, postJson } from './http';
+import { checkEndpoint, hostOf, postJson } from './http';
 
 interface BackendOptions {
   /** e.g. https://api.jobfill.app/v1 — a JobFill-operated service, not an AI vendor. */
@@ -30,9 +30,11 @@ export class BackendProvider implements AIProvider {
   readonly destination: string;
 
   constructor(private readonly options: BackendOptions) {
-    if (!/^https:\/\//.test(options.baseUrl)) {
+    // A hosted service: https without exception (no localhost carve-out).
+    if (!options.baseUrl.startsWith('https://')) {
       throw new AIError('The JobFill service URL must use https.', 'config');
     }
+    checkEndpoint(options.baseUrl, 'The JobFill service URL');
     this.destination = hostOf(options.baseUrl);
   }
 
@@ -48,6 +50,10 @@ export class BackendProvider implements AIProvider {
       throw new AIError('The JobFill service returned an incomplete answer.', 'provider');
     }
     const max = request.constraints.maxLength;
-    return { answer: fitLength(data.answer, max), concise: fitLength(data.concise, max), professional: fitLength(data.professional, max) };
+    return {
+      answer: fitLength(data.answer, max),
+      concise: fitLength(data.concise, max),
+      professional: fitLength(data.professional, max),
+    };
   }
 }

@@ -4,8 +4,9 @@ import { formatBytes, fullName, type CompletenessArea } from '@jobfill/shared';
 import { CompletenessMeter } from '@/components/CompletenessMeter';
 import { Logo } from '@/components/Logo';
 import { PrivacyNotice } from '@/components/PrivacyNotice';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { FileTextIcon, ShieldCheckIcon } from '@/components/ui/icons';
+import { FileTextIcon, LockIcon, ShieldCheckIcon } from '@/components/ui/icons';
 import { useProfile } from '@/profile/profile-context';
 import { getBytesInUse } from '@/storage';
 import { DeleteAllDataButton, ResetProfileButton } from '../data/DangerZone';
@@ -97,6 +98,22 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
               <div className="mt-4 space-y-3">
                 <ExportProfileButton />
                 <ImportProfileButton completeOnboarding buttonProps={{ className: 'w-full' }} />
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  icon={<FileTextIcon />}
+                  onClick={() => navigate({ name: 'resume-import', from: 'profile' })}
+                >
+                  Update from resume
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  icon={<LockIcon />}
+                  onClick={() => navigate({ name: 'privacy' })}
+                >
+                  Privacy settings
+                </Button>
               </div>
 
               <div className="mt-6 space-y-3 border-t border-slate-100 pt-5">

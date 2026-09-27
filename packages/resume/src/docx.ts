@@ -51,7 +51,8 @@ const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"'
 function decodeEntities(text: string): string {
   return text.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (match, code: string) => {
     if (code[0] === '#') {
-      const n = code[1]?.toLowerCase() === 'x' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
+      const n =
+        code[1]?.toLowerCase() === 'x' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
       return Number.isFinite(n) ? String.fromCodePoint(n) : match;
     }
     return ENTITIES[code] ?? match;
@@ -73,7 +74,12 @@ export function documentXmlToText(xml: string): string {
 export async function docxToText(bytes: Uint8Array): Promise<string> {
   const entry = findEntry(bytes, 'word/document.xml');
   if (!entry) throw new Error('This doesn’t look like a Word (.docx) document.');
-  const xmlBytes = entry.method === 0 ? entry.data : entry.method === 8 ? await inflate(entry.data, 'deflate-raw') : null;
+  const xmlBytes =
+    entry.method === 0
+      ? entry.data
+      : entry.method === 8
+        ? await inflate(entry.data, 'deflate-raw')
+        : null;
   if (!xmlBytes) throw new Error('This .docx uses an unsupported compression method.');
   return documentXmlToText(new TextDecoder().decode(xmlBytes));
 }

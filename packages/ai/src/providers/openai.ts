@@ -1,7 +1,7 @@
 import { parseVariants } from '../parse';
 import { SYSTEM_PROMPT, buildUserPrompt } from '../prompt';
 import { AIError, type AIProvider, type AnswerRequest, type AnswerVariants } from '../types';
-import { hostOf, postJson } from './http';
+import { checkEndpoint, hostOf, postJson } from './http';
 
 interface OpenAIOptions {
   apiKey: string;
@@ -21,7 +21,9 @@ export class OpenAIProvider implements AIProvider {
   private readonly url: string;
 
   constructor(private readonly options: OpenAIOptions) {
-    const base = (options.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
+    const base = (
+      options.baseUrl ? checkEndpoint(options.baseUrl) : 'https://api.openai.com/v1'
+    ).replace(/\/+$/, '');
     this.url = `${base}/chat/completions`;
     this.id = options.id ?? 'openai';
     this.label = options.label ?? 'OpenAI';

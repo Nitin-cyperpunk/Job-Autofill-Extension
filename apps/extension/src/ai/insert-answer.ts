@@ -17,7 +17,9 @@ export function insertAnswer(
   }
 
   if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
-    return setTextValue(el, text) ? { ok: true } : { ok: false, message: 'The page didn’t accept the text.' };
+    return setTextValue(el, text)
+      ? { ok: true }
+      : { ok: false, message: 'The page didn’t accept the text.' };
   }
 
   if (field.descriptor.type === 'contenteditable' && el instanceof HTMLElement) {
@@ -33,9 +35,13 @@ export function insertAnswer(
     const inserted = el.ownerDocument.execCommand?.('insertText', false, text);
     if (!inserted) {
       el.textContent = text;
-      el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+      el.dispatchEvent(
+        new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
+      );
     }
-    return (el.textContent ?? '').includes(text.slice(0, 20)) ? { ok: true } : { ok: false, message: 'The editor didn’t accept the text.' };
+    return (el.textContent ?? '').includes(text.slice(0, 20))
+      ? { ok: true }
+      : { ok: false, message: 'The editor didn’t accept the text.' };
   }
 
   return { ok: false, message: 'This kind of field can’t take a written answer.' };

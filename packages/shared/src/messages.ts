@@ -46,7 +46,14 @@ export interface MessageResponseMap {
   AI_STATUS: { enabled: boolean; configured: boolean; destination: string; problem?: string };
   AI_GENERATE: { ok: true; variants: AnswerVariants } | { ok: false; message: string };
   AI_QUESTION_CONTEXT:
-    | { ok: true; question: string; maxLength?: number; kind: 'short' | 'long'; hasValue: boolean; job: JobContext }
+    | {
+        ok: true;
+        question: string;
+        maxLength?: number;
+        kind: 'short' | 'long';
+        hasValue: boolean;
+        job: JobContext;
+      }
     | { ok: false; message: string };
   AI_INSERT: { ok: true } | { ok: false; message: string; hasValue?: boolean };
 }

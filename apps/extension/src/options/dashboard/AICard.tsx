@@ -51,7 +51,12 @@ export function AICard() {
               value={settings.provider}
               onChange={(provider) =>
                 provider &&
-                void save({ provider, model: PROVIDERS[provider].defaultModel, apiKey: '', baseUrl: '' })
+                void save({
+                  provider,
+                  model: PROVIDERS[provider].defaultModel,
+                  apiKey: '',
+                  baseUrl: '',
+                })
               }
             />
             {meta.needsUrl && (
