@@ -74,4 +74,6 @@ scripts/check-seo.mjs    Build-output SEO checks
   invented statistics (`check-seo` flags rating markup and user-count phrasing).
 - Privacy statements must match [PRIVACY.md](../../PRIVACY.md) and
   [docs/PRIVACY_ARCHITECTURE.md](../../docs/PRIVACY_ARCHITECTURE.md).
-- The site itself loads no analytics or tracking. If that ever changes, update `/privacy`.
+- The site uses **Vercel Web Analytics** (`<Analytics />` in `app/layout.tsx`): cookieless page-view
+  counts, enabled per project in the Vercel dashboard. Nothing else — no ads, no tracking cookies, no
+  other scripts. If that changes, update `/privacy`, the analytics FAQ and the footer line.

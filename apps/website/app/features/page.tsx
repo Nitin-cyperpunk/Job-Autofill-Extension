@@ -54,7 +54,7 @@ const MAIN = [
     href: '/privacy',
     title: 'Privacy by design',
     icon: <ShieldIcon />,
-    text: 'A local-first profile, no account, no JobFill server and no tracking. See what stays and what may leave.',
+    text: 'A local-first profile, no account, no JobFill server and no tracking in the extension. See what stays and what may leave.',
   },
 ];
 

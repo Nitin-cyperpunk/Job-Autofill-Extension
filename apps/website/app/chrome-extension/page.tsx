@@ -79,7 +79,7 @@ export default function ChromeExtensionPage() {
               Optional drafts for open questions, with per-question consent.
             </FeatureCard>
             <FeatureCard title="Privacy" href="/privacy" icon={<ShieldIcon />}>
-              No account, no JobFill server, no tracking.
+              No account, no JobFill server, no tracking in the extension.
             </FeatureCard>
           </div>
         </Container>

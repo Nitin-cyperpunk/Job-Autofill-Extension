@@ -202,7 +202,8 @@ export default function HomePage() {
               Draft open answers with your own AI provider. You see exactly what’s sent, every time.
             </FeatureCard>
             <FeatureCard title="Privacy by design" href="/privacy" icon={<ShieldIcon />}>
-              Your profile is stored in your browser. No account, no JobFill server, no tracking.
+              Your profile is stored in your browser. No account, no JobFill server, no tracking in
+              the extension.
             </FeatureCard>
           </div>
           <div className="mt-6 grid gap-6 sm:grid-cols-3">

@@ -47,7 +47,7 @@ export const PRIVACY_FAQS = {
   },
   analytics: {
     q: 'Does JobFill track me or collect analytics?',
-    a: 'The extension contains no analytics, telemetry, advertising or crash-reporting code. This website doesn’t use analytics or tracking cookies either.',
+    a: 'The extension contains no analytics, telemetry, advertising or crash-reporting code — it can’t see or report what you do. This website uses Vercel Web Analytics to count page visits (which pages, referrer, country and device type), without cookies and without identifying you across sites. It never sees your profile.',
   },
   delete: {
     q: 'How do I delete my data?',

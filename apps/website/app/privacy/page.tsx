@@ -218,11 +218,14 @@ export default function PrivacyPage() {
               About this website
             </h2>
             <p className="mt-3 text-body">
-              {SITE.name}’s website doesn’t use analytics, advertising or tracking cookies, and it
-              never receives your profile — that lives only in the extension. If you pick a light or
-              dark theme, that choice is saved in your browser’s local storage on your device and
-              never sent anywhere. Like any website, our hosting provider may keep standard server
-              logs (such as IP addresses and pages requested) for security and reliability.
+              {SITE.name}’s website never receives your profile — that lives only in the extension.
+              To see which pages are useful, the site uses{' '}
+              <strong className="text-fg">Vercel Web Analytics</strong>: it counts page views (the
+              page, referring site, country, and browser and device type) without cookies, and
+              doesn’t identify you or follow you across other sites. There’s no advertising and no
+              tracking cookies. If you pick a light or dark theme, that choice is saved in your
+              browser’s local storage on your device and never sent anywhere. Like any website, our
+              hosting provider (Vercel) keeps standard server logs for security and reliability.
             </p>
           </section>
         </div>

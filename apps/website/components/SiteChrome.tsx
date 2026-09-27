@@ -84,7 +84,7 @@ export function SiteFooter() {
           <p className="mt-2 max-w-xs text-sm leading-6 text-muted">{SITE.tagline}</p>
           <p className="mt-4 inline-flex items-center gap-2 text-sm text-muted">
             <LockIcon className="h-4 w-4 text-ok" />
-            No account. No tracking on this site.
+            No account. No cookies on this site.
           </p>
         </div>
         {footerColumns().map((col) => (
