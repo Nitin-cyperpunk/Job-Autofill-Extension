@@ -1,5 +1,6 @@
 import type { FieldDescriptor, FieldKey, Profile } from '@jobfill/types';
 import { explainMatch, matchField, REVIEW_CONFIDENCE } from './match';
+import { normalizeText } from './normalize';
 import { chooseOptions, optionPolarity, type OptionChoice } from './options';
 import { describeValue, isIndexedKey, resolveProfileValue, type ProfileValue } from './values';
 
@@ -14,7 +15,7 @@ export type FillAction =
   | { kind: 'check'; checked: boolean } // lone checkbox
   | { kind: 'file' }
   /** Custom dropdown whose options may only exist once opened: match live options against `value`. */
-  | { kind: 'dropdown'; value: ProfileValue; search: string };
+  | { kind: 'dropdown'; value: ProfileValue; search: string; fallback?: ProfileValue };
 
 /**
  * fill         – confident; will be filled.
@@ -39,6 +40,11 @@ export interface PlanItem {
   reason: string;
   /** Why it was mapped (or not): "label \"Email\" matched \"email\"". For the debug view. */
   why: string;
+  /**
+   * An open-ended question the profile can't answer ("Why do you want to work here?")
+   * and that is still empty — the only kind of field AI assistance is offered for.
+   */
+  openEnded: boolean;
 }
 
 /** Legal questions: always double-checked even when the mapping is certain. */
@@ -81,6 +87,7 @@ function planOne(
     action: null as FillAction | null,
     preview: '',
     why: '',
+    openEnded: false,
   };
   const leave = (reason: string, key: FieldKey | null = null): PlanItem => ({
     ...base,
@@ -98,7 +105,10 @@ function planOne(
         : 'Personal question — answer it yourself',
     );
   }
-  if (match.kind === 'none') return leave('No matching profile field');
+  if (match.kind === 'none') {
+    base.openEnded = !field.hasValue && isOpenEndedQuestion(field);
+    return leave(base.openEnded ? 'Open question — write it yourself or use AI' : 'No matching profile field');
+  }
 
   const { key, confidence } = match;
   // Occurrence counting keeps repeated sections in order (2nd "School" → 2nd school).
@@ -172,14 +182,22 @@ function actionFor(field: FieldDescriptor, key: FieldKey, value: ProfileValue): 
     if (field.widget === 'aria' && field.type === 'select' && field.options.length === 0) {
       if (value.kind === 'file') return { problem: 'Unsupported value for a dropdown' };
       const search = value.kind === 'list' ? (value.items[0] ?? '') : describeValue(value);
-      return { action: { kind: 'dropdown', value, search }, preview: describeValue(value), confidence: 0.85 };
+      // Work authorization is often a Yes/No dropdown: offer the derived answer as a fallback.
+      const fallback =
+        key === 'professional.workAuthorization' && value.kind === 'text'
+          ? authorizedAnswer(value.text)
+          : undefined;
+      return {
+        action: { kind: 'dropdown', value, search, ...(fallback ? { fallback } : {}) },
+        preview: describeValue(value),
+        confidence: 0.85,
+      };
     }
     let choice: OptionChoice | null = chooseOptions(field.options, value, field.multiple);
     let confidence = choice?.confidence ?? 0;
     // Yes/No question answered from free text (e.g. work authorization status).
     if (!choice && value.kind === 'text' && key === 'professional.workAuthorization') {
-      const authorized = !/\b(requir|need|not|no)\w*/i.test(value.text);
-      choice = chooseOptions(field.options, { kind: 'bool', value: authorized });
+      choice = chooseOptions(field.options, authorizedAnswer(value.text));
       confidence = 0.6;
     }
     if (!choice) return { problem: `No option matches “${describeValue(value)}”` };
@@ -196,7 +214,12 @@ function actionFor(field: FieldDescriptor, key: FieldKey, value: ProfileValue): 
 
   // ---- free text
   if (TEXT_INPUTS.has(field.type)) {
-    const text = textFor(value);
+    // "Graduation year" / "Start date year" want just the year, not MM/YYYY.
+    const yearOnly =
+      value.kind === 'month' &&
+      /\byear\b/.test(normalizeText(`${field.label} ${field.placeholder} ${field.name}`)) &&
+      !/\bmonth\b/.test(normalizeText(`${field.label} ${field.placeholder}`));
+    const text = yearOnly ? value.month.slice(0, 4) : textFor(value);
     if (!text) return { problem: 'Nothing suitable to type here' };
     if (field.type === 'number' && value.kind !== 'number' && !/^\d+(\.\d+)?$/.test(text)) {
       return { problem: 'Field expects a number' };
@@ -231,4 +254,27 @@ function textFor(value: ProfileValue): string {
 /** Convenience for callers that just want "is this yes/no-shaped". */
 export function isYesNoQuestion(field: FieldDescriptor): boolean {
   return field.options.length > 0 && field.options.every((o) => optionPolarity(o.label) !== null);
+}
+
+/** "Citizen" / "Work permit" → authorized (Yes); "Requires sponsorship" / "Not authorized" → No. */
+function authorizedAnswer(status: string): ProfileValue {
+  return { kind: 'bool', value: !/\b(requir|need|not|no)\w*/i.test(status) };
+}
+
+/** Prompts that ask for the applicant's own words. */
+const ESSAY_START = /^(why|describe|tell|explain|share|please describe|please tell|in your own words)\b/i;
+/** Short factual / yes-no prompts: not essays, even when phrased as questions. */
+const FACTUAL_START =
+  /^(how did you (hear|find)|where did you|which|when|are you|do you|did you|have you|will you|can you|is |were you|would you)/i;
+
+/**
+ * Free-text questions a person answers in their own words. Text areas and rich-text
+ * boxes always qualify; single-line fields only when they clearly ask for prose.
+ */
+export function isOpenEndedQuestion(field: FieldDescriptor): boolean {
+  const label = field.label.trim();
+  if (!label) return false;
+  if (field.type === 'textarea' || field.type === 'contenteditable') return true;
+  if (field.type !== 'text' || FACTUAL_START.test(label)) return false;
+  return ESSAY_START.test(label) || (label.endsWith('?') && label.length >= 30);
 }

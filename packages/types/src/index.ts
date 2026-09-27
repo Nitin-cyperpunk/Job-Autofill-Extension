@@ -1,5 +1,6 @@
 export { EMPLOYMENT_TYPES, PROFILE_SCHEMA_VERSION } from './profile';
 export type {
+  CertificationEntry,
   EducationEntry,
   EmploymentType,
   ExperienceEntry,

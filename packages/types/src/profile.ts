@@ -81,6 +81,15 @@ export interface Skills {
   languages: string[];
 }
 
+export interface CertificationEntry {
+  id: string;
+  name: string;
+  issuer: string;
+  /** "YYYY-MM" or "". */
+  date: string;
+  url: string;
+}
+
 export interface ProjectEntry {
   id: string;
   name: string;
@@ -119,6 +128,7 @@ export interface Profile {
   education: EducationEntry[];
   experience: ExperienceEntry[];
   projects: ProjectEntry[];
+  certifications: CertificationEntry[];
   skills: Skills;
   links: LinksInfo;
   resume: ResumeMeta | null;
@@ -130,6 +140,13 @@ export interface Profile {
 
 /** The editable sections of a profile (resume is managed separately as a file). */
 export type SectionId =
-  'personal' | 'professional' | 'education' | 'experience' | 'projects' | 'skills' | 'links';
+  | 'personal'
+  | 'professional'
+  | 'education'
+  | 'experience'
+  | 'projects'
+  | 'certifications'
+  | 'skills'
+  | 'links';
 
 export type SectionValue<K extends SectionId> = Profile[K];

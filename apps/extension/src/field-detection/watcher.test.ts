@@ -131,6 +131,33 @@ describe('FieldWatcher', () => {
     expect(watcher.stats.scans).toBe(scans);
   });
 
+  it('sees fields added inside an open shadow root', async () => {
+    watcher.stop();
+    const host = document.createElement('x-apply');
+    const root = host.attachShadow({ mode: 'open' });
+    root.innerHTML = '<div id="wrap"><label for="a">First name</label><input id="a"></div>';
+    document.body.append(host);
+    watcher.start(); // finds the shadow root and starts observing it
+    expect(labels()).toContain('First name');
+
+    root
+      .getElementById('wrap')!
+      .insertAdjacentHTML('beforeend', '<label for="b">Phone</label><input id="b" type="tel">');
+    await flushMutations();
+    vi.advanceTimersByTime(1000);
+    expect(labels()).toContain('Phone');
+  });
+
+  it('rescans when a web component with a shadow form is inserted', async () => {
+    const host = document.createElement('x-late-form');
+    host.attachShadow({ mode: 'open' }).innerHTML =
+      '<label for="c">Email</label><input id="c" type="email">';
+    document.body.append(host);
+    await flushMutations();
+    vi.advanceTimersByTime(1000);
+    expect(labels()).toContain('Email');
+  });
+
   it('ignores the debug overlay host', async () => {
     const host = document.createElement('jobfill-debug');
     host.innerHTML = '<input aria-label="overlay">';

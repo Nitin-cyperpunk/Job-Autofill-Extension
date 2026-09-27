@@ -42,7 +42,11 @@ function nativeSetter(el: Element): ((this: Element, value: string) => void) | u
     ((this: Element, value: string) => void) | undefined;
 }
 
-export function setTextValue(el: HTMLInputElement | HTMLTextAreaElement, text: string): boolean {
+export function setTextValue(
+  el: HTMLInputElement | HTMLTextAreaElement,
+  text: string,
+  { blur = true }: { blur?: boolean } = {},
+): boolean {
   if (el.disabled || el.readOnly) return false;
   fire(el, 'focus');
   fire(el, 'focusin');
@@ -50,6 +54,7 @@ export function setTextValue(el: HTMLInputElement | HTMLTextAreaElement, text: s
   if (setter) setter.call(el, text);
   else el.value = text;
   fire(el, 'input', { data: text } as InputEventInit);
+  if (!blur) return el.value === text; // comboboxes: blurring would close the menu and clear the text
   fire(el, 'change');
   fire(el, 'focusout');
   fire(el, 'blur');

@@ -6,6 +6,7 @@ export {
   STORAGE_KEYS,
 } from './constants';
 export {
+  createCertificationEntry,
   createEducationEntry,
   createEmptyProfile,
   createExperienceEntry,

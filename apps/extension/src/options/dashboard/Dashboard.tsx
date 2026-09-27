@@ -14,6 +14,8 @@ import { ImportProfileButton } from '../data/ImportProfileButton';
 import { ResumePanel } from '../sections/ResumePanel';
 import { SECTION_ORDER } from '../sections/registry';
 import type { Route } from '../router';
+import { AICard } from './AICard';
+import { AdvancedCard } from './AdvancedCard';
 import { SectionCard } from './SectionCard';
 
 export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
@@ -113,6 +115,8 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
                 />
               </div>
             </Card>
+            <AICard />
+            <AdvancedCard />
           </aside>
         </div>
       </main>

@@ -1,5 +1,5 @@
 import type { FieldDescriptor } from '@jobfill/types';
-import { mappedKey } from './debug-format';
+import { debugMapping } from './debug-format';
 import type { DetectedField } from '@/types';
 import { DEBUG_OVERLAY_TAG } from './constants';
 import type { FieldWatcher } from './watcher';
@@ -52,6 +52,7 @@ export function installDebugTools(watcher: FieldWatcher): DebugTools {
 }
 
 function summarize(d: FieldDescriptor) {
+  const mapping = debugMapping(d);
   return {
     id: d.id,
     type: d.type,
@@ -62,7 +63,9 @@ function summarize(d: FieldDescriptor) {
     options: d.options.length || '',
     nearby: d.nearbyText,
     section: d.section,
-    mapsTo: mappedKey(d) ?? '',
+    mapsTo: mapping.key ?? 'unmapped',
+    confidence: mapping.confidence === null ? '' : `${Math.round(mapping.confidence * 100)}%`,
+    why: mapping.why,
   };
 }
 
@@ -90,12 +93,9 @@ class Overlay {
       ...fields.flatMap(({ element, descriptor }) => {
         const rect = element.getBoundingClientRect();
         if (rect.width === 0 && rect.height === 0) return [];
-        const key = mappedKey(descriptor);
-        const tone = key
-          ? 'mapped'
-          : descriptor.type === 'file' || descriptor.options.length
-            ? 'choice'
-            : 'unmapped';
+        const { key, confidence } = debugMapping(descriptor);
+        // green = mapped, blue = left for the user (sensitive/consent), amber = unmapped
+        const tone = key === 'sensitive' ? 'choice' : key ? 'mapped' : 'unmapped';
         const box = document.createElement('div');
         box.className = `box ${tone}`;
         Object.assign(box.style, {
@@ -109,7 +109,9 @@ class Overlay {
         badge.textContent = [
           descriptor.label || '(no label)',
           descriptor.type + (descriptor.required ? '*' : ''),
-          key ? `→ ${key}` : '',
+          key
+            ? `→ ${key}${confidence === null ? '' : ` ${Math.round(confidence * 100)}%`}`
+            : '→ unmapped',
         ]
           .filter(Boolean)
           .join(' · ');

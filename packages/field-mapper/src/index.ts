@@ -33,6 +33,7 @@ export {
 export {
   planFill,
   displayLabel,
+  isOpenEndedQuestion,
   isYesNoQuestion,
   type FillAction,
   type PlanItem,

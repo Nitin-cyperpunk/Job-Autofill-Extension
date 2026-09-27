@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Lever-style application</title>
+    <!--
+      Mirrors Lever application markup: no <label for>, the question text lives in
+      a sibling .application-label div, "✱" required markers, a single "Full name"
+      field, urls[LinkedIn]-style names, custom "cards" radio questions and EEO selects.
+    -->
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 680px;
+        margin: 2rem auto;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      .application-question {
+        display: flex;
+        gap: 12px;
+        margin: 10px 0;
+      }
+      .application-label {
+        width: 220px;
+        font-weight: 600;
+      }
+      .application-field {
+        flex: 1;
+      }
+      .application-field input[type='text'],
+      .application-field input[type='email'],
+      textarea,
+      select {
+        width: 100%;
+        padding: 6px;
+        box-sizing: border-box;
+      }
+      .required {
+        color: #c00;
+        margin-left: 2px;
+      }
+      .invisible-resume-upload {
+        opacity: 0;
+        position: absolute;
+        width: 1px;
+      }
+      .full-width {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="application-form" action="#" method="POST">
+      <h4>Submit your application</h4>
+      <ul>
+        <li class="application-question resume">
+          <div class="application-label">Resume/CV<span class="required">✱</span></div>
+          <div class="application-field">
+            <a class="visible-resume-upload" href="#">ATTACH RESUME/CV</a>
+            <input
+              type="file"
+              name="resume"
+              id="resume-upload-input"
+              class="invisible-resume-upload"
+            />
+          </div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Full name<span class="required">✱</span></div>
+          <div class="application-field"><input type="text" name="name" required /></div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Email<span class="required">✱</span></div>
+          <div class="application-field"><input type="email" name="email" required /></div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Phone</div>
+          <div class="application-field"><input type="text" name="phone" /></div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Current location</div>
+          <div class="application-field">
+            <input type="text" name="location" class="location-input" />
+          </div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Current company</div>
+          <div class="application-field"><input type="text" name="org" /></div>
+        </li>
+      </ul>
+
+      <h4>Links</h4>
+      <ul>
+        <li class="application-question">
+          <div class="application-label">LinkedIn URL</div>
+          <div class="application-field"><input type="text" name="urls[LinkedIn]" /></div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Twitter URL</div>
+          <div class="application-field"><input type="text" name="urls[Twitter]" /></div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">GitHub URL</div>
+          <div class="application-field"><input type="text" name="urls[GitHub]" /></div>
+        </li>
+        <li class="application-question">
+          <div class="application-label">Portfolio URL</div>
+          <div class="application-field"><input type="text" name="urls[Portfolio]" /></div>
+        </li>
+      </ul>
+
+      <h4>Additional questions</h4>
+      <div class="application-question custom-question">
+        <div class="application-label full-width">
+          Will you require visa sponsorship to work here?<span class="required">✱</span>
+        </div>
+        <div class="application-field full-width">
+          <ul data-qa="multiple-choice">
+            <li>
+              <label
+                ><input type="radio" name="cards[5b2a][field0]" value="Yes" /><span
+                  class="application-answer-alternative"
+                  >Yes</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="radio" name="cards[5b2a][field0]" value="No" /><span
+                  class="application-answer-alternative"
+                  >No</span
+                ></label
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="application-question custom-question">
+        <div class="application-label full-width">
+          How many years of professional experience do you have?
+        </div>
+        <div class="application-field full-width">
+          <ul data-qa="multiple-choice">
+            <li>
+              <label
+                ><input type="radio" name="cards[5b2a][field1]" value="0-2" /><span
+                  >0-2</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="radio" name="cards[5b2a][field1]" value="3-5" /><span
+                  >3-5</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="radio" name="cards[5b2a][field1]" value="6-10" /><span
+                  >6-10</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="radio" name="cards[5b2a][field1]" value="10+" /><span
+                  >10+</span
+                ></label
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="application-question">
+        <div class="application-label">Additional information</div>
+        <div class="application-field">
+          <textarea
+            name="comments"
+            placeholder="Add a cover letter or anything else you want to share."
+          ></textarea>
+        </div>
+      </div>
+
+      <h4>U.S. Equal Employment Opportunity information</h4>
+      <div class="application-question">
+        <div class="application-label">Gender</div>
+        <div class="application-field">
+          <select name="eeo[gender]">
+            <option value="">Select ...</option>
+            <option>Female</option>
+            <option>Male</option>
+          </select>
+        </div>
+      </div>
+      <div class="application-question">
+        <div class="application-label">Race</div>
+        <div class="application-field">
+          <select name="eeo[race]">
+            <option value="">Select ...</option>
+            <option>Decline to self-identify</option>
+          </select>
+        </div>
+      </div>
+
+      <label
+        ><input type="checkbox" name="consent[marketing]" /> I agree to the privacy policy</label
+      >
+      <button type="submit" class="template-btn-submit">Submit application</button>
+    </form>
+    <script type="module">
+      import { trackSubmits } from './widgets.js';
+      trackSubmits();
+    </script>
+  </body>
+</html>

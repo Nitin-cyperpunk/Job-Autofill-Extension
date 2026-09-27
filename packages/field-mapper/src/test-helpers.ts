@@ -112,6 +112,7 @@ export function sampleProfile(): Profile {
       },
     ],
     projects: [],
+    certifications: [],
     skills: {
       technical: ['TypeScript', 'React', 'SQL'],
       soft: ['Leadership'],

@@ -133,7 +133,13 @@ export function matchField(field: FieldDescriptor): MatchResult {
   const texts = signals(field);
   // Sensitive/consent checks only look at what a human reads, not ids.
   const humanTexts = texts
-    .filter(([source]) => source === 'label' || source === 'ariaLabel' || source === 'placeholder' || source === 'nearbyText')
+    .filter(
+      ([source]) =>
+        source === 'label' ||
+        source === 'ariaLabel' ||
+        source === 'placeholder' ||
+        source === 'nearbyText',
+    )
     .map(([, text]) => text);
 
   // 1. Never answer demographic, identity or consent questions for the user.
@@ -153,6 +159,8 @@ export function matchField(field: FieldDescriptor): MatchResult {
   // 3. Dictionary scoring across every signal.
   const context = sectionContext(field);
   let best: Extract<MatchResult, { kind: 'match' }> | null = null;
+  let bestSource: MatchSource | null = null;
+  let bestPosition = -1;
   for (const rule of PREPARED) {
     if (!(rule.types ?? TEXTUAL).includes(field.type)) continue;
     if (rule.context && rule.context !== context) continue;
@@ -162,8 +170,17 @@ export function matchField(field: FieldDescriptor): MatchResult {
       if (!score) continue;
       // A context rule that fits its section is more specific than a generic one.
       const confidence = Math.min(1, score * SOURCE_WEIGHT[source] + (rule.context ? 0.05 : 0));
-      if (!best || confidence > best.confidence) {
+      // Ties go to the phrase found later in the text: ids and labels run from general
+      // to specific ("legalNameSection_firstName", "addressSection_city").
+      const position = ` ${text} `.lastIndexOf(` ${phrase} `);
+      if (
+        !best ||
+        round(confidence) > best.confidence ||
+        (round(confidence) === best.confidence && source === bestSource && position > bestPosition)
+      ) {
         best = { kind: 'match', key: rule.key, confidence: round(confidence), source, phrase };
+        bestSource = source;
+        bestPosition = position;
       }
     }
   }
@@ -207,7 +224,8 @@ const SOURCE_LABELS: Record<MatchSource, string> = {
 
 /** One-line human explanation of a mapping decision, for the debug view. */
 export function explainMatch(field: FieldDescriptor, result: MatchResult): string {
-  if (result.kind === 'none') return 'No dictionary phrase matched the label, name, id or nearby text';
+  if (result.kind === 'none')
+    return 'No dictionary phrase matched the label, name, id or nearby text';
   if (result.kind === 'sensitive') {
     return result.reason === 'consent'
       ? `Consent question ("${result.phrase}") — never answered automatically`

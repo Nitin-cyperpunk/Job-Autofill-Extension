@@ -184,7 +184,10 @@ function touchesFields(node: Node): boolean {
   return (
     el.matches(CONTROL_SELECTOR) ||
     el.localName === 'label' ||
-    el.querySelector(CONTROL_SELECTOR) !== null
+    el.querySelector(CONTROL_SELECTOR) !== null ||
+    // Web components keep their fields behind a shadow boundary querySelector can't see.
+    el.shadowRoot !== null ||
+    el.localName.includes('-')
   );
 }
 

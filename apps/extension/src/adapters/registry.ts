@@ -8,7 +8,11 @@ import type { SiteAdapter } from './types';
  */
 const ADAPTERS: SiteAdapter[] = [];
 
-export function adapterFor(url: string | URL, doc: Document, adapters: SiteAdapter[] = ADAPTERS): SiteAdapter | null {
+export function adapterFor(
+  url: string | URL,
+  doc: Document,
+  adapters: SiteAdapter[] = ADAPTERS,
+): SiteAdapter | null {
   let parsed: URL;
   try {
     parsed = new URL(url);

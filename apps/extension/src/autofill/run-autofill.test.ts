@@ -33,7 +33,7 @@ describe('fillPage on the simple form', () => {
   });
 
   it('fills mapped fields and reports a summary', async () => {
-    const summary = await fillPage(detect());
+    const summary = await fillPage(detect, { settleMs: 0 });
 
     expect(value('#first')).toBe('Ada');
     expect(value('[name=last_name]')).toBe('Lovelace');
@@ -58,7 +58,7 @@ describe('fillPage on the simple form', () => {
   });
 
   it('never submits, never ticks consent boxes, never touches hidden fields', async () => {
-    await fillPage(detect());
+    await fillPage(detect, { settleMs: 0 });
     expect(submits).toBe(0);
     expect(document.querySelector<HTMLInputElement>('[name=privacy]')!.checked).toBe(false);
     expect(value('[name=website_url]')).toBe(''); // honeypot
@@ -67,7 +67,7 @@ describe('fillPage on the simple form', () => {
 
   it('leaves values the user already entered', async () => {
     document.querySelector<HTMLInputElement>('#first')!.value = 'Augusta';
-    const summary = await fillPage(detect());
+    const summary = await fillPage(detect, { settleMs: 0 });
     expect(value('#first')).toBe('Augusta');
     expect(summary.filled.map((f) => f.label)).not.toContain('First Name');
   });
@@ -75,7 +75,7 @@ describe('fillPage on the simple form', () => {
   it('fills only the fields approved in the preview (safe mode)', async () => {
     const plan = await planPage(detect());
     const email = plan.find((i) => i.label === 'Email')!;
-    const summary = await fillPage(detect(), [email.fieldId]);
+    const summary = await fillPage(detect, { fieldIds: [email.fieldId], settleMs: 0 });
     expect(value('#email')).toBe('ada@example.com');
     expect(value('#first')).toBe('');
     expect(summary.filledCount).toBe(1);
@@ -92,7 +92,7 @@ describe('fillPage on the simple form', () => {
 describe('fillPage with visually separated labels', () => {
   it('fills fields whose only label is nearby text', async () => {
     loadPage('separated-labels.html');
-    await fillPage(detect());
+    await fillPage(detect, { settleMs: 0 });
     expect(value('[name=field_101]')).toBe('Ada');
     expect(value('[name=field_102]')).toBe('Lovelace');
     expect(value('[name=q2]')).toBe('ada@example.com');

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { PlanItem } from '@jobfill/field-mapper';
-import type { FillSummary } from '@jobfill/shared';
+import type { FillResultItem, FillSummary } from '@jobfill/shared';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { CheckboxField } from '@/components/ui/Field';
 import { loadSettings, saveSettings } from '@/storage';
-import { sendToActiveTab } from '@/utils/messaging';
+import { fillAllFrames, planAllFrames } from '@/utils/frames';
+import { AnswerAssistant } from './AnswerAssistant';
 import { FillSummaryView } from './FillSummaryView';
 import { PreviewList } from './PreviewList';
 
@@ -14,6 +15,7 @@ type State =
   | { step: 'working'; label: string }
   | { step: 'preview'; items: PlanItem[] }
   | { step: 'done'; summary: FillSummary }
+  | { step: 'ai'; summary: FillSummary; question: FillResultItem }
   | { step: 'error'; message: string };
 
 const UNREACHABLE =
@@ -39,10 +41,7 @@ export function AutofillPanel() {
   async function execute(fieldIds?: string[]) {
     setState({ step: 'working', label: 'Filling…' });
     try {
-      const res = await sendToActiveTab({ type: 'AUTOFILL_EXECUTE', fieldIds });
-      setState(
-        res.ok ? { step: 'done', summary: res.summary } : { step: 'error', message: res.message },
-      );
+      setState({ step: 'done', summary: await fillAllFrames(fieldIds) });
     } catch {
       setState({ step: 'error', message: UNREACHABLE });
     }
@@ -52,10 +51,7 @@ export function AutofillPanel() {
     if (!preview) return execute();
     setState({ step: 'working', label: 'Reading the form…' });
     try {
-      const res = await sendToActiveTab({ type: 'AUTOFILL_PLAN' });
-      setState(
-        res.ok ? { step: 'preview', items: res.items } : { step: 'error', message: res.message },
-      );
+      setState({ step: 'preview', items: await planAllFrames() });
     } catch {
       setState({ step: 'error', message: UNREACHABLE });
     }
@@ -72,7 +68,25 @@ export function AutofillPanel() {
   }
 
   if (state.step === 'done') {
-    return <FillSummaryView summary={state.summary} onDone={() => setState({ step: 'idle' })} />;
+    const summary = state.summary;
+    return (
+      <FillSummaryView
+        summary={summary}
+        onDone={() => setState({ step: 'idle' })}
+        onAskAI={(question) => setState({ step: 'ai', summary, question })}
+      />
+    );
+  }
+
+  if (state.step === 'ai') {
+    const summary = state.summary;
+    return (
+      <AnswerAssistant
+        uid={state.question.fieldId}
+        label={state.question.label}
+        onClose={() => setState({ step: 'done', summary })}
+      />
+    );
   }
 
   const working = state.step === 'working';

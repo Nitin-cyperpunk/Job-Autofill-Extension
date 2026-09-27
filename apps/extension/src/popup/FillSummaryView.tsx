@@ -1,14 +1,23 @@
-import type { FillSummary } from '@jobfill/shared';
+import type { FillResultItem, FillSummary } from '@jobfill/shared';
 import { Button } from '@/components/ui/Button';
-import { AlertCircleIcon, CheckIcon } from '@/components/ui/icons';
+import { AlertCircleIcon, CheckIcon, PencilIcon } from '@/components/ui/icons';
 
 /**
  * JobFill filled 17 fields.
  * ✓ First Name …
  * ⚠ 2 fields require review
  */
-export function FillSummaryView({ summary, onDone }: { summary: FillSummary; onDone: () => void }) {
-  const { filledCount, filled, review, skipped } = summary;
+export function FillSummaryView({
+  summary,
+  onDone,
+  onAskAI,
+}: {
+  summary: FillSummary;
+  onDone: () => void;
+  /** Opens the (optional) AI assistant for one open question. */
+  onAskAI: (item: FillResultItem) => void;
+}) {
+  const { filledCount, filled, review, skipped, revealed = 0, questions = [] } = summary;
   return (
     <div className="space-y-3" role="status">
       <h2 className="text-base font-semibold text-slate-900">
@@ -46,8 +55,38 @@ export function FillSummaryView({ summary, onDone }: { summary: FillSummary; onD
         </div>
       )}
 
+      {questions.length > 0 && (
+        <div className="rounded-lg border border-slate-200 p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <PencilIcon className="h-4 w-4 shrink-0 text-slate-500" />
+            {questions.length} {questions.length === 1 ? 'question needs' : 'questions need'} your words
+          </p>
+          <ul className="mt-2 space-y-2 text-xs">
+            {questions.map((item) => (
+              <li key={item.fieldId} className="flex items-start gap-2">
+                <span className="min-w-0 flex-1 text-slate-800">{item.label}</span>
+                <button
+                  type="button"
+                  onClick={() => onAskAI(item)}
+                  className="shrink-0 rounded-md bg-brand-50 px-2 py-1 font-medium text-brand-700 hover:bg-brand-100"
+                >
+                  ✨ Generate with AI
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {skipped > 0 && (
         <p className="text-xs text-slate-500">{skipped} other fields left as they are.</p>
+      )}
+
+      {revealed > 0 && (
+        <p className="text-xs text-slate-600">
+          {revealed} new {revealed === 1 ? 'field' : 'fields'} appeared after filling. Run Autofill
+          again to fill {revealed === 1 ? 'it' : 'them'}.
+        </p>
       )}
 
       <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700">

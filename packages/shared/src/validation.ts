@@ -105,6 +105,15 @@ const schemas = {
       githubUrl: optionalUrl,
     }),
   ),
+  certifications: z.array(
+    z.object({
+      id: z.string(),
+      name: required('Certification name'),
+      issuer: short,
+      date: month,
+      url: optionalUrl,
+    }),
+  ),
   skills: z.object({ technical: tags, soft: tags, languages: tags }),
   links: z.object({
     linkedin: optionalUrl,
@@ -212,6 +221,11 @@ const cleaners: { [K in SectionId]: (value: SectionValue<K>) => SectionValue<K> 
       .map(trimStrings)
       .map((p) => ({ ...p, url: normalizeUrl(p.url), githubUrl: normalizeUrl(p.githubUrl) }))
       .filter((p) => !isBlank(p)),
+  certifications: (list) =>
+    list
+      .map(trimStrings)
+      .map((c) => ({ ...c, url: normalizeUrl(c.url) }))
+      .filter((c) => !isBlank(c)),
   skills: (v) => trimStrings(v),
   links: (v) => ({
     linkedin: normalizeUrl(v.linkedin),

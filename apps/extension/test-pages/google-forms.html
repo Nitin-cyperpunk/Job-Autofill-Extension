@@ -37,6 +37,10 @@
       [role='option'] {
         padding: 2px 4px;
       }
+      /* Like Google Forms: only the selected option shows until the dropdown is opened. */
+      [data-gforms]:not(.open) [role='option'][aria-selected='false'] {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -170,7 +174,7 @@
         <div role="listitem" class="Qr7Oae">
           <div class="geS5n">
             <div role="heading" aria-level="3" id="i20" class="M7eMe">Country of residence</div>
-            <div role="listbox" aria-labelledby="i20" class="MocG8c" tabindex="0">
+            <div role="listbox" aria-labelledby="i20" class="MocG8c" tabindex="0" data-gforms>
               <div role="option" data-value="" aria-selected="true"><span>Choose</span></div>
               <div role="option" data-value="India" aria-selected="false"><span>India</span></div>
               <div role="option" data-value="Germany" aria-selected="false">
@@ -222,6 +226,10 @@
         e.preventDefault();
         window.__submitted = true;
       });
+    </script>
+    <script type="module">
+      import { installAriaListbox } from './widgets.js';
+      installAriaListbox();
     </script>
   </body>
 </html>

@@ -269,16 +269,53 @@ describe('planFill', () => {
     expect(item!.status).toBe('fill-review');
   });
 
-  it('leaves custom (ARIA) dropdowns for the user', () => {
+  it('picks known options in custom (ARIA) dropdowns', () => {
     const [item] = plan([
       {
         label: 'Country',
         type: 'select',
         widget: 'aria',
-        required: true,
         options: options('India', 'United Kingdom'),
       },
     ]);
-    expect(item).toMatchObject({ status: 'review', action: null });
+    expect(item).toMatchObject({ status: 'fill', action: { kind: 'options', indices: [1] } });
+  });
+
+  it('matches live options at fill time when a dropdown renders them lazily', () => {
+    const [item] = plan([{ label: 'Degree', type: 'select', widget: 'aria', role: 'combobox' }]);
+    expect(item).toMatchObject({
+      status: 'fill',
+      preview: 'M.Sc.',
+      action: { kind: 'dropdown', search: 'M.Sc.', value: { kind: 'text', text: 'M.Sc.' } },
+    });
+  });
+
+  it('types only the year into year fields', () => {
+    const [start, grad] = plan([
+      { label: 'Start date year', section: 'Education', name: 'education[0][start_date][year]' },
+      { label: 'Graduation year' },
+    ]);
+    expect(start!.action).toEqual({ kind: 'text', text: '2014' });
+    expect(grad!.action).toEqual({ kind: 'text', text: '2016' });
+  });
+
+  it('explains every decision for the debug view', () => {
+    const [email, company, why, gender] = plan([
+      { label: 'Email', type: 'email' },
+      { label: 'Current company' },
+      { label: 'Why do you want to work here?', type: 'textarea' },
+      { label: 'Gender', type: 'select', options: options('Female', 'Male') },
+    ]);
+    expect(email!.why).toBe('label "Email" matched "email"');
+    expect(company).toMatchObject({
+      key: 'professional.currentCompany',
+      why: 'label "Current company" matched "current company"',
+    });
+    expect(company!.confidence).toBeGreaterThan(0.9);
+    expect(why).toMatchObject({
+      key: null,
+      why: expect.stringMatching(/No dictionary phrase matched/),
+    });
+    expect(gender!.why).toContain('Personal question ("gender")');
   });
 });

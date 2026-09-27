@@ -1,4 +1,5 @@
-import { fullName } from '@jobfill/shared';
+import { useEffect, useState } from 'react';
+import { STORAGE_KEYS, fullName } from '@jobfill/shared';
 import { CompletenessBar } from '@/components/CompletenessMeter';
 import { Logo } from '@/components/Logo';
 import { PRIVACY_MESSAGE } from '@/components/PrivacyNotice';
@@ -6,17 +7,32 @@ import { Button } from '@/components/ui/Button';
 import { LockIcon } from '@/components/ui/icons';
 import { ProfileProvider } from '@/profile/ProfileProvider';
 import { useProfile } from '@/profile/profile-context';
+import { loadSettings, onItemChanged } from '@/storage';
 import { DEBUG } from '@/utils/env';
 import { AutofillPanel } from './AutofillPanel';
 import { DebugPanel } from './DebugPanel';
 
+/** Dev builds always show the debugger; release builds when "Debug mode" is on. */
+function useDebugMode(): boolean {
+  const [enabled, setEnabled] = useState(DEBUG);
+  useEffect(() => {
+    if (DEBUG) return;
+    void loadSettings().then((s) => setEnabled(s.debugMode));
+    return onItemChanged<{ debugMode?: boolean }>(STORAGE_KEYS.settings, (v) =>
+      setEnabled(v?.debugMode === true),
+    );
+  }, []);
+  return enabled;
+}
+
 export function Popup() {
+  const debug = useDebugMode();
   return (
     <main className="w-96 p-4">
       <ProfileProvider fallback={<p className="text-sm text-slate-500">Loading…</p>}>
         <PopupContent />
       </ProfileProvider>
-      {DEBUG && <DebugPanel />}
+      {debug && <DebugPanel />}
     </main>
   );
 }

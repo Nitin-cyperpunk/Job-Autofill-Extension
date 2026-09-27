@@ -2,12 +2,14 @@ import type { SectionId } from '@jobfill/types';
 import {
   BriefcaseIcon,
   BuildingIcon,
+  ClipboardCheckIcon,
   FolderIcon,
   GraduationIcon,
   LinkIcon,
   StarIcon,
   UserIcon,
 } from '@/components/ui/icons';
+import { CertificationsForm, CertificationsSummary } from './CertificationsSection';
 import { EducationForm, EducationSummary } from './EducationSection';
 import { ExperienceForm, ExperienceSummary } from './ExperienceSection';
 import { LinksForm, LinksSummary } from './LinksSection';
@@ -67,6 +69,15 @@ export const SECTIONS: { [K in SectionId]: SectionDefinition<K> } = {
     Form: ProjectsForm,
     Summary: ProjectsSummary,
   },
+  certifications: {
+    id: 'certifications',
+    title: 'Certifications',
+    description: 'Certificates, licences and completed courses.',
+    icon: <ClipboardCheckIcon />,
+    optional: true,
+    Form: CertificationsForm,
+    Summary: CertificationsSummary,
+  },
   skills: {
     id: 'skills',
     title: 'Skills',
@@ -93,6 +104,7 @@ export const SECTION_ORDER: SectionId[] = [
   'education',
   'experience',
   'projects',
+  'certifications',
   'skills',
   'links',
 ];

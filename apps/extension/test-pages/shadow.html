@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Web-component (Shadow DOM) application</title>
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 640px;
+        margin: 2rem auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Apply</h1>
+    <apply-form></apply-form>
+    <button type="button" id="add-referral">I was referred</button>
+    <script type="module">
+      import { trackSubmits } from './widgets.js';
+      // An application built from web components with open shadow roots.
+      class ApplyForm extends HTMLElement {
+        constructor() {
+          super();
+          const root = this.attachShadow({ mode: 'open' });
+          root.innerHTML = `
+            <style>label{display:block;margin:10px 0 4px;font-weight:600} input{width:100%;padding:6px;box-sizing:border-box}</style>
+            <form>
+              <label for="fn">First name</label><input id="fn" name="firstName">
+              <label for="ln">Last name</label><input id="ln" name="lastName">
+              <label for="em">Email</label><input id="em" type="email" name="email">
+              <div id="extra"></div>
+              <button type="submit">Submit</button>
+            </form>`;
+          trackSubmits(root);
+        }
+        addField(html) {
+          this.shadowRoot.getElementById('extra').insertAdjacentHTML('beforeend', html);
+        }
+      }
+      customElements.define('apply-form', ApplyForm);
+      // A field that appears inside the shadow root later.
+      document.getElementById('add-referral').addEventListener('click', () => {
+        document
+          .querySelector('apply-form')
+          .addField('<label for="ph">Phone number</label><input id="ph" type="tel" name="phone">');
+      });
+    </script>
+  </body>
+</html>

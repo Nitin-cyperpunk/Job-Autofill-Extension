@@ -11,7 +11,9 @@
     "test-pages": "vite --config test-pages/vite.config.ts"
   },
   "dependencies": {
+    "@jobfill/ai": "*",
     "@jobfill/field-mapper": "*",
+    "@jobfill/resume": "*",
     "@jobfill/shared": "*",
     "@jobfill/types": "*",
     "react": "^19.3.0",

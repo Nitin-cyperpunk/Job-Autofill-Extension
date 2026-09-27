@@ -229,6 +229,24 @@ const CORPUS: Case[] = [
   ['cover letter file', { label: 'Cover letter', type: 'file' }, null],
   ['photo file', { label: 'Profile photo', type: 'file' }, null],
 
+  // ---- Automation / test ids (Workday data-automation-id, data-testid, formcontrolname) ----
+  [
+    'Workday first name id',
+    { label: 'Field', dataHints: 'formField-legalNameSection_firstName' },
+    'personal.firstName',
+  ],
+  ['Workday address line id', { dataHints: 'addressSection_addressLine1' }, 'personal.address'],
+  ['Workday phone-number id', { dataHints: 'phone-number' }, 'personal.phone'],
+  ['Angular formcontrolname', { dataHints: 'emailAddress' }, 'personal.email'],
+  ['Lever urls[GitHub] name', { name: 'urls[GitHub]' }, 'links.github'],
+  [
+    'Lever "org" with label text',
+    { name: 'org', nearbyText: 'Current company', labelSource: 'nearby' },
+    'professional.currentCompany',
+  ],
+  ['Workday phone device type', { label: 'Phone Device Type', type: 'select' }, null],
+  ['why work here', { label: 'Why do you want to work here?', type: 'textarea' }, null],
+
   // ---- False friends: must NOT map to the candidate's data ----
   ['reference name', { label: 'Reference name' }, null],
   ['reference phone', { label: 'Reference phone number' }, null],

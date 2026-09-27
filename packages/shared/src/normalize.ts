@@ -112,6 +112,8 @@ const projectSchema = z.object({
   githubUrl: text,
 });
 
+const certificationSchema = z.object({ id, name: text, issuer: text, date: text, url: text });
+
 const skillsSchema = z
   .object({ technical: stringList, soft: stringList, languages: stringList })
   .catch(() => createEmptyProfile().skills);
@@ -143,6 +145,7 @@ const profileSchema = z
     education: entryList(educationSchema),
     experience: entryList(experienceSchema),
     projects: entryList(projectSchema),
+    certifications: entryList(certificationSchema),
     skills: skillsSchema,
     links: linksSchema,
     resume: resumeMetaSchema.nullable().catch(null),

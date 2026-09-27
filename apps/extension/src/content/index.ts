@@ -1,26 +1,78 @@
-import type { ExtensionMessage, MessageResponse } from '@jobfill/shared';
-import { FieldWatcher } from '@/field-detection';
+import { STORAGE_KEYS, type ExtensionMessage, type MessageResponse } from '@jobfill/shared';
+import { adapterFor } from '@/adapters';
+import { CONTROL_SELECTOR, FieldWatcher } from '@/field-detection';
 import type { DebugTools } from '@/field-detection/debug';
 import { logger } from '@/utils/logger';
 
 /**
- * Detection starts as soon as the page is idle and follows the page as it changes.
+ * Detection starts once the page is idle and follows the page as it changes.
  * It only reads the DOM: nothing is filled until the user clicks Autofill.
+ *
+ * Runs in every frame (application forms are often embedded in iframes). Sub-frames
+ * without form controls stay idle — no observer on ads and widgets.
  */
+const isTopFrame = window === window.top;
 const watcher = new FieldWatcher(document);
-watcher.start();
+let started = false;
 
-let debugTools: Promise<DebugTools> | null = null;
-// Inline env check (not the DEBUG constant) so release builds drop this import entirely.
-if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
-  debugTools = import('@/field-detection/debug').then((m) => m.installDebugTools(watcher));
+function startWatching() {
+  if (started) return;
+  started = true;
+  watcher.start();
 }
 
+if (isTopFrame || document.querySelector(CONTROL_SELECTOR)) {
+  startWatching();
+} else {
+  // Embedded forms often render shortly after the frame loads.
+  for (const delay of [1500, 5000]) {
+    setTimeout(() => {
+      if (!started && document.querySelector(CONTROL_SELECTOR)) startWatching();
+    }, delay);
+  }
+}
+
+// ---- Debug mode: dev builds, or the "Debug mode" setting ------------------------------------
+const DEV_BUILD = import.meta.env.DEV || import.meta.env.MODE === 'development';
+let debugTools: Promise<DebugTools> | null = null;
+
+function loadDebugTools(): Promise<DebugTools> {
+  debugTools ??= import('@/field-detection/debug').then((m) => m.installDebugTools(watcher));
+  return debugTools;
+}
+
+async function debugEnabled(): Promise<boolean> {
+  if (DEV_BUILD) return true;
+  const stored = await chrome.storage.local.get(STORAGE_KEYS.settings);
+  return (stored[STORAGE_KEYS.settings] as { debugMode?: boolean } | undefined)?.debugMode === true;
+}
+
+void debugEnabled().then((on) => {
+  if (on && started) void loadDebugTools();
+});
+chrome.storage.onChanged.addListener((changes, area) => {
+  const next = changes[STORAGE_KEYS.settings]?.newValue as { debugMode?: boolean } | undefined;
+  if (area === 'local' && next?.debugMode && started) void loadDebugTools();
+});
+
+// ---- Messages -----------------------------------------------------------------------------
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendResponse) => {
   switch (message.type) {
     case 'PING': {
       const response: MessageResponse<'PING'> = { ok: true, from: 'content' };
       sendResponse(response);
+      return false;
+    }
+    case 'ANNOUNCE_FRAMES': {
+      // Every frame gets this broadcast; frames with fields tell the popup who they are.
+      const count = watcher.scanNow().length;
+      if (count > 0) {
+        startWatching();
+        void chrome.runtime
+          .sendMessage({ type: 'FRAME_HAS_FIELDS', count } satisfies ExtensionMessage)
+          .catch(() => null);
+      }
+      sendResponse({ ok: true } satisfies MessageResponse<'ANNOUNCE_FRAMES'>);
       return false;
     }
     case 'DETECT_FIELDS': {
@@ -35,12 +87,9 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
       return false;
     }
     case 'DEBUG_OVERLAY': {
-      if (!debugTools) {
-        sendResponse({ ok: false } satisfies MessageResponse<'DEBUG_OVERLAY'>);
-        return false;
-      }
-      void debugTools.then((tools) => {
-        tools.setOverlay(message.show);
+      void debugEnabled().then(async (on) => {
+        if (!on) return sendResponse({ ok: false } satisfies MessageResponse<'DEBUG_OVERLAY'>);
+        (await loadDebugTools()).setOverlay(message.show);
         sendResponse({ ok: true } satisfies MessageResponse<'DEBUG_OVERLAY'>);
       });
       return true;
@@ -64,7 +113,12 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
     }
     case 'AUTOFILL_EXECUTE': {
       import('@/autofill')
-        .then(({ fillPage }) => fillPage(watcher.scanNow(), message.fieldIds))
+        .then(({ fillPage }) =>
+          fillPage(() => watcher.scanNow(), {
+            fieldIds: message.fieldIds,
+            adapter: adapterFor(location.href, document),
+          }),
+        )
         .then((summary) =>
           sendResponse({ ok: true, summary } satisfies MessageResponse<'AUTOFILL_EXECUTE'>),
         )
@@ -77,9 +131,41 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
         });
       return true;
     }
+    // ---- Optional AI answers: context for ONE question, and inserting the chosen answer.
+    case 'AI_QUESTION_CONTEXT': {
+      const field = watcher.scanNow().find((f) => f.descriptor.id === message.fieldId);
+      if (!field) {
+        sendResponse({ ok: false, message: 'That field is no longer on the page.' } satisfies MessageResponse<'AI_QUESTION_CONTEXT'>);
+        return false;
+      }
+      void import('@/ai/job-context').then(({ extractJobContext }) => {
+        const d = field.descriptor;
+        const maxLength = (field.element as HTMLTextAreaElement).maxLength;
+        sendResponse({
+          ok: true,
+          question: [d.label, d.description].filter(Boolean).join(' — '),
+          ...(maxLength > 0 ? { maxLength } : {}),
+          kind: d.type === 'text' ? 'short' : 'long',
+          hasValue: d.hasValue,
+          job: extractJobContext(document),
+        } satisfies MessageResponse<'AI_QUESTION_CONTEXT'>);
+      });
+      return true;
+    }
+    case 'AI_INSERT': {
+      const field = watcher.scanNow().find((f) => f.descriptor.id === message.fieldId);
+      if (!field) {
+        sendResponse({ ok: false, message: 'That field is no longer on the page.' } satisfies MessageResponse<'AI_INSERT'>);
+        return false;
+      }
+      void import('@/ai/insert-answer').then(({ insertAnswer }) => {
+        sendResponse(insertAnswer(field, message.text, { replace: message.replace }) satisfies MessageResponse<'AI_INSERT'>);
+      });
+      return true;
+    }
     default:
       return false;
   }
 });
 
-logger.info('content script ready');
+logger.info('content script ready', isTopFrame ? '(top frame)' : '(sub-frame)');

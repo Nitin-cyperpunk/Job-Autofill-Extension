@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Workday-style application</title>
+    <!--
+      Mirrors Workday application patterns: multi-step flow ("Save and Continue"
+      swaps the page content), data-automation-id on every field wrapper, "Select One"
+      dropdown buttons whose listbox popup is rendered in a portal without
+      aria-controls, and experience/education sections numbered "Work Experience 1".
+    -->
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 680px;
+        margin: 2rem auto;
+      }
+      [data-automation-id^='formField'] {
+        margin: 12px 0;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+      }
+      input[type='text'] {
+        width: 100%;
+        padding: 6px;
+        box-sizing: border-box;
+      }
+      button[aria-haspopup] {
+        min-width: 240px;
+        text-align: left;
+        padding: 6px;
+      }
+      [role='option'] {
+        padding: 6px 10px;
+        cursor: pointer;
+        list-style: none;
+      }
+      ul[role='listbox'] {
+        margin: 0;
+        padding: 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="apply" data-automation-id="applyFlowPage">
+      <div id="step"></div>
+      <button type="button" data-automation-id="bottom-navigation-next-button" id="next">
+        Save and Continue
+      </button>
+    </form>
+
+    <template id="step-1">
+      <h2 data-automation-id="pageHeader">My Information</h2>
+      <div data-automation-id="formField-country">
+        <label for="input-1">Country<abbr title="required">*</abbr></label>
+        <button
+          type="button"
+          id="input-1"
+          aria-haspopup="listbox"
+          data-automation-id="countryDropdown"
+          data-options='["India","United Kingdom","United States of America"]'
+        >
+          Select One
+        </button>
+      </div>
+      <div data-automation-id="formField-legalNameSection_firstName">
+        <label for="input-2">Given Name(s)<abbr title="required">*</abbr></label>
+        <input
+          type="text"
+          id="input-2"
+          data-automation-id="legalNameSection_firstName"
+          aria-required="true"
+        />
+      </div>
+      <div data-automation-id="formField-legalNameSection_lastName">
+        <label for="input-3">Family Name<abbr title="required">*</abbr></label>
+        <input
+          type="text"
+          id="input-3"
+          data-automation-id="legalNameSection_lastName"
+          aria-required="true"
+        />
+      </div>
+      <div data-automation-id="formField-addressSection_addressLine1">
+        <label for="input-4">Address Line 1</label>
+        <input type="text" id="input-4" data-automation-id="addressSection_addressLine1" />
+      </div>
+      <div data-automation-id="formField-addressSection_city">
+        <label for="input-5">City</label>
+        <input type="text" id="input-5" data-automation-id="addressSection_city" />
+      </div>
+      <div data-automation-id="formField-addressSection_postalCode">
+        <label for="input-6">Postal Code</label>
+        <input type="text" id="input-6" data-automation-id="addressSection_postalCode" />
+      </div>
+      <div data-automation-id="formField-email">
+        <label for="input-7">Email Address<abbr title="required">*</abbr></label>
+        <input type="text" id="input-7" data-automation-id="email" />
+      </div>
+      <div data-automation-id="formField-phone-device-type">
+        <label for="input-8">Phone Device Type</label>
+        <!-- No type attribute inside a form = a SUBMIT button. It opens on pointerdown (Radix-style). -->
+        <button
+          id="input-8"
+          aria-haspopup="listbox"
+          data-open-on="pointerdown"
+          data-automation-id="phone-device-type"
+          data-options='["Mobile","Home","Work"]'
+        >
+          Select One
+        </button>
+      </div>
+      <div data-automation-id="formField-phone-number">
+        <label for="input-9">Phone Number</label>
+        <input type="text" id="input-9" data-automation-id="phone-number" />
+      </div>
+      <div data-automation-id="formField-source">
+        <label for="input-10">How Did You Hear About Us?</label>
+        <button
+          type="button"
+          id="input-10"
+          aria-haspopup="listbox"
+          data-automation-id="sourceDropdown"
+          data-options='["Job board","Referral","Company website"]'
+        >
+          Select One
+        </button>
+      </div>
+    </template>
+
+    <template id="step-2">
+      <h2 data-automation-id="pageHeader">My Experience</h2>
+      <section>
+        <h3>Work Experience 1</h3>
+        <div data-automation-id="formField-jobTitle">
+          <label for="input-20">Job Title</label>
+          <input type="text" id="input-20" data-automation-id="jobTitle" />
+        </div>
+        <div data-automation-id="formField-company">
+          <label for="input-21">Company</label>
+          <input type="text" id="input-21" data-automation-id="company" />
+        </div>
+        <div data-automation-id="formField-currentlyWorkHere">
+          <label
+            ><input type="checkbox" id="input-22" data-automation-id="currentlyWorkHere" /> I
+            currently work here</label
+          >
+        </div>
+        <div data-automation-id="formField-startDate">
+          <label for="input-23">From</label>
+          <input
+            type="text"
+            id="input-23"
+            data-automation-id="dateSectionMonth-input"
+            placeholder="MM/YYYY"
+          />
+        </div>
+      </section>
+      <section>
+        <h3>Education 1</h3>
+        <div data-automation-id="formField-school">
+          <label for="input-30">School or University</label>
+          <input type="text" id="input-30" data-automation-id="school" />
+        </div>
+        <div data-automation-id="formField-degree">
+          <label for="input-31">Degree</label>
+          <button
+            type="button"
+            id="input-31"
+            aria-haspopup="listbox"
+            data-automation-id="degree"
+            data-options='["High School Diploma","Bachelors","Masters","Doctorate"]'
+          >
+            Select One
+          </button>
+        </div>
+        <div data-automation-id="formField-fieldOfStudy">
+          <label for="input-32">Field of Study</label>
+          <input type="text" id="input-32" data-automation-id="field-of-study" />
+        </div>
+      </section>
+      <section>
+        <h3>Websites</h3>
+        <div data-automation-id="formField-linkedin">
+          <label for="input-40">LinkedIn</label>
+          <input type="text" id="input-40" data-automation-id="linkedinQuestion" />
+        </div>
+      </section>
+    </template>
+
+    <script type="module">
+      import { installListboxButtons, trackSubmits } from './widgets.js';
+      const step = document.getElementById('step');
+      let current = 1;
+      const show = (n) => {
+        step.replaceChildren(document.getElementById(`step-${n}`).content.cloneNode(true));
+        installListboxButtons(step);
+      };
+      show(1);
+      document.getElementById('next').addEventListener('click', () => {
+        if (current < 2) show(++current);
+      });
+      trackSubmits();
+    </script>
+  </body>
+</html>

@@ -39,6 +39,9 @@ export default defineManifest({
       matches: ['https://*/*', 'http://*/*'],
       js: ['src/content/index.ts'],
       run_at: 'document_idle',
+      // Application forms are often embedded in iframes (e.g. job boards on careers sites).
+      all_frames: true,
+      match_about_blank: true,
     },
   ],
   permissions: ['storage'],

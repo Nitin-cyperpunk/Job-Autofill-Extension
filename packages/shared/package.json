@@ -14,6 +14,7 @@
   "dependencies": {
     "@jobfill/types": "*",
     "zod": "^4.6.5",
-    "@jobfill/field-mapper": "*"
+    "@jobfill/field-mapper": "*",
+    "@jobfill/ai": "*"
   }
 }

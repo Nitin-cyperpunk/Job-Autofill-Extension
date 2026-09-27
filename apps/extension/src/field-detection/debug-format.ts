@@ -1,8 +1,19 @@
 import type { FieldDescriptor } from '@jobfill/types';
-import { matchField } from '@jobfill/field-mapper';
+import { explainMatch, matchField } from '@jobfill/field-mapper';
 
-/** Mapped profile key for debug display: the key, 'sensitive', or null. */
-export function mappedKey(d: FieldDescriptor): string | null {
+export interface DebugMapping {
+  /** Profile key, "sensitive", or null (unmapped). */
+  key: string | null;
+  confidence: number | null;
+  why: string;
+}
+
+/** How the mapper sees a field, for the overlay and console table. */
+export function debugMapping(d: FieldDescriptor): DebugMapping {
   const m = matchField(d);
-  return m.kind === 'match' ? m.key : m.kind === 'sensitive' ? 'sensitive' : null;
+  return {
+    key: m.kind === 'match' ? m.key : m.kind === 'sensitive' ? 'sensitive' : null,
+    confidence: m.kind === 'match' ? m.confidence : null,
+    why: explainMatch(d, m),
+  };
 }

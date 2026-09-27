@@ -63,7 +63,12 @@ export function detectFields(
     const dropdown = isCustomDropdown(el);
     const type = dropdown
       ? 'select'
-      : normalizeFieldType(el.localName, el.getAttribute('type'), native ? null : role, isEditable(el));
+      : normalizeFieldType(
+          el.localName,
+          el.getAttribute('type'),
+          native ? null : role,
+          isEditable(el),
+        );
     if (!type) continue;
     if (native && (el as HTMLInputElement).disabled) continue;
     if (!native && el.getAttribute('aria-disabled') === 'true') continue;
@@ -85,7 +90,12 @@ export function detectFields(
     // ---- a combobox wrapper around an input combobox: the input represents the field
     if (!native && role === 'combobox' && el.querySelector('input')) continue;
     // ---- a listbox owned by a combobox/trigger (often portal-rendered) is its popup, not a field
-    if (!native && role === 'listbox' && (el.closest('[role="combobox"]') || ownedPopups.has(el.id))) continue;
+    if (
+      !native &&
+      role === 'listbox' &&
+      (el.closest('[role="combobox"]') || ownedPopups.has(el.id))
+    )
+      continue;
     // ---- only the outermost editable region of a rich-text editor
     if (
       type === 'contenteditable' &&
@@ -100,7 +110,9 @@ export function detectFields(
       descriptor: describeSingle(el, type, native && !dropdown, visible),
       element: el,
       elements: [el],
-      ...(type === 'select' && (!native || dropdown) ? { optionElements: dropdownOptionElements(el) } : {}),
+      ...(type === 'select' && (!native || dropdown)
+        ? { optionElements: dropdownOptionElements(el) }
+        : {}),
     });
     if (ordered.length >= LIMITS.maxFields) break;
   }
@@ -121,7 +133,10 @@ export function detectFields(
 
 // ---------------------------------------------------------------------------
 
-function collectCandidates(root: Document | Element, onShadowRoot?: (root: ShadowRoot) => void): Element[] {
+function collectCandidates(
+  root: Document | Element,
+  onShadowRoot?: (root: ShadowRoot) => void,
+): Element[] {
   const out: Element[] = [];
   const visit = (scope: Document | Element | ShadowRoot) => {
     out.push(...scope.querySelectorAll(CONTROL_SELECTOR));

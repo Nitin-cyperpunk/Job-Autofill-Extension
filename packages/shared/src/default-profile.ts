@@ -1,5 +1,6 @@
 import {
   PROFILE_SCHEMA_VERSION,
+  type CertificationEntry,
   type EducationEntry,
   type ExperienceEntry,
   type OtherLink,
@@ -39,6 +40,7 @@ export function createEmptyProfile(): Profile {
     education: [],
     experience: [],
     projects: [],
+    certifications: [],
     skills: { technical: [], soft: [], languages: [] },
     links: { linkedin: '', github: '', portfolio: '', website: '', other: [] },
     resume: null,
@@ -79,6 +81,10 @@ export function createExperienceEntry(): ExperienceEntry {
 
 export function createProjectEntry(): ProjectEntry {
   return { id: createId(), name: '', description: '', technologies: [], url: '', githubUrl: '' };
+}
+
+export function createCertificationEntry(): CertificationEntry {
+  return { id: createId(), name: '', issuer: '', date: '', url: '' };
 }
 
 export function createOtherLink(): OtherLink {

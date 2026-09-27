@@ -48,7 +48,8 @@ export function dropdownOptionElements(el: Element): Element[] {
   return [...seen];
 }
 
-const PLACEHOLDER_TEXT = /^(select|choose|please select|pick|search|type to search|start typing|none selected|--|—)\b/i;
+const PLACEHOLDER_TEXT =
+  /^(select|choose|please select|pick|search|type to search|start typing|none selected|--|—)\b/i;
 
 export function isPlaceholderText(text: string): boolean {
   const t = collapseWhitespace(text);
@@ -77,7 +78,9 @@ export function displayedValue(el: Element): string {
       .join(' ');
     return isPlaceholderText(text) ? '' : collapseWhitespace(text);
   }
-  const text = textOf(el);
+  // Read the children: textOf() skips <button> subtrees (button text is not a label
+  // for other fields), but a dropdown button's own text IS its current value.
+  const text = collapseWhitespace([...el.childNodes].map((node) => textOf(node)).join(' '));
   return isPlaceholderText(text) ? '' : text;
 }
 

@@ -8,7 +8,9 @@
     "apps/extension",
     "packages/types",
     "packages/shared",
-    "packages/field-mapper"
+    "packages/field-mapper",
+    "packages/ai",
+    "packages/resume"
   ],
   "scripts": {
     "dev": "npm run dev -w @jobfill/extension",

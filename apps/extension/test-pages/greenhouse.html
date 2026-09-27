@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Greenhouse-style application</title>
+    <!--
+      Mirrors Greenhouse job-board markup patterns: labelled inputs with
+      aria-required, react-select comboboxes (portal menus, async school search),
+      a visually hidden resume input behind an "Attach" button, custom questions,
+      an Education section and the voluntary EEO section.
+    -->
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 680px;
+        margin: 2rem auto;
+      }
+      .field {
+        margin: 0.9rem 0;
+      }
+      .field > label,
+      .field > .label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      input[type='text'],
+      input[type='email'],
+      input[type='tel'],
+      textarea,
+      select {
+        width: 100%;
+        padding: 6px;
+        box-sizing: border-box;
+      }
+      .select__control {
+        display: flex;
+        align-items: center;
+        border: 1px solid #aaa;
+        border-radius: 4px;
+        padding: 4px 8px;
+        min-height: 34px;
+        cursor: text;
+      }
+      .select__value-container {
+        display: flex;
+        gap: 6px;
+        flex: 1;
+      }
+      .select__control input[role='combobox'] {
+        border: 0;
+        outline: 0;
+        flex: 1;
+        min-width: 40px;
+      }
+      .select__placeholder {
+        color: #888;
+      }
+      .select__menu {
+        background: #fff;
+        border: 1px solid #aaa;
+        z-index: 10;
+      }
+      .select__menu [role='option'] {
+        padding: 6px 8px;
+        cursor: pointer;
+      }
+      .select__menu [role='option']:hover {
+        background: #eef;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+    </style>
+  </head>
+  <body>
+    <form id="application-form">
+      <h2>Apply for this job</h2>
+
+      <div class="field">
+        <label for="first_name">First Name<span class="required">*</span></label>
+        <input
+          id="first_name"
+          name="first_name"
+          type="text"
+          aria-required="true"
+          autocomplete="given-name"
+        />
+      </div>
+      <div class="field">
+        <label for="last_name">Last Name<span class="required">*</span></label>
+        <input
+          id="last_name"
+          name="last_name"
+          type="text"
+          aria-required="true"
+          autocomplete="family-name"
+        />
+      </div>
+      <div class="field">
+        <label for="email">Email<span class="required">*</span></label>
+        <input id="email" name="email" type="text" aria-required="true" />
+      </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input id="phone" name="phone" type="tel" />
+      </div>
+
+      <div class="field">
+        <label id="country-label" for="country">Country<span class="required">*</span></label>
+        <div class="select__control">
+          <div class="select__value-container">
+            <div class="select__placeholder">Select...</div>
+            <input
+              id="country"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-labelledby="country-label"
+              aria-required="true"
+              autocomplete="off"
+              data-options='["India","United Kingdom","United States"]'
+            />
+          </div>
+          <input type="hidden" name="country" />
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label" id="resume-label">Resume/CV<span class="required">*</span></div>
+        <button type="button" class="btn">Attach</button>
+        <input
+          type="file"
+          id="resume"
+          class="visually-hidden"
+          aria-labelledby="resume-label"
+          accept=".pdf,.doc,.docx,.txt,.rtf"
+        />
+      </div>
+
+      <div class="field">
+        <label for="question_1">LinkedIn Profile</label>
+        <input
+          id="question_1"
+          name="job_application[answers_attributes][0][text_value]"
+          type="text"
+        />
+      </div>
+      <div class="field">
+        <label for="question_2">Website</label>
+        <input
+          id="question_2"
+          name="job_application[answers_attributes][1][text_value]"
+          type="text"
+        />
+      </div>
+
+      <div class="field">
+        <label id="auth-label" for="question_3"
+          >Are you legally authorized to work in the United Kingdom?<span class="required"
+            >*</span
+          ></label
+        >
+        <div class="select__control">
+          <div class="select__value-container">
+            <div class="select__placeholder">Select...</div>
+            <input
+              id="question_3"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-labelledby="auth-label"
+              autocomplete="off"
+              data-options='["Yes","No"]'
+            />
+          </div>
+          <input type="hidden" name="job_application[answers_attributes][2][boolean_value]" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="question_4"
+          >Will you now or in the future require sponsorship for employment visa status?</label
+        >
+        <select id="question_4" name="job_application[answers_attributes][3][boolean_value]">
+          <option value="">--</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="question_5">Why do you want to work here?</label>
+        <textarea
+          id="question_5"
+          name="job_application[answers_attributes][4][text_value]"
+        ></textarea>
+      </div>
+
+      <h3>Education</h3>
+      <div class="field">
+        <label id="school-label" for="school--0">School</label>
+        <div class="select__control">
+          <div class="select__value-container">
+            <div class="select__placeholder">Start typing...</div>
+            <input
+              id="school--0"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-labelledby="school-label"
+              autocomplete="off"
+              data-async="true"
+              data-options='["Cambridge University","Imperial College London","University of London","University of Oxford"]'
+            />
+          </div>
+          <input type="hidden" name="education[0][school_name_id]" />
+        </div>
+      </div>
+      <div class="field">
+        <label id="degree-label" for="degree--0">Degree</label>
+        <div class="select__control">
+          <div class="select__value-container">
+            <div class="select__placeholder">Select...</div>
+            <input
+              id="degree--0"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-labelledby="degree-label"
+              autocomplete="off"
+              data-options='["High School","Associate&apos;s Degree","Bachelor&apos;s Degree","Master&apos;s Degree","Doctor of Philosophy (Ph.D.)"]'
+            />
+          </div>
+          <input type="hidden" name="education[0][degree_id]" />
+        </div>
+      </div>
+      <div class="field">
+        <label id="discipline-label" for="discipline--0">Discipline</label>
+        <div class="select__control">
+          <div class="select__value-container">
+            <div class="select__placeholder">Select...</div>
+            <input
+              id="discipline--0"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-labelledby="discipline-label"
+              autocomplete="off"
+              data-options='["Computer Science","Economics","Mathematics","Physics"]'
+            />
+          </div>
+          <input type="hidden" name="education[0][discipline_id]" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="start-year--0">Start date year</label>
+        <input id="start-year--0" name="education[0][start_date][year]" type="text" />
+      </div>
+      <div class="field">
+        <label for="end-year--0">End date year</label>
+        <input id="end-year--0" name="education[0][end_date][year]" type="text" />
+      </div>
+
+      <h3>Voluntary Self-Identification</h3>
+      <div class="field">
+        <label for="gender">Gender</label>
+        <select id="gender" name="job_application[gender]">
+          <option value="">Please select</option>
+          <option>Female</option>
+          <option>Male</option>
+          <option>Decline to self-identify</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="veteran_status">Veteran Status</label>
+        <select id="veteran_status" name="job_application[veteran_status]">
+          <option value="">Please select</option>
+          <option>I am not a protected veteran</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label
+          ><input type="checkbox" name="data_compliance[gdpr_consent_given]" /> I consent to the
+          processing of my personal data</label
+        >
+      </div>
+
+      <button type="submit" id="submit_app">Submit application</button>
+    </form>
+    <script type="module">
+      import { installComboboxes, trackSubmits } from './widgets.js';
+      installComboboxes();
+      trackSubmits();
+    </script>
+  </body>
+</html>

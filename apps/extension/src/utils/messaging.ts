@@ -11,7 +11,7 @@ export function sendToBackground<M extends ExtensionMessage>(
  * the popup page is opened in a tab for automated end-to-end tests — only the
  * extension itself can open its popup URL).
  */
-async function targetTabId(): Promise<number> {
+export async function targetTabId(): Promise<number> {
   const explicit = Number(new URLSearchParams(location.search).get('tabId'));
   if (Number.isInteger(explicit) && explicit > 0) return explicit;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
