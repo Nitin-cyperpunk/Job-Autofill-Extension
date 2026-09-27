@@ -1,6 +1,6 @@
 # Production-readiness audit — JobFill 0.1.0
 
-**Date:** 2026-09-28. **Build:** `npm run package` → `release/jobfill-0.1.0.zip` (28 files, about 185 KB).
+**Date:** 2026-09-28. **Build:** `npm run package` → `release/jobfill-0.1.0.zip` (28 files, about 202 KB).
 **How it was checked:** the production build was extracted from the ZIP and loaded unpacked in
 Chromium, then driven end to end. axe-core was run on every extension page. The bundle was
 scanned for remote code and secrets. The full test suite was run (vitest, 19+ files).
@@ -17,9 +17,9 @@ Status key: ✅ passes · 🔧 fixed in this audit · ⚠️ open, needs action 
 | 6   | No exposed secrets          | ✅     | No keys, tokens or `.env` in source or bundle. The packager blocks secret-like strings.                 |
 | 7   | Production build            | ✅     | Minified, no source maps, no dev-server references. The ZIP loads and works in Chromium.                |
 | 8   | Error handling              | ✅     | No runtime errors on any page. Unreachable tabs, quota and parse errors are shown to the user.          |
-| 9   | Accessibility               | ⚠️     | 2 serious and 3 moderate axe issues on some options pages. Fixes handed to the UI owner.                |
+| 9   | Accessibility               | 🔧 ✅  | Final build: 0 serious/critical/moderate axe issues on all 9 pages (after fixes).                       |
 | 10  | Performance                 | 🔧 ✅  | Code loaded on every page cut from about 117 KB to about 22 KB.                                         |
-| 11  | Privacy disclosures         | 🔧 ⚠️  | Policy written. Website privacy page lacks the Limited Use statement, contact and date.                 |
+| 11  | Privacy disclosures         | 🔧 ⚠️  | Policy written and website privacy page updated. Only the support email and domain are missing.         |
 | 12  | Data usage disclosures      | ✅     | Dashboard answers drafted in PRIVACY_PRACTICES.md.                                                      |
 | 13  | User-facing permission text | 🔧     | Listing, FAQ and policy quote Chrome's exact warning and explain it.                                    |
 
@@ -113,17 +113,17 @@ placeholders. `scripts/package-extension.mjs` refuses to package if secret-like 
 
 ## 9. Accessibility (axe-core 4, WCAG 2.1 A/AA + best practice)
 
-| Page                                 | Result                                                                                                          |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Welcome, Start, Privacy              | ✅ 0 issues                                                                                                     |
-| Popup                                | ⚠️ moderate: no `<h1>`                                                                                          |
-| Onboarding: Resume & Links, Personal | ⚠️ moderate: no `<h1>`                                                                                          |
-| Review, Profile dashboard            | ⚠️ **serious:** `aria-label` on a role-less `<span>` (6); **serious:** "Not added" text contrast 2.56:1 (13–14) |
-| Import resume                        | ⚠️ moderate: no `<main>` landmark                                                                               |
+First pass: 2 serious issue types (`aria-label` on role-less `<span>`s, "Not added" text at
+2.56:1 contrast) and 3 moderate ones (no `<h1>` in the popup and some onboarding steps, no
+`<main>` on the import-resume route).
 
-The fixes (role or sr-only text, raising the faint text to slate-500 or higher, `<h1>`, `<main>`)
-were sent to the session doing the UI theme pass, which owns those files right now. ⚠️ Rerun the
-axe check on the final build before submitting (see the checklist).
+🔧 All fixed. The UI owner applied sr-only text, raised the faint token to ≥ 4.5:1 in both
+themes, and added `<h1>` and `<main>`. This audit fixed a heading jump (h1 → h3) in "Resume &
+Professional Links".
+
+**Final run on the extracted ZIP:** popup, welcome, start, resume & links, personal, review,
+import resume, profile dashboard and privacy all have ✅ 0 serious / critical / moderate issues,
+and no runtime errors.
 
 ## 10. Performance
 
@@ -139,20 +139,30 @@ axe check on the final build before submitting (see the checklist).
 
 ## 11–13. Privacy, data disclosures and permission explanations
 
-- 🔧 Written: [PRIVACY_POLICY.md](PRIVACY_POLICY.md) (includes Limited Use, no-sale, retention,
-  deletion, AI flow, children, changes and contact), [PRIVACY_PRACTICES.md](PRIVACY_PRACTICES.md)
+- 🔧 Written: [PRIVACY_POLICY.md](PRIVACY_POLICY.md) (Limited Use, no-sale, retention, deletion,
+  AI flow, resume attachment, children, changes, contact), [PRIVACY_PRACTICES.md](PRIVACY_PRACTICES.md)
   (single purpose, justifications, remote code, data categories, certifications),
   [LISTING.md](LISTING.md), [FAQ.md](FAQ.md) and [SUPPORT.md](SUPPORT.md).
 - The extension's own Privacy settings page already lists what's stored, what can leave the
-  device and the delete and export controls (axe: 0 issues).
-- ⚠️ In-extension copy: the resume import screen says "Your resume stays on this device unless you
-  choose an AI/cloud feature". There is no cloud feature and the resume file is never sent to
-  AI. The replacement text was handed to the UI owner.
-- ⚠️ **Website** (`apps/website`, owned by the UI session): a read-only audit found
-  - universal-compatibility wording ("any job site", "any application form");
-  - a privacy page missing the Limited Use sentence, the no-sale statement, a contact method and
-    a visible date;
-  - a Support page that has no way to get help, plus "coming soon" placeholders.
-    The full list with fixes was handed over. It must be fixed before the store listing links to it.
+  device and the delete and export controls.
+- 🔧 **Website** (`apps/website`): these were applied by the UI owner:
+  - the universal-compatibility wording fixes and "tested on sample pages" notes;
+  - on the privacy page: last-updated date, retention, no selling or sharing, a changes note, the
+    Limited Use statement, and a contact line (shown once `NEXT_PUBLIC_SUPPORT_EMAIL` is set);
+  - "Need help instead?" on /support and "Still stuck?" on /faq, plus a Troubleshooting FAQ group;
+  - Chrome's exact permission warning on /install.
+- ⚠️ **Your decision: resume wording.** The import screen and the website say "Your resume stays
+  on this device unless you choose an AI/cloud feature." It was kept because your spec asked for
+  it word for word. Accuracy check:
+  - there is no cloud feature, and AI never receives the resume file;
+  - the file _does_ leave the device when JobFill attaches it to a job site's upload field.
+
+  A more accurate line: "Your resume is read on this device. It's only sent to a job site when
+  JobFill attaches it to an application you're filling." The store docs here already describe it
+  that way.
+
+- ⚠️ **Your decision: placeholders.** The website's GitHub card still shows "coming soon", because
+  your spec asked for marked placeholders. Store reviewers sometimes treat placeholders as an
+  unfinished site. Set the URL or hide the card before submitting.
 - ⚠️ **No support email or domain exists yet.** Every ⟨…⟩ placeholder in these documents
   depends on them.

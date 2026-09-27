@@ -3,11 +3,15 @@
  * true of the extension in this repo — no invented numbers, users or reviews.
  */
 
-/** Production origin, no trailing slash. Set NEXT_PUBLIC_SITE_URL when deploying. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.jobfill.app').replace(
-  /\/+$/,
-  '',
-);
+/**
+ * Production origin, no trailing slash. Set NEXT_PUBLIC_APP_URL when deploying
+ * (NEXT_PUBLIC_SITE_URL is accepted too).
+ */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://www.jobfill.app'
+).replace(/\/+$/, '');
 
 /**
  * The Chrome Web Store listing. Until it's set, "Add to Chrome" buttons lead to the
@@ -50,11 +54,17 @@ export const SUPPORT_EMAIL = optionalEmail(process.env.NEXT_PUBLIC_SUPPORT_EMAIL
  * (Referenced as literal process.env.NEXT_PUBLIC_* so Next inlines them at build time.)
  */
 export const LINKS = {
-  /** Buy Me a Coffee page for supporting development (provided by the creator). */
+  /** Buy Me a Coffee page (the creator's). NEXT_PUBLIC_SUPPORT_URL is accepted too. */
   support: optionalUrl(
-    process.env.NEXT_PUBLIC_SUPPORT_URL ?? 'https://buymeacoffee.com/nitinverse',
+    process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL ||
+      process.env.NEXT_PUBLIC_SUPPORT_URL ||
+      'https://buymeacoffee.com/nitinverse',
   ),
-  github: optionalUrl(process.env.NEXT_PUBLIC_GITHUB_URL),
+  /** The project's public repository (the creator's). */
+  github: optionalUrl(
+    process.env.NEXT_PUBLIC_GITHUB_URL ||
+      'https://github.com/Nitin-cyperpunk/Job-Autofill-Extension',
+  ),
   x: optionalUrl(process.env.NEXT_PUBLIC_X_URL),
   docs: optionalUrl(process.env.NEXT_PUBLIC_DOCS_URL),
   terms: optionalUrl(process.env.NEXT_PUBLIC_TERMS_URL),
@@ -63,6 +73,11 @@ export const LINKS = {
 } as const;
 
 export const CREATOR = { name: 'Nitinverse' } as const;
+
+/** "Report an issue" link: the repository's Issues page when LINKS.github is a GitHub repo. */
+export const ISSUES_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/.test(LINKS.github)
+  ? `${LINKS.github.replace(/\/$/, '')}/issues`
+  : '';
 
 export const ADD_TO_CHROME_HREF = CHROME_WEB_STORE_URL || '/install';
 export const TRY_HREF = '/install#get-started';

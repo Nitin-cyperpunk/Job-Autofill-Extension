@@ -7,6 +7,7 @@ dist-debug
 .vite
 *.tsbuildinfo
 .env*
+!.env.example
 .next
 next-env.d.ts
 

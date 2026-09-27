@@ -83,7 +83,10 @@ PDF, DOCX and plain text, up to 5 MB. Scanned (image-only) PDFs and old `.doc` f
 read. Save as PDF or DOCX, or paste the text.
 
 **Is my resume uploaded anywhere?**
-No. It's read inside the extension on your device, and you approve every value before it's saved.
+Not to JobFill. Importing reads it inside the extension on your device, and you approve every value
+before it's saved. The file goes to a job site only when JobFill attaches it to that site's
+application form. That's the same as attaching it yourself, and the site receives it like any
+upload.
 
 ## AI answers (optional)
 

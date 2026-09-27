@@ -1,10 +1,11 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ShareButton } from '@/components/ShareButton';
 import { Breadcrumbs, Container, CtaBand, FaqSection } from '@/components/ui';
 import type { Faq } from '@/lib/schema';
 import { pageMetadata } from '@/lib/seo';
-import { CHROME_WEB_STORE_URL, LINKS, SITE, SITE_URL, SUPPORT_EMAIL } from '@/lib/site';
+import { CHROME_WEB_STORE_URL, ISSUES_URL, LINKS, SITE, SITE_URL, SUPPORT_EMAIL } from '@/lib/site';
 
 export const metadata = pageMetadata({
   title: 'Support JobFill — Help Keep JobFill Growing',
@@ -131,11 +132,7 @@ export default function SupportPage() {
               icon={<CoffeeIcon />}
               title="Buy Me a Coffee"
               text="Support development with a small contribution. Every coffee goes into building and testing JobFill."
-              action={
-                <ExternalAction href={LINKS.support} pending="Support link coming soon">
-                  Support the Project
-                </ExternalAction>
-              }
+              action={<BuyMeACoffeeButton href={LINKS.support} />}
             />
             <SupportCard
               icon={<GitHubIcon />}
@@ -192,11 +189,11 @@ export default function SupportPage() {
           </h2>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2">
             <HelpItem title="Report a bug or suggest a feature">
-              {LINKS.github ? (
+              {ISSUES_URL ? (
                 <>
                   Open an issue on{' '}
                   <a
-                    href={LINKS.github}
+                    href={ISSUES_URL}
                     rel="noopener"
                     className="font-medium text-accent hover:underline"
                   >
@@ -319,6 +316,37 @@ function ExternalAction({
       }`}
     >
       {children}
+    </a>
+  );
+}
+
+/**
+ * Buy Me a Coffee's official button artwork (from their button generator), served from
+ * this site rather than their CDN so visitors make no third-party request until they click.
+ */
+function BuyMeACoffeeButton({ href }: { href: string }) {
+  if (!href) {
+    return (
+      <ExternalAction href="" pending="Support link coming soon">
+        Support the Project
+      </ExternalAction>
+    );
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener"
+      className="block rounded-lg transition duration-150 ease-out hover:-translate-y-0.5 hover:opacity-95 active:scale-[0.98]"
+    >
+      <Image
+        src="/bmc-button.png"
+        alt="Buy me a coffee"
+        width={545}
+        height={153}
+        className="mx-auto h-auto w-full max-w-[217px]"
+      />
+      <span className="sr-only"> (opens buymeacoffee.com in a new tab)</span>
     </a>
   );
 }

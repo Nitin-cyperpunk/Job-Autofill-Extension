@@ -85,4 +85,6 @@ request. That is a user-initiated transfer needed for the feature they asked for
 ```
 
 The text is in [PRIVACY_POLICY.md](PRIVACY_POLICY.md). The website's `/privacy` page must match it,
-including the Limited Use sentence.
+including the Limited Use sentence (JobFill uses no Google APIs, so the site words it as "JobFill's use of
+information complies with the Chrome Web Store User Data Policy, including the Limited Use
+requirements").

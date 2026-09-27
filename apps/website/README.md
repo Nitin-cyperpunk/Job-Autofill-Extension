@@ -8,6 +8,15 @@ It never receives candidate profile data — that stays in the extension.
 
 ## Setup
 
+### Deploying on Vercel
+
+- **Root Directory:** `apps/website`, with Framework Preset **Next.js**. Leave the build and install
+  commands at their defaults.
+- Keep **"Include files outside the root directory in the Build Step"** enabled (Vercel's default).
+  The site imports the shared design tokens from `packages/theme/theme.css`.
+- Add the environment variables below under Project → Settings → Environment Variables, at minimum
+  `NEXT_PUBLIC_APP_URL` set to your production domain, then redeploy.
+
 The site is a **standalone package** (its own `package-lock.json`, not in the root workspaces),
 so installing it never touches the extension's dependencies:
 
@@ -20,10 +29,17 @@ npm run verify       # production build + SEO checks
 
 ### Environment
 
-| Variable                           | Purpose                                                                                                         |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`             | Production origin for canonical URLs, sitemap, Open Graph and JSON-LD. Default `https://www.jobfill.app`.       |
-| `NEXT_PUBLIC_CHROME_WEB_STORE_URL` | The Chrome Web Store listing. Until set, "Add to Chrome" links to `/install`, which says the listing is coming. |
+| Variable                                                          | Purpose                                                                                            |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`                                             | The site's own address (canonical URLs, sitemap, social cards). Default `https://www.jobfill.app`. |
+| `NEXT_PUBLIC_BUYMEACOFFEE_URL`                                    | Buy Me a Coffee page. Default `https://buymeacoffee.com/nitinverse`.                               |
+| `NEXT_PUBLIC_GITHUB_URL`                                          | GitHub repository. Default `https://github.com/Nitin-cyperpunk/Job-Autofill-Extension`.            |
+| `NEXT_PUBLIC_CHROME_WEB_STORE_URL`                                | The Chrome Web Store listing. Until set, "Add to Chrome" links to `/install`.                      |
+| `NEXT_PUBLIC_SUPPORT_EMAIL`                                       | Help/contact email. Hidden until set.                                                              |
+| `NEXT_PUBLIC_X_URL`, `…_DOCS_URL`, `…_TERMS_URL`, `…_CREATOR_URL` | Optional links; hidden until set.                                                                  |
+
+All values are public (no secrets). See [.env.example](.env.example); for local development copy it to
+`.env.local`. The older names `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_SUPPORT_URL` still work.
 
 ## Structure
 

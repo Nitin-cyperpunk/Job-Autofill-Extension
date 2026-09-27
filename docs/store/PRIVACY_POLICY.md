@@ -36,13 +36,15 @@ on the page you're on to work out what each field asks for. When you click **Aut
 the matching values from your profile into the form. Page content is not stored or sent anywhere.
 
 Once a value is in a form field, the website can read it, just as if you had typed it. Some
-sites save drafts before you submit. JobFill never submits a form for you. Use **Preview fields
+sites save drafts before you submit. The same applies to your resume file: when JobFill attaches
+it to an application's upload field, that site receives the file just as if you had attached it. JobFill never submits a form for you. Use **Preview fields
 before filling** to approve each value first.
 
 ## Resume import
 
 When you import a resume (PDF, DOCX or text), it is read inside the extension on your device.
-Nothing is uploaded. You review what was found before anything is saved to your profile.
+Reading it doesn't upload it anywhere. You review what was found before anything is saved to your
+profile.
 
 ## Optional AI-drafted answers
 
@@ -71,7 +73,7 @@ OpenAI, Google Gemini or an OpenAI-compatible service you choose.
 - We don't use analytics, tracking, cookies or crash reporting in the extension.
 - We don't have accounts, and we don't receive your data on any server.
 
-The use of information received from Google APIs will adhere to the
+JobFill's use of information complies with the
 [Chrome Web Store User Data Policy](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq),
 including the Limited Use requirements.
 

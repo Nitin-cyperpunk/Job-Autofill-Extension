@@ -29,9 +29,10 @@ during the 2026-09-28 audit (see [AUDIT.md](AUDIT.md)). Recheck them after any c
 
 - [x] ✅ Text written: [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
 - [ ] Fill in ⟨DATE⟩, ⟨PUBLISHER NAME⟩, ⟨SUPPORT EMAIL⟩ and ⟨SITE_URL⟩.
-- [ ] Publish it at `<site>/privacy`. The website's page must include the **Limited Use**
-      sentence, the no-sale statement, retention, a contact and a "Last updated" date. These
-      are all missing today and have been handed to the website owner.
+- [x] ✅ The website's `/privacy` page now has the Limited Use statement, no selling or sharing,
+      retention, a changes note and a "Last updated" date. Its contact line appears once
+      `NEXT_PUBLIC_SUPPORT_EMAIL` is set.
+- [ ] Publish it at `<site>/privacy`.
 - [ ] Enter the privacy policy URL in the dashboard's Privacy practices tab. Open it in a
       private window to make sure it loads without JavaScript errors.
 
@@ -39,24 +40,26 @@ during the 2026-09-28 audit (see [AUDIT.md](AUDIT.md)). Recheck them after any c
 
 - [ ] Support email set in the dashboard (Account → contact email, and the listing's support
       field).
-- [ ] `<site>/support` has a real "Get help" section with the email. Today it's only a
-      donate/share page with "coming soon" cards. Text to use: [SUPPORT.md](SUPPORT.md).
-- [ ] `<site>/faq` matches [FAQ.md](FAQ.md) and adds the missing topics: why a field or resume
-      wasn't filled, the reload-the-tab fix, `.doc` and scanned PDFs, multi-device use, and how
-      to report a broken form.
+- [x] ✅ `/support` has a "Need help instead?" section and `/faq` has "Still stuck?" plus a
+      Troubleshooting group. Both need `NEXT_PUBLIC_SUPPORT_EMAIL` to show the address.
+- [ ] Set `NEXT_PUBLIC_SUPPORT_EMAIL` and check the mailto links work.
 
 ## 4. Website 🛑
 
-- [ ] Website fixes handed to the UI session are applied: universal-claim wording, privacy page
-      additions, support page, and the exact Chrome permission warning on `/install`.
-- [ ] Hide "coming soon" placeholders when their environment variables are empty.
+- [x] ✅ Universal-claim wording fixed, "tested on sample pages" notes added, and Chrome's exact
+      permission warning is on `/install`.
+- [ ] Decide on the GitHub "coming soon" card: set `NEXT_PUBLIC_GITHUB_URL` or hide it.
+      Reviewers can treat placeholders as an unfinished site.
+- [ ] Decide on the resume line "stays on this device unless you choose an AI/cloud feature"
+      (extension import screen and website). See AUDIT.md §11–13 for a more accurate
+      alternative.
 - [ ] Deploy with `NEXT_PUBLIC_SITE_URL` set, plus `NEXT_PUBLIC_CHROME_WEB_STORE_URL` after the
       listing is approved.
 - [ ] Run `npm run verify -w @jobfill/website` (build + SEO check) and open every page on a phone.
 
 ## 5. Screenshots
 
-- [ ] 🛑 Regenerate once the UI theme pass is finished, so they show the final UI:
+- [x] ✅ Regenerated from the final UI (2026-09-28). Rerun after any UI change:
       `npm run build && node scripts/store/make-assets.mjs screenshots`.
 - [ ] Check all 5 in `docs/store/assets/`: 1280×800, fictional data only, no real company
       names or logos, and text readable at 50% zoom.
@@ -64,9 +67,14 @@ during the 2026-09-28 audit (see [AUDIT.md](AUDIT.md)). Recheck them after any c
 
 ## 6. Extension icon and promo images
 
-- [x] ✅ Manifest icons 16/32/48/128. The 128 px icon has 96 px artwork with 16 px padding.
-- [x] ✅ Store icon `docs/store/assets/store-icon-128.png`.
-- [x] ✅ Small promo tile 440×280 (required) and marquee 1400×560 (optional).
+- [x] ✅ New app icon: everything is derived from `docs/store/assets/app-icon-master.png`
+      (1024 px, transparent corners). Manifest icons are 16/32/48 full-bleed, and the 128 px one
+      has 96 px artwork with 16 px padding.
+- [x] ✅ Store icon `docs/store/assets/store-icon-128.png` (same padding).
+- [x] ✅ Small promo tile 440×280 (required) and marquee 1400×560 (optional), made with the new
+      icon.
+- [ ] Optional: delete the two original `ChatGPT Image …png` uploads from `docs/store/assets/`
+      (about 2 MB) once you're happy with the master.
 - [ ] Upload them in the dashboard's Graphic assets section.
 
 ## 7. Store description
@@ -107,8 +115,8 @@ Build the ZIP **after** all UI changes are finished:
 - [ ] AI (if you'll mention it in the listing): with a real key for **each** provider you list,
       generate one answer from the packed build. The consent screen names the destination.
 - [ ] Export the profile, Delete all local data, then Import it back: the data round-trips.
-- [ ] Rerun the axe check on the final build. Serious issues must be 0 (today there are 2
-      types; fixes handed over).
+- [x] ✅ axe check on the final ZIP: 0 serious / critical / moderate issues on all 9 pages.
+      Rerun if the UI changes.
 - [ ] Remove the unpacked copy, then upload the same ZIP to the dashboard.
 
 ## After approval
