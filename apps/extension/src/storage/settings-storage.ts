@@ -10,11 +10,18 @@ export interface Settings {
   /** Developer view: detected / mapped / unmapped fields with confidence and reasons. */
   debugMode: boolean;
   theme: ThemePreference;
+  /** After an Autofill click, also fill new steps of the application as they appear. */
+  fillNewSteps: boolean;
 }
 
-const DEFAULTS: Settings = { previewBeforeFill: false, debugMode: false, theme: 'system' };
+const DEFAULTS: Settings = {
+  previewBeforeFill: false,
+  debugMode: false,
+  theme: 'system',
+  fillNewSteps: true,
+};
 
-type Flag = 'previewBeforeFill' | 'debugMode';
+type Flag = 'previewBeforeFill' | 'debugMode' | 'fillNewSteps';
 
 export async function loadSettings(): Promise<Settings> {
   const stored = await getItem<Partial<Settings>>(STORAGE_KEYS.settings);
@@ -24,6 +31,7 @@ export async function loadSettings(): Promise<Settings> {
   return {
     previewBeforeFill: flag('previewBeforeFill'),
     debugMode: flag('debugMode'),
+    fillNewSteps: flag('fillNewSteps'),
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
   };
 }

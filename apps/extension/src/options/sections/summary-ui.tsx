@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useContext, useMemo, type ReactNode } from 'react';
 import { isHttpUrl } from '@jobfill/shared';
+import { ProfileContext } from '@/profile/profile-context';
 
 /** Read-only building blocks shared by every section summary. */
 
@@ -75,4 +76,64 @@ export function EntrySummary({
 
 export function Clamp({ text }: { text: string }) {
   return <p className="line-clamp-3 text-sm whitespace-pre-line text-muted">{text}</p>;
+}
+
+export type FieldNeed = 'optional' | 'manual' | 'core';
+
+export interface StatusRow {
+  label: string;
+  value: ReactNode;
+  /** Profile path, to show "From resume" when a resume import filled it. */
+  path?: string;
+  /**
+   * What an empty value means: optional (fine to skip), manual (resumes don't include
+   * it — add it yourself), core (expected on most applications).
+   */
+  need?: FieldNeed;
+}
+
+const EMPTY_TEXT: Record<FieldNeed, string> = {
+  optional: 'Not provided — optional',
+  manual: 'Not provided — add manually',
+  core: 'Not provided',
+};
+
+/**
+ * Every row with its status, so it's obvious what came from the resume and what still
+ * needs typing in — and that "not on the resume" isn't the same as "missing".
+ */
+export function StatusList({ rows }: { rows: StatusRow[] }) {
+  const fromResume = useResumeSources();
+  return (
+    <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+      {rows.map((row) => {
+        const empty = row.value === '' || row.value === null || row.value === undefined || row.value === false;
+        return (
+          <div key={row.label} className="min-w-0">
+            <dt className="text-xs font-medium tracking-wide text-muted uppercase">{row.label}</dt>
+            <dd className="mt-0.5 text-sm break-words">
+              {empty ? (
+                <span className="text-faint">○ {EMPTY_TEXT[row.need ?? 'optional']}</span>
+              ) : (
+                <>
+                  <span className="text-fg">{row.value}</span>
+                  {row.path && fromResume.has(row.path) && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-ok-soft px-1.5 py-px align-middle text-[10px] font-medium text-ok">
+                      ✓ From resume
+                    </span>
+                  )}
+                </>
+              )}
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+/** Profile paths last filled by a résumé import (empty outside a ProfileProvider). */
+export function useResumeSources(): ReadonlySet<string> {
+  const paths = useContext(ProfileContext)?.profile.sources.resume;
+  return useMemo(() => new Set(paths ?? []), [paths]);
 }

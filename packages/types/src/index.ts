@@ -12,6 +12,7 @@ export type {
   PersonalInfo,
   ProfessionalInfo,
   Profile,
+  ProfileSources,
   ProjectEntry,
   ResumeMeta,
   SectionId,

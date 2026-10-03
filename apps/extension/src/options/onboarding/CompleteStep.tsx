@@ -31,6 +31,16 @@ export function CompleteStep({ onViewProfile }: { onViewProfile: () => void }) {
             A more complete profile fills more fields. You can add details any time.
           </p>
         )}
+        {completeness.optional.some((o) => !o.provided) && (
+          <p className="mt-2 text-xs text-muted">
+            Optional, not provided:{' '}
+            {completeness.optional
+              .filter((o) => !o.provided)
+              .map((o) => o.label)
+              .join(', ')}
+            . Forms that ask for these are left for you to answer.
+          </p>
+        )}
       </div>
 
       <ol className="mt-8 space-y-3 text-left">

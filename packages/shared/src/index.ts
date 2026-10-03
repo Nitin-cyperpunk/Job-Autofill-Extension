@@ -16,6 +16,7 @@ export {
   createProjectEntry,
 } from './default-profile';
 export { createId } from './ids';
+export { pruneSources, withResumeSources } from './sources';
 export { isHttpUrl, normalizeUrl } from './url';
 export { normalizeProfile, normalizeResumeMeta, parseStoredResume } from './normalize';
 export { migrateProfileV1 } from './migrate';
@@ -33,6 +34,7 @@ export {
   type Completeness,
   type CompletenessArea,
   type CompletenessItem,
+  type OptionalDetail,
 } from './completeness';
 export {
   buildExportFile,

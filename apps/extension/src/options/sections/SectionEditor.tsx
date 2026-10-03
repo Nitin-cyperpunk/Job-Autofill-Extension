@@ -3,6 +3,7 @@ import type { Profile, SectionId, SectionValue } from '@jobfill/types';
 import { prepareSection, validateDraft, type FieldErrors } from '@jobfill/shared';
 import { Alert } from '@/components/ui/Alert';
 import { useProfile } from '@/profile/profile-context';
+import { fieldsForGroups } from './groups';
 import { SECTIONS } from './registry';
 
 export interface EditorActionsState {
@@ -17,6 +18,8 @@ interface SectionEditorProps<K extends SectionId> {
   /** Rendered in the footer. Must include a type="submit" button to save. */
   actions: (state: EditorActionsState) => ReactNode;
   onSaved?: (profile: Profile) => void;
+  /** Only edit these groups of the section (see groups.ts). */
+  groups?: readonly string[];
 }
 
 /**
@@ -27,6 +30,7 @@ export function SectionEditor<K extends SectionId>({
   id,
   actions,
   onSaved,
+  groups,
 }: SectionEditorProps<K>) {
   const { profile, saveSection } = useProfile();
   const def = SECTIONS[id];
@@ -41,6 +45,11 @@ export function SectionEditor<K extends SectionId>({
   // Validate live only after the first save attempt, so users aren't nagged while typing.
   const errors: FieldErrors = submitted ? validateDraft(id, draft) : {};
   const errorCount = Object.keys(errors).length;
+  // The section is validated as a whole; surface problems in groups not shown here.
+  const shownFields = fieldsForGroups(id, groups);
+  const hiddenErrors = shownFields
+    ? Object.entries(errors).filter(([path]) => !shownFields.has(path.split('.')[0]!))
+    : [];
 
   useEffect(() => {
     if (!dirty) return;
@@ -77,11 +86,20 @@ export function SectionEditor<K extends SectionId>({
   const Form = def.Form;
   return (
     <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-6">
-      <Form value={draft} onChange={setDraft} errors={errors} />
-      {errorCount > 0 && (
+      <Form value={draft} onChange={setDraft} errors={errors} groups={groups} />
+      {hiddenErrors.length > 0 && (
+        <Alert tone="error">
+          Another part of this section needs fixing first:{' '}
+          {hiddenErrors.map(([, message]) => message).join(' ')}
+        </Alert>
+      )}
+      {errorCount > hiddenErrors.length && (
         <Alert tone="error">
           Please fix{' '}
-          {errorCount === 1 ? 'the highlighted field' : `${errorCount} highlighted fields`} before
+          {errorCount - hiddenErrors.length === 1
+            ? 'the highlighted field'
+            : `${errorCount - hiddenErrors.length} highlighted fields`}{' '}
+          before
           saving.
         </Alert>
       )}

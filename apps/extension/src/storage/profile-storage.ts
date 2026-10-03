@@ -4,6 +4,7 @@ import {
   createEmptyProfile,
   migrateProfileV1,
   normalizeProfile,
+  pruneSources,
   toResumeMeta,
 } from '@jobfill/shared';
 import { clearAll, getItems, onItemChanged, removeItem, setItems } from './local-storage';
@@ -39,7 +40,7 @@ export async function updateProfile(mutate: (current: Profile) => Profile): Prom
 }
 
 export function saveSection<K extends SectionId>(id: K, value: SectionValue<K>): Promise<Profile> {
-  return updateProfile((p) => ({ ...p, [id]: value }));
+  return updateProfile((p) => ({ ...p, [id]: value, sources: pruneSources(p, id, value) }));
 }
 
 export function completeOnboarding(): Promise<Profile> {

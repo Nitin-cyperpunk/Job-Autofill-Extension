@@ -225,6 +225,7 @@ const profileSchema = z
     skills: skillsSchema,
     links: linksSchema,
     additional: additionalSchema,
+    sources: z.object({ resume: stringList }).catch(() => ({ resume: [] })),
     resume: resumeMetaSchema.nullable().catch(null),
     createdAt: nullableIso,
     updatedAt: nullableIso,

@@ -285,8 +285,39 @@ describe('computeCompleteness', () => {
     const p = createEmptyProfile();
     p.personal.email = 'a@b.co';
     const result = computeCompleteness(p);
-    expect(result.percent).toBe(5); // 25 * 1/5
+    expect(result.percent).toBe(10); // 30 * 1/3
     expect(result.items.find((i) => i.id === 'personal')?.missing).toContain('Phone');
+  });
+
+  it('treats address, DOB, gender and preferences as optional — never blocking', () => {
+    const p = filledProfile();
+    p.personal = {
+      ...p.personal,
+      address: '',
+      addressLine2: '',
+      city: '',
+      postalCode: '',
+      dateOfBirth: '',
+      gender: '',
+      permanentSameAsCurrent: '',
+    };
+    p.professional = {
+      ...p.professional,
+      noticePeriod: '',
+      earliestStartDate: '',
+      workAuthorization: '',
+      authorizedCountries: [],
+      requiresSponsorship: '',
+      expectedSalary: '',
+      currentSalary: '',
+    };
+    const result = computeCompleteness(p);
+    expect(result.percent).toBe(100);
+    expect(result.coreComplete).toBe(true);
+    const missing = result.optional.filter((o) => !o.provided).map((o) => o.label);
+    expect(missing).toEqual(
+      expect.arrayContaining(['Current address', 'Date of birth', 'Gender', 'Availability', 'Work authorization']),
+    );
   });
 });
 

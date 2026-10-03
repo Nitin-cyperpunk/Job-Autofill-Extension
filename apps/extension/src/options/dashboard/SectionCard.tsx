@@ -6,6 +6,8 @@ import { CheckIcon, PencilIcon } from '@/components/ui/icons';
 import { SectionEditor } from '../sections/SectionEditor';
 import { SectionSummary } from '../sections/SectionSummary';
 import { SECTIONS } from '../sections/registry';
+import { fieldsForGroups } from '../sections/groups';
+import { useResumeSources } from '../sections/summary-ui';
 
 /** A profile section on the dashboard: read-only summary, or inline editor with Save / Cancel. */
 export function SectionCard({
@@ -15,6 +17,10 @@ export function SectionCard({
   title,
   lead,
   editLabel = 'Edit',
+  groups,
+  description,
+  icon,
+  anchor,
 }: {
   id: SectionId;
   editing: boolean;
@@ -24,8 +30,20 @@ export function SectionCard({
   /** Content shown above the summary / editor, e.g. the resume file panel. */
   lead?: ReactNode;
   editLabel?: string;
+  /** Show and edit only these groups of the section (see groups.ts). */
+  groups?: readonly string[];
+  description?: string;
+  icon?: ReactNode;
+  /** Element id for jump links; defaults to section-<id>. */
+  anchor?: string;
 }) {
   const def = SECTIONS[id];
+  const sources = useResumeSources();
+  const shown = fieldsForGroups(id, groups);
+  const fromResume = [...sources].some((path) => {
+    const [section, field] = path.split('.');
+    return section === id && (!shown || (field !== undefined && shown.has(field)));
+  });
   const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
@@ -35,14 +53,19 @@ export function SectionCard({
   }, [justSaved]);
 
   return (
-    <div id={`section-${id}`} className="scroll-mt-6">
+    <div id={anchor ?? `section-${id}`} className="scroll-mt-6">
       <Card
         title={title ?? def.title}
-        description={editing ? def.description : undefined}
-        icon={def.icon}
+        description={editing ? (description ?? def.description) : undefined}
+        icon={icon ?? def.icon}
         actions={
           editing ? null : (
             <>
+              {fromResume && !justSaved && (
+                <span className="hidden rounded-full bg-ok-soft px-2 py-0.5 text-xs font-medium text-ok sm:inline">
+                  ✓ Imported from resume
+                </span>
+              )}
               {justSaved && (
                 <span
                   role="status"
@@ -67,6 +90,7 @@ export function SectionCard({
         {editing ? (
           <SectionEditor
             id={id}
+            groups={groups}
             onSaved={() => {
               onEditingChange(false);
               setJustSaved(true);
@@ -85,7 +109,7 @@ export function SectionCard({
           />
         ) : (
           <div className="animate-fade">
-            <SectionSummary id={id} />
+            <SectionSummary id={id} groups={groups} />
           </div>
         )}
       </Card>

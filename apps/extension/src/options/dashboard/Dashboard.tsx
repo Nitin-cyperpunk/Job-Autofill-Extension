@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { SectionId } from '@jobfill/types';
 import { formatBytes, fullName, type CompletenessArea } from '@jobfill/shared';
 import { CompletenessMeter } from '@/components/CompletenessMeter';
@@ -7,22 +7,100 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { PrivacyNotice } from '@/components/PrivacyNotice';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { FileTextIcon, LockIcon, ShieldCheckIcon } from '@/components/ui/icons';
+import {
+  BriefcaseIcon,
+  ClipboardCheckIcon,
+  FileTextIcon,
+  GlobeIcon,
+  LockIcon,
+  ShieldCheckIcon,
+  UserIcon,
+} from '@/components/ui/icons';
 import { useProfile } from '@/profile/profile-context';
 import { getBytesInUse } from '@/storage';
 import { DeleteAllDataButton, ResetProfileButton } from '../data/DangerZone';
 import { ExportProfileButton } from '../data/ExportProfileButton';
 import { ImportProfileButton } from '../data/ImportProfileButton';
 import { ResumePanel } from '../sections/ResumePanel';
-import { SECTION_ORDER } from '../sections/registry';
 import type { Route } from '../router';
 import { AICard } from './AICard';
 import { AdvancedCard } from './AdvancedCard';
 import { SectionCard } from './SectionCard';
 
+interface CardSpec {
+  key: string;
+  id: SectionId;
+  title?: string;
+  description?: string;
+  icon?: ReactNode;
+  groups?: readonly string[];
+}
+
+/**
+ * The profile as focused cards instead of one giant form. Personal and Professional
+ * are each stored as one section but shown as several cards (see sections/groups.ts).
+ */
+const CARDS: CardSpec[] = [
+  {
+    key: 'personal',
+    id: 'personal',
+    title: 'Personal Information',
+    description: 'Your name, plus optional details (date of birth, gender…) — never guessed.',
+    icon: <UserIcon />,
+    groups: ['identity', 'details'],
+  },
+  {
+    key: 'contact',
+    id: 'personal',
+    title: 'Contact & Address',
+    description: 'Email, phone, and your current and permanent address. Résumés rarely include a full address.',
+    icon: <GlobeIcon />,
+    groups: ['contact', 'current', 'permanent'],
+  },
+  { key: 'education', id: 'education' },
+  { key: 'experience', id: 'experience' },
+  { key: 'projects', id: 'projects' },
+  { key: 'certifications', id: 'certifications' },
+  { key: 'skills', id: 'skills' },
+  {
+    key: 'professional',
+    id: 'professional',
+    title: 'Job Preferences',
+    description: 'Current role, the jobs you want and salary. All optional.',
+    icon: <BriefcaseIcon />,
+    groups: ['role', 'preferences', 'compensation'],
+  },
+  {
+    key: 'availability',
+    id: 'professional',
+    title: 'Availability',
+    description: 'Notice period and earliest start date. Optional.',
+    icon: <ClipboardCheckIcon />,
+    groups: ['availability'],
+  },
+  {
+    key: 'authorization',
+    id: 'professional',
+    title: 'Work Authorization',
+    description: 'Only used exactly as you set it — never guessed. Optional.',
+    icon: <ShieldCheckIcon />,
+    groups: ['authorization'],
+  },
+];
+
+/** Cards from here on are shown after Resume & Professional Links. */
+const AFTER_RESUME = CARDS.findIndex((c) => c.key === 'professional');
+
+/** Which card holds a completeness area (and optionally one of its groups). */
+function cardFor(area: CompletenessArea, group?: string): string {
+  if (area === 'resume') return 'links';
+  if (!group) return area;
+  return CARDS.find((c) => c.id === area && c.groups?.includes(group))?.key ?? area;
+}
+
 export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
   const { profile, completeness } = useProfile();
-  const [editing, setEditing] = useState<Set<SectionId>>(new Set());
+  const [editing, setEditing] = useState<Set<string>>(new Set());
   const [bytesInUse, setBytesInUse] = useState<number | null>(null);
   const name = fullName(profile.personal);
 
@@ -30,7 +108,7 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
     void getBytesInUse().then(setBytesInUse);
   }, [profile]);
 
-  function setSectionEditing(id: SectionId, on: boolean) {
+  function setSectionEditing(id: string, on: boolean) {
     setEditing((prev) => {
       const next = new Set(prev);
       if (on) next.add(id);
@@ -39,9 +117,12 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
     });
   }
 
-  function jumpTo(area: CompletenessArea) {
-    if (area !== 'resume') setSectionEditing(area, true);
-    document.getElementById(`section-${area}`)?.scrollIntoView({ behavior: 'smooth' });
+  function jumpTo(area: CompletenessArea, group?: string) {
+    const key = cardFor(area, group);
+    if (area !== 'resume') setSectionEditing(key, true);
+    document
+      .getElementById(area === 'resume' ? 'section-resume' : `section-${key}`)
+      ?.scrollIntoView({ behavior: 'smooth' });
   }
 
   return (
@@ -72,12 +153,17 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_20rem]">
           <div className="min-w-0 space-y-6">
-            {SECTION_ORDER.filter((id) => id !== 'links').map((id) => (
+            {CARDS.slice(0, AFTER_RESUME).map((card) => (
               <SectionCard
-                key={id}
-                id={id}
-                editing={editing.has(id)}
-                onEditingChange={(on) => setSectionEditing(id, on)}
+                key={card.key}
+                id={card.id}
+                anchor={`section-${card.key}`}
+                title={card.title}
+                description={card.description}
+                icon={card.icon}
+                groups={card.groups}
+                editing={editing.has(card.key)}
+                onEditingChange={(on) => setSectionEditing(card.key, on)}
               />
             ))}
             {/* Resume file and professional links belong together: both are "send them my …". */}
@@ -99,6 +185,24 @@ export function Dashboard({ navigate }: { navigate: (route: Route) => void }) {
                 }
               />
             </div>
+            {CARDS.slice(AFTER_RESUME).map((card) => (
+              <SectionCard
+                key={card.key}
+                id={card.id}
+                anchor={`section-${card.key}`}
+                title={card.title}
+                description={card.description}
+                icon={card.icon}
+                groups={card.groups}
+                editing={editing.has(card.key)}
+                onEditingChange={(on) => setSectionEditing(card.key, on)}
+              />
+            ))}
+            <SectionCard
+              id="additional"
+              editing={editing.has('additional')}
+              onEditingChange={(on) => setSectionEditing('additional', on)}
+            />
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-6">

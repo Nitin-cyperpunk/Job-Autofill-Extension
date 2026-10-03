@@ -6,6 +6,13 @@ export interface SectionFormProps<K extends SectionId> {
   value: SectionValue<K>;
   onChange: (value: SectionValue<K>) => void;
   errors: FieldErrors;
+  /** Only render these groups (see groups.ts). All groups when omitted. */
+  groups?: readonly string[];
+}
+
+export interface SectionSummaryProps<K extends SectionId> {
+  value: SectionValue<K>;
+  groups?: readonly string[];
 }
 
 export interface SectionDefinition<K extends SectionId> {
@@ -16,5 +23,5 @@ export interface SectionDefinition<K extends SectionId> {
   /** Optional sections can be skipped during onboarding. */
   optional: boolean;
   Form: ComponentType<SectionFormProps<K>>;
-  Summary: ComponentType<{ value: SectionValue<K> }>;
+  Summary: ComponentType<SectionSummaryProps<K>>;
 }

@@ -1,16 +1,18 @@
 import type { Address, PersonalInfo } from '@jobfill/types';
 import { fullName } from '@jobfill/shared';
-import { TextField } from '@/components/ui/Field';
+import { SelectField, TextField } from '@/components/ui/Field';
 import { answerLabel } from './answer';
 import { AnswerField, FormGroup, Suggestions } from './form-ui';
-import type { SectionFormProps } from './types';
-import { DetailList } from './summary-ui';
+import { groupVisible } from './groups';
+import type { SectionFormProps, SectionSummaryProps } from './types';
+import { StatusList, type StatusRow } from './summary-ui';
 
-const GENDER_SUGGESTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+/** The options the user picks from — JobFill never infers a gender. */
+export const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] as const;
 const PRONOUN_SUGGESTIONS = ['He/Him', 'She/Her', 'They/Them', 'Prefer not to say'];
 const MARITAL_SUGGESTIONS = ['Single', 'Married', 'Prefer not to say'];
 
-export function PersonalForm({ value, onChange, errors }: SectionFormProps<'personal'>) {
+export function PersonalForm({ value, onChange, errors, groups }: SectionFormProps<'personal'>) {
   const set =
     <F extends keyof PersonalInfo>(field: F) =>
     (v: PersonalInfo[F]) =>
@@ -18,13 +20,19 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
   const setPermanent = (field: keyof Address) => (v: string) =>
     onChange({ ...value, permanentAddress: { ...value.permanentAddress, [field]: v } });
   const permErr = (field: keyof Address) => errors[`permanentAddress.${field}`];
+  const show = (group: string) => groupVisible(groups, group);
+  // Keep a value saved before the fixed list existed (e.g. typed free text) selectable.
+  const genderOptions = [
+    ...GENDER_OPTIONS,
+    ...(value.gender && !(GENDER_OPTIONS as readonly string[]).includes(value.gender)
+      ? [value.gender]
+      : []),
+  ].map((g) => ({ value: g, label: g }));
 
   return (
     <div className="space-y-6">
-      <FormGroup
-        title="Name & contact"
-        description="How employers reach you. Name and email are required."
-      >
+      {show('identity') && (
+      <FormGroup title="Name" description="First and last name are required.">
         <TextField
           label="First name"
           required
@@ -55,6 +63,11 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
           onChange={set('preferredName')}
           error={errors.preferredName}
         />
+      </FormGroup>
+      )}
+
+      {show('contact') && (
+      <FormGroup title="Contact" description="How employers reach you. Email is required.">
         <TextField
           label="Email"
           type="email"
@@ -83,8 +96,13 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
           error={errors.alternatePhone}
         />
       </FormGroup>
+      )}
 
-      <FormGroup title="Current address">
+      {show('current') && (
+      <FormGroup
+        title="Current address"
+        description="Résumés rarely include a full address, so add it here. Every part is optional."
+      >
         <TextField
           label="Address line 1"
           autoComplete="address-line1"
@@ -145,7 +163,9 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
           error={errors.country}
         />
       </FormGroup>
+      )}
 
+      {show('permanent') && (
       <FormGroup
         title="Permanent address"
         description="Some applications ask for a permanent (home-town) address as well."
@@ -211,7 +231,9 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
           </>
         )}
       </FormGroup>
+      )}
 
+      {show('details') && (
       <FormGroup
         title="Optional personal details"
         description="Only filled when a form asks, exactly as you enter them here. JobFill never guesses these — leave any blank to answer on each form yourself."
@@ -224,15 +246,14 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
           onChange={set('dateOfBirth')}
           error={errors.dateOfBirth}
         />
-        <TextField
+        <SelectField
           label="Gender"
-          list="jobfill-gender"
-          placeholder="e.g. Male, Female, Non-binary"
+          placeholder="Not provided"
           value={value.gender}
           onChange={set('gender')}
+          options={genderOptions}
           error={errors.gender}
         />
-        <Suggestions id="jobfill-gender" values={GENDER_SUGGESTIONS} />
         <TextField
           label="Pronouns"
           list="jobfill-pronouns"
@@ -265,6 +286,7 @@ export function PersonalForm({ value, onChange, errors }: SectionFormProps<'pers
         />
         <Suggestions id="jobfill-marital" values={MARITAL_SUGGESTIONS} />
       </FormGroup>
+      )}
     </div>
   );
 }
@@ -273,7 +295,7 @@ function addressLine(parts: string[]): string {
   return parts.filter(Boolean).join(', ');
 }
 
-export function PersonalSummary({ value }: { value: PersonalInfo }) {
+export function PersonalSummary({ value, groups }: SectionSummaryProps<'personal'>) {
   const current = addressLine([
     value.address,
     value.addressLine2,
@@ -298,23 +320,49 @@ export function PersonalSummary({ value }: { value: PersonalInfo }) {
           p.postalCode,
           p.country,
         ]);
+  // A résumé gives at most city / state / country — never the street, PIN, gender or DOB.
+  const addressFromResume = !value.address && !value.postalCode && current !== '';
+  const rows: Record<string, StatusRow[]> = {
+    identity: [
+      { label: 'Name', value: fullName(value), path: 'personal.firstName', need: 'core' },
+      { label: 'Preferred name', value: value.preferredName },
+    ],
+    contact: [
+      { label: 'Email', value: value.email, path: 'personal.email', need: 'core' },
+      { label: 'Phone', value: value.phone, path: 'personal.phone', need: 'core' },
+      { label: 'Alternate phone', value: value.alternatePhone },
+    ],
+    current: [
+      {
+        label: 'Current address',
+        value: current,
+        path: addressFromResume ? 'personal.city' : undefined,
+        need: 'manual',
+      },
+      ...(addressFromResume
+        ? [{ label: 'Street & PIN / postal code', value: '', need: 'manual' as const }]
+        : []),
+    ],
+    permanent: [
+      {
+        label: 'Permanent address',
+        value: permanent || answerLabel(value.permanentSameAsCurrent),
+      },
+    ],
+    details: [
+      { label: 'Date of birth', value: value.dateOfBirth },
+      { label: 'Gender', value: value.gender },
+      { label: 'Pronouns', value: value.pronouns },
+      { label: 'Nationality', value: value.nationality },
+      { label: 'Citizenship', value: value.citizenship },
+      { label: 'Marital status', value: value.maritalStatus },
+    ],
+  };
   return (
-    <DetailList
-      rows={[
-        ['Name', fullName(value)],
-        ['Preferred name', value.preferredName],
-        ['Email', value.email],
-        ['Phone', value.phone],
-        ['Alternate phone', value.alternatePhone],
-        ['Current address', current],
-        ['Permanent address', permanent || answerLabel(value.permanentSameAsCurrent)],
-        ['Date of birth', value.dateOfBirth],
-        ['Gender', value.gender],
-        ['Pronouns', value.pronouns],
-        ['Nationality', value.nationality],
-        ['Citizenship', value.citizenship],
-        ['Marital status', value.maritalStatus],
-      ]}
+    <StatusList
+      rows={Object.entries(rows).flatMap(([group, list]) =>
+        groupVisible(groups, group) ? list : [],
+      )}
     />
   );
 }

@@ -72,6 +72,7 @@ export function createEmptyProfile(): Profile {
       other: [],
     },
     additional: createEmptyAdditional(),
+    sources: { resume: [] },
     resume: null,
     createdAt: null,
     updatedAt: null,

@@ -26,6 +26,12 @@ export interface FillOptions {
   followUpPasses?: number;
   /** How long to let the page react before a follow-up pass. */
   settleMs?: number;
+  /**
+   * Fields already handled (e.g. by an earlier step's run): left out of this run.
+   * Unlike `fieldIds`, this keeps the normal safety rules — it never approves replacing
+   * a value or anything that needs review. Used when a new form step appears.
+   */
+  skipIds?: ReadonlySet<string>;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -39,7 +45,7 @@ export async function fillPage(
   scan: () => DetectedField[],
   options: FillOptions = {},
 ): Promise<FillSummary> {
-  const { fieldIds, adapter = null, followUpPasses = 2, settleMs = 450 } = options;
+  const { fieldIds, adapter = null, followUpPasses = 2, settleMs = 450, skipIds } = options;
   const approved = fieldIds ? new Set(fieldIds) : null;
   const summary: FillSummary = {
     filledCount: 0,
@@ -49,7 +55,7 @@ export async function fillPage(
     revealed: 0,
     questions: [],
   };
-  const seen = new Set<string>();
+  const seen = new Set<string>(skipIds);
 
   // One profile read per run: every pass plans against the same data.
   const profile = await loadProfile();

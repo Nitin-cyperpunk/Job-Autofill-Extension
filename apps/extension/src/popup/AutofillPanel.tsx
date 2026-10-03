@@ -7,6 +7,7 @@ import { CheckboxField } from '@/components/ui/Field';
 import { loadSettings, saveSettings } from '@/storage';
 import { cx } from '@/utils/cx';
 import { fillAllFrames, planAllFrames } from '@/utils/frames';
+import { sendToBackground, targetTabId } from '@/utils/messaging';
 import { AnswerAssistant } from './AnswerAssistant';
 import { FillSummaryView } from './FillSummaryView';
 import { PreviewList } from './PreviewList';
@@ -34,11 +35,22 @@ const UNREACHABLE =
  */
 export function AutofillPanel({ readiness }: { readiness?: Readiness }) {
   const [preview, setPreview] = useState<boolean | null>(null);
+  const [fillNewSteps, setFillNewSteps] = useState(true);
   const [state, setState] = useState<State>({ step: 'idle' });
+  const session = useFillSession(state.step);
 
   useEffect(() => {
-    void loadSettings().then((s) => setPreview(s.previewBeforeFill));
+    void loadSettings().then((s) => {
+      setPreview(s.previewBeforeFill);
+      setFillNewSteps(s.fillNewSteps);
+    });
   }, []);
+
+  async function toggleFillNewSteps(next: boolean) {
+    setFillNewSteps(next);
+    await saveSettings({ fillNewSteps: next });
+    if (!next) await session.stop();
+  }
 
   async function togglePreview(next: boolean) {
     setPreview(next);
@@ -48,7 +60,9 @@ export function AutofillPanel({ readiness }: { readiness?: Readiness }) {
   async function execute(fieldIds?: string[]) {
     setState({ step: 'working', phase: 'filling' });
     try {
-      setState({ step: 'done', summary: await fillAllFrames(fieldIds) });
+      // Preview mode approves field by field, so it never starts an automatic session.
+      const continueSession = !fieldIds && !preview && fillNewSteps;
+      setState({ step: 'done', summary: await fillAllFrames(fieldIds, { continueSession }) });
     } catch {
       setState({ step: 'error', message: UNREACHABLE });
     }
@@ -111,13 +125,45 @@ export function AutofillPanel({ readiness }: { readiness?: Readiness }) {
       <Button onClick={start} size="lg" className="w-full" disabled={preview === null}>
         Autofill Application
       </Button>
+      {session.active && (
+        <div
+          role="status"
+          className="flex animate-fade items-start gap-2 rounded-lg border border-accent-line bg-accent-soft px-3 py-2 text-xs text-body"
+        >
+          <span className="flex-1">
+            Filling new steps of this application as they appear
+            {session.filled > 0 ? ` · ${session.filled} filled so far` : ''}
+            {session.review > 0 ? ` · ${session.review} to review` : ''}. You still click Next and
+            Submit.
+          </span>
+          <button
+            type="button"
+            onClick={() => void session.stop()}
+            className="shrink-0 font-medium text-accent hover:underline"
+          >
+            Stop
+          </button>
+        </div>
+      )}
       {preview !== null && (
-        <CheckboxField
-          label="Preview fields before filling"
-          description="Safe mode: see every value and choose what gets filled."
-          checked={preview}
-          onChange={(v) => void togglePreview(v)}
-        />
+        <>
+          <CheckboxField
+            label="Preview fields before filling"
+            description="Safe mode: see every value and choose what gets filled."
+            checked={preview}
+            onChange={(v) => void togglePreview(v)}
+          />
+          <CheckboxField
+            label="Keep filling new steps"
+            description={
+              preview
+                ? 'Off while previewing — each step is approved by you.'
+                : 'Multi-step forms: fill each new step (address, gender, DOB…) as it appears. Never clicks Next or Submit.'
+            }
+            checked={fillNewSteps && !preview}
+            onChange={(v) => void toggleFillNewSteps(v)}
+          />
+        </>
       )}
       {state.step === 'error' && (
         <div className="animate-enter">
@@ -199,4 +245,38 @@ function StepIcon({ status }: { status: 'done' | 'active' | 'pending' }) {
       />
     );
   return <span aria-hidden="true" className="h-4 w-4 shrink-0 rounded-full border-2 border-line" />;
+}
+
+/** The tab's "keep filling new steps" session, refreshed after each fill. */
+function useFillSession(step: State['step']) {
+  const [status, setStatus] = useState({ active: false, filled: 0, review: 0 });
+  const [tabId, setTabId] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const id = await targetTabId();
+        const res = await sendToBackground({ type: 'AUTOFILL_SESSION_STATUS', tabId: id });
+        if (!cancelled) {
+          setTabId(id);
+          setStatus(res);
+        }
+      } catch {
+        // No tab / no background: nothing to show.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [step]);
+
+  return {
+    ...status,
+    async stop() {
+      if (tabId === null) return;
+      await sendToBackground({ type: 'AUTOFILL_SESSION_STOP', tabId }).catch(() => null);
+      setStatus({ active: false, filled: 0, review: 0 });
+    },
+  };
 }

@@ -17,8 +17,22 @@ export type ExtensionMessage =
   | { type: 'FRAME_HAS_FIELDS'; count: number }
   /** Work out what would be filled, without touching the page (safe mode preview). */
   | { type: 'AUTOFILL_PLAN' }
-  /** Fill the page. `fieldIds` limits it to fields the user approved in the preview. */
-  | { type: 'AUTOFILL_EXECUTE'; fieldIds?: string[] }
+  /**
+   * Fill the page. `fieldIds` limits it to fields the user approved in the preview.
+   * `continueSession`: keep filling new steps as they appear (multi-step applications).
+   */
+  | { type: 'AUTOFILL_EXECUTE'; fieldIds?: string[]; continueSession?: boolean }
+  /**
+   * "Keep filling new steps" session. Only counts and on/off state travel — never
+   * profile values. Content → background: started (after the user's Autofill click),
+   * query (on page load: should this page continue?), filled (a new step was filled).
+   */
+  | { type: 'AUTOFILL_SESSION_START' }
+  | { type: 'AUTOFILL_SESSION_QUERY' }
+  | { type: 'AUTOFILL_SESSION_FILLED'; filled: number; review: number }
+  /** Popup → background: session state for a tab, or stop it. Background → frames: stop. */
+  | { type: 'AUTOFILL_SESSION_STATUS'; tabId: number }
+  | { type: 'AUTOFILL_SESSION_STOP'; tabId?: number }
   /** Popup → content (frame): attach the saved résumé to one file field (user clicked "Attach Resume"). */
   | { type: 'ATTACH_RESUME'; fieldId: string }
   /** Dev/debug builds only: show or hide the in-page field overlay. */
@@ -49,6 +63,11 @@ export interface MessageResponseMap {
     | { ok: false; message: string };
   ATTACH_RESUME: { ok: boolean; message?: string };
   AUTOFILL_EXECUTE: { ok: true; summary: FillSummary } | { ok: false; message: string };
+  AUTOFILL_SESSION_START: { ok: boolean };
+  AUTOFILL_SESSION_QUERY: { active: boolean };
+  AUTOFILL_SESSION_FILLED: { ok: boolean };
+  AUTOFILL_SESSION_STATUS: { active: boolean; filled: number; review: number };
+  AUTOFILL_SESSION_STOP: { ok: boolean };
   DEBUG_OVERLAY: { ok: boolean };
   ANNOUNCE_FRAMES: { ok: true };
   FRAME_HAS_FIELDS: { ok: true };

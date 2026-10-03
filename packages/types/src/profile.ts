@@ -214,6 +214,16 @@ export interface AdditionalInfo {
   coverLetter: string;
 }
 
+/**
+ * Where profile values came from. A resume only covers part of an application —
+ * the UI uses this to show "Imported from resume" next to those values and to make it
+ * clear what the user still adds by hand (address, gender, date of birth…).
+ */
+export interface ProfileSources {
+  /** Paths filled from a resume import: "personal.email", "education", "skills.technical"… */
+  resume: string[];
+}
+
 export interface Profile {
   schemaVersion: typeof PROFILE_SCHEMA_VERSION;
   personal: PersonalInfo;
@@ -225,6 +235,7 @@ export interface Profile {
   skills: Skills;
   links: LinksInfo;
   additional: AdditionalInfo;
+  sources: ProfileSources;
   resume: ResumeMeta | null;
   /** ISO timestamps. Null until the first save / until onboarding is finished. */
   createdAt: string | null;

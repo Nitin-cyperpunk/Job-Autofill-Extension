@@ -9,7 +9,8 @@ import { logger } from '@/utils/logger';
 
 /**
  * Detection starts once the page is idle and follows the page as it changes.
- * It only reads the DOM: nothing is filled until the user clicks Autofill.
+ * It only reads the DOM: nothing is filled until the user clicks Autofill — after which
+ * new steps of that application are filled as they render (see continueFilling).
  *
  * Runs in every frame (application forms are often embedded in iframes). Sub-frames
  * without form controls stay idle — no observer on ads and widgets.
@@ -24,6 +25,56 @@ function startWatching() {
   if (started) return;
   started = true;
   watcher.start();
+  // Part of an application the user is already filling (a later step of the same site,
+  // in the same tab)? Then keep filling as new steps render.
+  void chrome.runtime
+    .sendMessage({ type: 'AUTOFILL_SESSION_QUERY' } satisfies ExtensionMessage)
+    .then((res: MessageResponse<'AUTOFILL_SESSION_QUERY'> | undefined) => {
+      if (res?.active) void continueFilling([]);
+    })
+    .catch(() => null);
+}
+
+// ---- "Keep filling new steps" (multi-step applications) -----------------------------------
+let session: import('@/autofill/continue-session').ContinueSession | null = null;
+
+/**
+ * Fill each new step of the application as it renders. Started only by the user's own
+ * Autofill click (or a page of the same application in the same tab). Never navigates:
+ * the user clicks Next / Continue / Submit.
+ */
+async function continueFilling(alreadyHandled: Iterable<string>): Promise<void> {
+  if (session) {
+    session.start(alreadyHandled);
+    return;
+  }
+  const [{ ContinueSession }, { fillPage }] = await Promise.all([
+    import('@/autofill/continue-session'),
+    import('@/autofill'),
+  ]);
+  session ??= new ContinueSession({
+    subscribe: (listener) => watcher.subscribe(listener),
+    getFields: () => watcher.getFields(),
+    run: (skip) =>
+      fillPage(() => watcher.scanNow(), {
+        adapter: adapterFor(location.href, document),
+        skipIds: skip,
+      }),
+    onRun: (summary) => {
+      const fresh = new Set((summary.outcomes ?? []).map((o) => o.fieldId));
+      lastFill = [...lastFill.filter((o) => !fresh.has(o.fieldId)), ...(summary.outcomes ?? [])];
+      if (summary.filledCount > 0 || summary.review.length > 0) {
+        void chrome.runtime
+          .sendMessage({
+            type: 'AUTOFILL_SESSION_FILLED',
+            filled: summary.filledCount,
+            review: summary.review.length,
+          } satisfies ExtensionMessage)
+          .catch(() => null);
+      }
+    },
+  });
+  session.start(alreadyHandled);
 }
 
 if (isTopFrame || document.querySelector(CONTROL_SELECTOR)) {
@@ -127,6 +178,14 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
         .then((summary) => {
           lastFill = summary.outcomes ?? [];
           sendResponse({ ok: true, summary } satisfies MessageResponse<'AUTOFILL_EXECUTE'>);
+          // Not in preview mode: the user chose to fill this application — keep going as
+          // new steps appear. Everything on the page now has been handled by this run.
+          if (message.continueSession && !message.fieldIds) {
+            void continueFilling(watcher.getFields().map((f) => f.descriptor.id));
+            void chrome.runtime
+              .sendMessage({ type: 'AUTOFILL_SESSION_START' } satisfies ExtensionMessage)
+              .catch(() => null);
+          }
         })
         .catch((err: unknown) => {
           logger.error('autofill failed', err);
@@ -136,6 +195,11 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
           } satisfies MessageResponse<'AUTOFILL_EXECUTE'>);
         });
       return true;
+    }
+    case 'AUTOFILL_SESSION_STOP': {
+      session?.stop();
+      sendResponse({ ok: true } satisfies MessageResponse<'AUTOFILL_SESSION_STOP'>);
+      return false;
     }
     case 'ATTACH_RESUME': {
       const field = watcher.scanNow().find((f) => f.descriptor.id === message.fieldId);

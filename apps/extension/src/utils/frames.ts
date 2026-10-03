@@ -85,7 +85,10 @@ export async function planAllFrames(): Promise<PlanItemWithOutcome[]> {
 }
 
 /** Fill across all frames (or only the approved, namespaced field ids) and merge the summaries. */
-export async function fillAllFrames(approvedIds?: string[]): Promise<FillSummary> {
+export async function fillAllFrames(
+  approvedIds?: string[],
+  options: { continueSession?: boolean } = {},
+): Promise<FillSummary> {
   const tabId = await targetTabId();
   const frames = await framesWithFields(tabId);
   const byFrame = new Map<number, string[]>();
@@ -108,6 +111,7 @@ export async function fillAllFrames(approvedIds?: string[]): Promise<FillSummary
     const res = await sendToFrame(tabId, frameId, {
       type: 'AUTOFILL_EXECUTE',
       fieldIds: approvedIds ? byFrame.get(frameId) : undefined,
+      ...(options.continueSession && !approvedIds ? { continueSession: true } : {}),
     }).catch((err: unknown) => {
       if (frameId === 0) throw err;
       return null;

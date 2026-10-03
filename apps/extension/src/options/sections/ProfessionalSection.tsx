@@ -3,8 +3,9 @@ import { CheckboxField, SelectField, TextAreaField, TextField } from '@/componen
 import { TagInput } from '@/components/ui/TagInput';
 import { answerLabel } from './answer';
 import { AnswerField, FormGroup, Suggestions } from './form-ui';
-import type { SectionFormProps } from './types';
-import { Clamp, DetailList, TagList } from './summary-ui';
+import { groupVisible } from './groups';
+import type { SectionFormProps, SectionSummaryProps } from './types';
+import { Clamp, StatusList, TagList, type StatusRow } from './summary-ui';
 
 const WORK_AUTH_SUGGESTIONS = [
   'Citizen',
@@ -35,7 +36,13 @@ const JOB_TYPE_LABELS: Record<EmploymentType, string> = {
   apprenticeship: 'Apprenticeship',
 };
 
-export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'professional'>) {
+export function ProfessionalForm({
+  value,
+  onChange,
+  errors,
+  groups,
+}: SectionFormProps<'professional'>) {
+  const show = (group: string) => groupVisible(groups, group);
   const set =
     <F extends keyof ProfessionalInfo>(field: F) =>
     (v: ProfessionalInfo[F]) =>
@@ -50,6 +57,7 @@ export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'
 
   return (
     <div className="space-y-6">
+      {show('role') && (
       <FormGroup title="Current role">
         <TextField
           label="Current job title"
@@ -83,10 +91,12 @@ export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'
           error={errors.summary}
         />
       </FormGroup>
+      )}
 
+      {show('compensation') && (
       <FormGroup
-        title="Compensation & availability"
-        description="Write salaries the way you’d put them on a form, e.g. “12 LPA” or “USD 120,000 / year”."
+        title="Compensation"
+        description="Optional. Write salaries the way you’d put them on a form, e.g. “12 LPA” or “USD 120,000 / year”."
       >
         <TextField
           label="Current salary / CTC"
@@ -112,6 +122,14 @@ export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'
           error={errors.salaryCurrency}
         />
         <Suggestions id="jobfill-currencies" values={CURRENCIES} />
+      </FormGroup>
+      )}
+
+      {show('availability') && (
+      <FormGroup
+        title="Availability"
+        description="Optional. Used for notice-period and start-date questions."
+      >
         <TextField
           label="Notice period"
           placeholder="e.g. 30 days, Immediate"
@@ -127,8 +145,10 @@ export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'
           error={errors.earliestStartDate}
         />
       </FormGroup>
+      )}
 
-      <FormGroup title="Job preferences">
+      {show('preferences') && (
+      <FormGroup title="Job preferences" description="Optional — skip anything you’d rather answer per job.">
         <TagInput
           label="Preferred locations"
           placeholder="e.g. Remote, Bengaluru, Berlin"
@@ -165,7 +185,9 @@ export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'
           </div>
         </fieldset>
       </FormGroup>
+      )}
 
+      {show('authorization') && (
       <FormGroup
         title="Work authorization"
         description="JobFill only answers authorization and sponsorship questions from what you set here — never by guessing."
@@ -196,40 +218,65 @@ export function ProfessionalForm({ value, onChange, errors }: SectionFormProps<'
           error={errors.authorizedCountries}
         />
       </FormGroup>
+      )}
     </div>
   );
 }
 
-export function ProfessionalSummary({ value }: { value: ProfessionalInfo }) {
+export function ProfessionalSummary({ value, groups }: SectionSummaryProps<'professional'>) {
   const workMode = WORK_MODES.find((m) => m.value === value.preferredWorkMode)?.label ?? '';
+  const rows: Record<string, StatusRow[]> = {
+    role: [
+      {
+        label: 'Current role',
+        value: [value.currentTitle, value.currentCompany].filter(Boolean).join(' at '),
+        path: 'professional.currentTitle',
+      },
+      {
+        label: 'Experience',
+        value: value.yearsOfExperience && `${value.yearsOfExperience} years`,
+        path: 'professional.yearsOfExperience',
+      },
+    ],
+    compensation: [
+      { label: 'Current salary', value: value.currentSalary },
+      {
+        label: 'Expected salary',
+        value: [value.expectedSalary, value.salaryCurrency && `(${value.salaryCurrency})`]
+          .filter(Boolean)
+          .join(' '),
+      },
+    ],
+    availability: [
+      { label: 'Notice period', value: value.noticePeriod },
+      { label: 'Earliest start', value: value.earliestStartDate },
+    ],
+    preferences: [
+      {
+        label: 'Preferred locations',
+        value: value.preferredLocations.length > 0 && <TagList tags={value.preferredLocations} />,
+      },
+      { label: 'Work mode', value: workMode },
+      {
+        label: 'Job types',
+        value: value.preferredJobTypes.map((t) => JOB_TYPE_LABELS[t]).join(', '),
+      },
+      { label: 'Relocation', value: answerLabel(value.willingToRelocate) },
+    ],
+    authorization: [
+      { label: 'Work authorization', value: value.workAuthorization },
+      { label: 'Authorized in', value: value.authorizedCountries.join(', ') },
+      { label: 'Needs sponsorship', value: answerLabel(value.requiresSponsorship) },
+    ],
+  };
   return (
     <div className="space-y-4">
-      <DetailList
-        rows={[
-          ['Current role', [value.currentTitle, value.currentCompany].filter(Boolean).join(' at ')],
-          ['Experience', value.yearsOfExperience && `${value.yearsOfExperience} years`],
-          ['Current salary', value.currentSalary],
-          [
-            'Expected salary',
-            [value.expectedSalary, value.salaryCurrency && `(${value.salaryCurrency})`]
-              .filter(Boolean)
-              .join(' '),
-          ],
-          ['Notice period', value.noticePeriod],
-          ['Earliest start', value.earliestStartDate],
-          ['Work mode', workMode],
-          ['Job types', value.preferredJobTypes.map((t) => JOB_TYPE_LABELS[t]).join(', ')],
-          ['Relocation', answerLabel(value.willingToRelocate)],
-          ['Work authorization', value.workAuthorization],
-          ['Authorized in', value.authorizedCountries.join(', ')],
-          ['Needs sponsorship', answerLabel(value.requiresSponsorship)],
-          [
-            'Preferred locations',
-            value.preferredLocations.length > 0 && <TagList tags={value.preferredLocations} />,
-          ],
-        ]}
+      <StatusList
+        rows={Object.entries(rows).flatMap(([group, list]) =>
+          groupVisible(groups, group) ? list : [],
+        )}
       />
-      {value.summary && <Clamp text={value.summary} />}
+      {groupVisible(groups, 'role') && value.summary && <Clamp text={value.summary} />}
     </div>
   );
 }

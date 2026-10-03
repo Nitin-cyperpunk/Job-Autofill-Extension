@@ -45,18 +45,26 @@ export function CompletenessBar({
   );
 }
 
-/** Bar plus a per-area checklist. Clicking an incomplete area calls onSelect. */
+/**
+ * Bar plus the core checklist, then the optional details (address, DOB, gender,
+ * preferences…) as a separate, non-blocking list. Clicking an item calls onSelect.
+ */
 export function CompletenessMeter({
   completeness,
   onSelect,
 }: {
   completeness: Completeness;
-  onSelect?: (area: CompletenessArea) => void;
+  onSelect?: (area: CompletenessArea, group?: string) => void;
 }) {
+  const notProvided = completeness.optional.filter((o) => !o.provided);
   return (
     <div>
       <CompletenessBar percent={completeness.percent} />
-      <ul className="mt-4 space-y-1">
+      <p className="mt-3 text-xs font-semibold tracking-wide text-muted uppercase">
+        Core profile{' '}
+        {completeness.coreComplete && <span className="text-ok normal-case">✓ Complete</span>}
+      </p>
+      <ul className="mt-1 space-y-1">
         {completeness.items.map((item) => {
           const done = item.score === 1;
           const content = (
@@ -98,6 +106,45 @@ export function CompletenessMeter({
           );
         })}
       </ul>
+      {completeness.optional.length > 0 && (
+        <div className="mt-4 border-t border-line pt-3">
+          <p className="text-xs font-semibold tracking-wide text-muted uppercase">
+            Additional information
+          </p>
+          <p className="mt-0.5 text-xs text-muted">
+            {notProvided.length === 0
+              ? 'All provided.'
+              : `${notProvided.length} optional ${notProvided.length === 1 ? 'detail' : 'details'} not provided — fill them only if you want them answered for you.`}
+          </p>
+          <ul className="mt-1.5 space-y-0.5">
+            {completeness.optional.map((o) => {
+              const text = (
+                <>
+                  <span className={o.provided ? 'text-ok' : 'text-faint'}>
+                    {o.provided ? '✓' : '○'}
+                  </span>
+                  <span className={o.provided ? 'text-muted' : 'text-body'}>{o.label}</span>
+                </>
+              );
+              return (
+                <li key={o.label}>
+                  {onSelect && !o.provided ? (
+                    <button
+                      type="button"
+                      onClick={() => onSelect(o.id, o.group)}
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-subtle"
+                    >
+                      {text}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 px-2 py-1 text-xs">{text}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

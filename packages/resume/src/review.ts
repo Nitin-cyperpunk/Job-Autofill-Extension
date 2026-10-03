@@ -5,6 +5,7 @@ import {
   createId,
   createProjectEntry,
   formatDateRange,
+  withResumeSources,
 } from '@jobfill/shared';
 import type { ExtractedResume } from './parse';
 
@@ -263,8 +264,18 @@ export function applyReview(
   accepted: ReadonlySet<string>,
 ): Profile {
   const next: Profile = structuredClone(profile);
+  const imported: string[] = [];
   for (const item of review.items) {
     if (!accepted.has(item.id)) continue;
+    imported.push(
+      item.kind === 'scalar'
+        ? item.id
+        : item.kind === 'tag'
+          ? item.group === 'skills'
+            ? 'skills.technical'
+            : 'skills.languages'
+          : item.group,
+    );
     if (item.kind === 'scalar') {
       const [section, field] = item.id.split('.') as [
         'personal' | 'professional' | 'links',
@@ -303,5 +314,6 @@ export function applyReview(
       }
     }
   }
+  next.sources = withResumeSources(next, imported);
   return next;
 }

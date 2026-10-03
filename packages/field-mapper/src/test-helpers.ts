@@ -171,6 +171,7 @@ export function sampleProfile(): Profile {
       referralSource: '',
       coverLetter: '',
     },
+    sources: { resume: [] },
     resume: {
       fileName: 'ada-resume.pdf',
       mimeType: 'application/pdf',
