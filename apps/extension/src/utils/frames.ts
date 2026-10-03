@@ -125,6 +125,8 @@ export async function fillAllFrames(approvedIds?: string[]): Promise<FillSummary
     merged.revealed = (merged.revealed ?? 0) + (s.revealed ?? 0);
     merged.questions!.push(...(s.questions ?? []).map(tag));
     merged.outcomes!.push(...(s.outcomes ?? []).map(tag));
+    for (const note of s.notes ?? [])
+      if (!merged.notes?.includes(note)) (merged.notes ??= []).push(note);
   }
   return merged;
 }

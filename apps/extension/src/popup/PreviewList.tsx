@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PlanItem } from '@jobfill/field-mapper';
+import { CATEGORY_LABELS, type PlanItem } from '@jobfill/field-mapper';
 import { Button } from '@/components/ui/Button';
 import { AlertCircleIcon } from '@/components/ui/icons';
 
@@ -17,7 +17,9 @@ export function PreviewList({
     (i) => i.action && (i.status === 'fill' || i.status === 'fill-review'),
   );
   const needsYou = items.filter((i) => i.status === 'review');
-  const skipped = items.length - fillable.length - needsYou.length;
+  // Fields the user already typed in: never ticked by default — replacing is opt-in.
+  const replaceable = items.filter((i) => i.replaceable && i.action);
+  const skipped = items.length - fillable.length - needsYou.length - replaceable.length;
   const [selected, setSelected] = useState(() => new Set(fillable.map((i) => i.fieldId)));
 
   function toggle(id: string) {
@@ -70,6 +72,35 @@ export function PreviewList({
         </p>
       )}
 
+      {replaceable.length > 0 && (
+        <details className="rounded-lg border border-line px-3 py-2 text-xs">
+          <summary className="cursor-pointer font-medium text-fg">
+            {replaceable.length} already filled — kept as you entered{' '}
+            {replaceable.length === 1 ? 'it' : 'them'}
+          </summary>
+          <ul className="mt-2 space-y-1">
+            {replaceable.map((item) => (
+              <li key={item.fieldId}>
+                <label className="flex cursor-pointer items-start gap-2 rounded-md px-1 py-1 hover:bg-subtle">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.fieldId)}
+                    onChange={() => toggle(item.fieldId)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-fg">{item.label}</span>
+                    <span className="block truncate text-muted">
+                      Replace with JobFill value: {item.preview}
+                    </span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
       {needsYou.length > 0 && (
         <details className="rounded-lg bg-warn-soft px-3 py-2 text-xs text-warn">
           <summary className="cursor-pointer font-medium">
@@ -78,7 +109,11 @@ export function PreviewList({
           <ul className="mt-1 space-y-1">
             {needsYou.map((item) => (
               <li key={item.fieldId}>
-                <span className="font-medium">{item.label}</span> — {item.reason}
+                <span className="font-medium">{item.label}</span>
+                {item.category !== 'UNKNOWN' && (
+                  <span className="text-warn/80"> · {CATEGORY_LABELS[item.category]}</span>
+                )}{' '}
+                — {item.reason}
               </li>
             ))}
           </ul>

@@ -11,6 +11,7 @@ export const STEP_LABELS: Record<StepId, string> = {
   certifications: 'Certifications',
   skills: 'Skills',
   links: 'Links',
+  additional: 'Additional info',
   resume: 'Resume & Links',
   review: 'Review',
   complete: 'Complete',

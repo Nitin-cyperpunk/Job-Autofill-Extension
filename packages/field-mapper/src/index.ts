@@ -6,7 +6,8 @@
 export { normalizeText, containsPhrase } from './normalize';
 export {
   RULES,
-  SENSITIVE_PHRASES,
+  NEVER_FILL_PHRASES,
+  EXPLICIT_ONLY,
   CONSENT_PHRASES,
   AUTOCOMPLETE,
   type MappingRule,
@@ -21,17 +22,39 @@ export {
   type MatchResult,
   type MatchSource,
 } from './match';
-export { resolveProfileValue, describeValue, isIndexedKey, type ProfileValue } from './values';
+export {
+  resolveProfileValue,
+  describeValue,
+  isIndexedKey,
+  formatAddress,
+  permanentAddress,
+  projectSummary,
+  type ProfileValue,
+} from './values';
+export {
+  classifyQuestion,
+  reviewReasonFor,
+  CATEGORY_LABELS,
+  QUESTION_CATEGORIES,
+  type QuestionCategory,
+} from './questions';
+export { skillsInCategory, linkForPlatform, LINK_PLATFORMS } from './taxonomy';
 export {
   chooseOptions,
   degreeLevel,
   isPlaceholderOption,
   optionPolarity,
   parseRange,
+  countryInText,
+  sameCountry,
   type OptionChoice,
 } from './options';
 export {
   planFill,
+  planNotes,
+  pickProject,
+  dateFormatHint,
+  handleFromUrl,
   displayLabel,
   isOpenEndedQuestion,
   isYesNoQuestion,

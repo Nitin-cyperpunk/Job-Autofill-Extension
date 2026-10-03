@@ -1,9 +1,14 @@
 /**
- * Everything a form field can be mapped to. Most keys are profile paths; a few are
- * derived (fullName, location) or index into lists (education.* / experience.* use
- * the Nth entry for the Nth matching field, so repeated sections fill in order).
+ * Everything a form field can be mapped to. Most keys are profile paths; some are
+ * derived (fullName, location, age, split birth-date parts, link platforms found in any
+ * saved link) and the list keys (education.* / experience.* / project.*) index into the
+ * Nth entry for the Nth matching field, so repeated sections fill in order.
+ *
+ * Adding coverage for a new kind of field = a key here, a resolver in
+ * field-mapper/values.ts and phrases in field-mapper/dictionary.ts.
  */
 export const FIELD_KEYS = [
+  // ---- Personal
   'personal.fullName',
   'personal.firstName',
   'personal.middleName',
@@ -11,22 +16,58 @@ export const FIELD_KEYS = [
   'personal.preferredName',
   'personal.email',
   'personal.phone',
+  'personal.phoneCountryCode',
+  'personal.alternatePhone',
+  'personal.dateOfBirth',
+  'personal.birthDay',
+  'personal.birthMonth',
+  'personal.birthYear',
+  'personal.age',
+  'personal.gender',
+  'personal.pronouns',
+  'personal.nationality',
+  'personal.citizenship',
+  'personal.maritalStatus',
+  // ---- Current address
   'personal.address',
+  'personal.addressLine2',
+  'personal.landmark',
   'personal.city',
+  'personal.district',
   'personal.state',
   'personal.postalCode',
   'personal.country',
   'personal.location',
+  // ---- Permanent address
+  'personal.permanentSameAsCurrent',
+  'permanent.address',
+  'permanent.addressLine2',
+  'permanent.landmark',
+  'permanent.city',
+  'permanent.district',
+  'permanent.state',
+  'permanent.postalCode',
+  'permanent.country',
+  // ---- Current role & job preferences
   'professional.currentTitle',
   'professional.currentCompany',
   'professional.yearsOfExperience',
+  'professional.currentSalary',
   'professional.expectedSalary',
+  'professional.salaryCurrency',
   'professional.noticePeriod',
+  'professional.earliestStartDate',
+  'professional.reasonForLeaving',
+  'professional.preferredWorkMode',
+  'professional.preferredJobTypes',
   'professional.workAuthorization',
+  'professional.authorizedToWork',
   'professional.requiresSponsorship',
   'professional.willingToRelocate',
   'professional.summary',
   'professional.preferredLocations',
+  // ---- Education (indexed)
+  'education.level',
   'education.institution',
   'education.degree',
   'education.fieldOfStudy',
@@ -34,6 +75,8 @@ export const FIELD_KEYS = [
   'education.location',
   'education.startDate',
   'education.endDate',
+  'education.isCurrent',
+  // ---- Experience (indexed)
   'experience.company',
   'experience.jobTitle',
   'experience.location',
@@ -41,16 +84,52 @@ export const FIELD_KEYS = [
   'experience.endDate',
   'experience.isCurrent',
   'experience.description',
+  // ---- Projects (indexed, or chosen by relevance to the question)
+  'project.name',
+  'project.role',
+  'project.description',
+  'project.summary',
+  'project.technologies',
+  'project.url',
+  'project.githubUrl',
+  'project.startDate',
+  'project.endDate',
+  'project.outcome',
+  // ---- Skills (the category keys filter the technical list)
   'skills.technical',
+  'skills.programmingLanguages',
+  'skills.frameworks',
+  'skills.databases',
+  'skills.cloud',
   'skills.soft',
   'skills.languages',
+  // ---- Links
   'links.resumeUrl',
   'links.linkedin',
   'links.github',
   'links.portfolio',
   'links.x',
   'links.website',
+  'links.leetcode',
+  'links.hackerrank',
+  'links.codechef',
+  'links.kaggle',
+  'links.behance',
+  'links.dribbble',
+  'links.stackoverflow',
+  'links.medium',
+  // ---- Additional (explicit answers only)
+  'additional.disability',
+  'additional.veteranStatus',
+  'additional.ethnicity',
+  'additional.backgroundCheck',
+  'additional.drugTest',
+  'additional.criminalRecord',
+  'additional.referralSource',
+  'additional.coverLetter',
+  // ---- Files
   'resume',
+  'coverLetterFile',
 ] as const;
 
 export type FieldKey = (typeof FIELD_KEYS)[number];

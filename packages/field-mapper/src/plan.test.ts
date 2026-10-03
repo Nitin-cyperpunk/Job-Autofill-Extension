@@ -145,16 +145,23 @@ describe('planFill', () => {
 
   it('never overwrites a field that already has a value', () => {
     const [item] = plan([{ label: 'First Name', hasValue: true }]);
-    expect(item).toMatchObject({ status: 'skip', reason: 'Already filled', action: null });
+    // Skipped; the action is only kept so the user can explicitly choose "Replace".
+    expect(item).toMatchObject({
+      status: 'skip',
+      reason: 'Already filled — left as entered',
+      replaceable: true,
+      action: { kind: 'text', text: 'Ada' },
+    });
   });
 
-  it('leaves sensitive questions to the user, flagging required ones', () => {
+  it('never guesses personal / EEO questions the user hasn’t answered — always flagged', () => {
     const [optional, required] = plan([
       { label: 'Gender', type: 'select', options: options('Female', 'Male') },
       { label: 'Veteran status', type: 'radio', required: true, options: options('Yes', 'No') },
     ]);
-    expect(optional).toMatchObject({ status: 'skip', action: null });
-    expect(required).toMatchObject({ status: 'review', action: null });
+    expect(optional).toMatchObject({ status: 'review', action: null, explicitOnly: true });
+    expect(optional!.reason).toMatch(/never guesses/);
+    expect(required).toMatchObject({ status: 'review', action: null, explicitOnly: true });
   });
 
   it('never ticks consent boxes', () => {
@@ -171,7 +178,11 @@ describe('planFill', () => {
 
   it('flags required fields it cannot answer', () => {
     const [item] = plan([{ label: 'How did you hear about us?', required: true }]);
-    expect(item).toMatchObject({ status: 'review', reason: 'No matching profile field' });
+    expect(item).toMatchObject({
+      status: 'review',
+      key: 'additional.referralSource',
+      reason: 'Not in your profile yet',
+    });
   });
 
   it('fills repeated education sections in order', () => {
@@ -316,6 +327,6 @@ describe('planFill', () => {
       key: null,
       why: expect.stringMatching(/No dictionary phrase matched/),
     });
-    expect(gender!.why).toContain('Personal question ("gender")');
+    expect(gender!.why).toBe('label "Gender" matched "gender"');
   });
 });

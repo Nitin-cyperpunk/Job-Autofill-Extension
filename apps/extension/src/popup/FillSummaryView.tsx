@@ -57,6 +57,7 @@ export function FillSummaryView({
     revealed = 0,
     questions = [],
     outcomes = [],
+    notes = [],
   } = summary;
   // Every planned field when the run reports outcomes; otherwise the sum of the lists.
   const detected = outcomes.length || filled.length + review.length + skipped + questions.length;
@@ -169,6 +170,14 @@ export function FillSummaryView({
             ))}
           </ul>
         </div>
+      )}
+
+      {notes.length > 0 && (
+        <ul className="space-y-1 rounded-lg border border-accent-line bg-accent-soft px-3 py-2 text-xs text-body">
+          {notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
       )}
 
       {skipped > 0 && (

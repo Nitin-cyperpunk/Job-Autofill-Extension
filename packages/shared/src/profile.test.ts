@@ -5,6 +5,7 @@ import {
   createEducationEntry,
   createEmptyProfile,
   createExperienceEntry,
+  createProjectEntry,
   migrateProfileV1,
   normalizeProfile,
   parseImportFile,
@@ -22,7 +23,10 @@ function filledProfile(): Profile {
     lastName: 'Lovelace',
     email: 'ada@example.com',
     phone: '+44 20 7946 0000',
+    address: '12 St James’s Square',
     city: 'London',
+    postalCode: 'SW1Y 4JH',
+    permanentSameAsCurrent: 'yes',
   };
   p.professional = {
     ...p.professional,
@@ -30,13 +34,22 @@ function filledProfile(): Profile {
     summary: 'Hi',
     yearsOfExperience: '5',
     workAuthorization: 'Citizen',
+    requiresSponsorship: 'no',
+    noticePeriod: '30 days',
+    expectedSalary: 'GBP 120,000',
   };
   p.education = [{ ...createEducationEntry(), institution: 'Cambridge' }];
   p.experience = [
     { ...createExperienceEntry(), company: 'Analytical Engines', jobTitle: 'Engineer' },
   ];
   p.projects = [
-    { id: 'p1', name: 'Notes', description: '', technologies: [], url: '', githubUrl: '' },
+    {
+      ...createProjectEntry(),
+      id: 'p1',
+      name: 'Notes',
+      description: 'A notes app.',
+      technologies: ['TypeScript'],
+    },
   ];
   p.skills.technical = ['Math', 'Poetry', 'Punch cards'];
   p.links.linkedin = 'https://linkedin.com/in/ada';
@@ -87,7 +100,8 @@ describe('migrateProfileV1', () => {
       currentTitle: 'Engineer',
       expectedSalary: '100k',
       summary: 'Summary',
-      willingToRelocate: true,
+      // v1 booleans: true was a real answer and migrates to 'yes'.
+      willingToRelocate: 'yes',
     });
     expect(p.links.github).toBe('https://github.com/ada');
     expect(p.onboardingCompletedAt).toBe('2026-01-01T00:00:00.000Z');
@@ -173,6 +187,94 @@ describe('validateDraft', () => {
   });
 });
 
+describe('v2 → v3 migration', () => {
+  it('keeps every stored value and adds the new fields empty', () => {
+    // Exactly what a v2 build wrote to chrome.storage.local.
+    const v2 = {
+      schemaVersion: 2,
+      personal: {
+        firstName: 'Ada',
+        middleName: '',
+        lastName: 'Lovelace',
+        preferredName: '',
+        email: 'ada@example.com',
+        phone: '+44 20 7946 0000',
+        country: 'United Kingdom',
+        city: 'London',
+        state: '',
+        address: '12 St James’s Square',
+        postalCode: 'SW1Y 4JH',
+      },
+      professional: {
+        currentTitle: 'Engineer',
+        summary: '',
+        yearsOfExperience: '7',
+        currentCompany: '',
+        noticePeriod: '30 days',
+        expectedSalary: '',
+        preferredLocations: ['London'],
+        workAuthorization: 'Citizen',
+        requiresSponsorship: false,
+        willingToRelocate: true,
+      },
+      education: [
+        {
+          id: 'e1',
+          degree: 'M.Sc.',
+          fieldOfStudy: '',
+          institution: 'UCL',
+          location: '',
+          startDate: '',
+          endDate: '',
+          gpa: '',
+          description: '',
+        },
+      ],
+      experience: [],
+      projects: [
+        { id: 'p1', name: 'Notes', description: 'x', technologies: ['TS'], url: '', githubUrl: '' },
+      ],
+      certifications: [],
+      skills: { technical: ['TS'], soft: [], languages: [] },
+      links: {
+        resumeUrl: '',
+        linkedin: 'https://linkedin.com/in/ada',
+        github: '',
+        portfolio: '',
+        x: '',
+        website: '',
+        other: [],
+      },
+      resume: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      onboardingCompletedAt: '2026-01-01T00:00:00.000Z',
+    };
+    const p = normalizeProfile(v2);
+    expect(p.schemaVersion).toBe(3);
+    expect(p.personal).toMatchObject({
+      firstName: 'Ada',
+      postalCode: 'SW1Y 4JH',
+      gender: '',
+      dateOfBirth: '',
+      permanentSameAsCurrent: '',
+    });
+    expect(p.personal.permanentAddress.city).toBe('');
+    // true was a real answer; false may only mean "never answered" — never turned into "No".
+    expect(p.professional).toMatchObject({
+      willingToRelocate: 'yes',
+      requiresSponsorship: '',
+      authorizedCountries: [],
+      workAuthorization: 'Citizen',
+    });
+    expect(p.education[0]).toMatchObject({ institution: 'UCL', level: '', isCurrent: false });
+    expect(p.projects[0]).toMatchObject({ name: 'Notes', role: '', outcome: '', startDate: '' });
+    expect(p.additional).toEqual(createEmptyProfile().additional);
+    expect(p.links.linkedin).toBe('https://linkedin.com/in/ada');
+    expect(p.onboardingCompletedAt).toBe('2026-01-01T00:00:00.000Z');
+  });
+});
+
 describe('computeCompleteness', () => {
   it('is 0 for an empty profile and 100 for a full one', () => {
     expect(computeCompleteness(createEmptyProfile()).percent).toBe(0);
@@ -183,7 +285,7 @@ describe('computeCompleteness', () => {
     const p = createEmptyProfile();
     p.personal.email = 'a@b.co';
     const result = computeCompleteness(p);
-    expect(result.percent).toBe(6); // 25 * 1/4, rounded
+    expect(result.percent).toBe(5); // 25 * 1/5
     expect(result.items.find((i) => i.id === 'personal')?.missing).toContain('Phone');
   });
 });

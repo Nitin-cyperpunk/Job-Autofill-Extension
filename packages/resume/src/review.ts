@@ -1,5 +1,11 @@
 import type { Profile } from '@jobfill/types';
-import { createId, formatDateRange } from '@jobfill/shared';
+import {
+  createEducationEntry,
+  createExperienceEntry,
+  createId,
+  createProjectEntry,
+  formatDateRange,
+} from '@jobfill/shared';
 import type { ExtractedResume } from './parse';
 
 /**
@@ -273,14 +279,23 @@ export function applyReview(
       switch (item.group) {
         case 'experience': {
           const { monthAssumed, ...entry } = extracted.experience[index]!;
-          next.experience.push({ id: createId(), ...entry });
+          // Start from an empty entry so fields the parser doesn't extract get defaults.
+          next.experience.push({ ...createExperienceEntry(), ...entry, id: createId() });
           break;
         }
         case 'education':
-          next.education.push({ id: createId(), ...extracted.education[index]! });
+          next.education.push({
+            ...createEducationEntry(),
+            ...extracted.education[index]!,
+            id: createId(),
+          });
           break;
         case 'projects':
-          next.projects.push({ id: createId(), ...extracted.projects[index]! });
+          next.projects.push({
+            ...createProjectEntry(),
+            ...extracted.projects[index]!,
+            id: createId(),
+          });
           break;
         case 'certifications':
           next.certifications.push({ id: createId(), ...extracted.certifications[index]! });

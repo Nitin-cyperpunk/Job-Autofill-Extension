@@ -251,7 +251,7 @@ const CORPUS: Case[] = [
   [
     'work authorization radio',
     { label: 'Are you legally authorized to work in the UK?', type: 'radio' },
-    'professional.workAuthorization',
+    'professional.authorizedToWork',
   ],
   [
     'relocate',
@@ -282,7 +282,7 @@ const CORPUS: Case[] = [
     { labelSource: 'none', nearbyText: 'Upload your resume (PDF, DOC, DOCX)', type: 'file' },
     'resume',
   ],
-  ['cover letter file', { label: 'Cover letter', type: 'file' }, null],
+  ['cover letter file', { label: 'Cover letter', type: 'file' }, 'coverLetterFile'],
   ['photo file', { label: 'Profile photo', type: 'file' }, null],
 
   // ---- Automation / test ids (Workday data-automation-id, data-testid, formcontrolname) ----
@@ -317,11 +317,19 @@ const CORPUS: Case[] = [
     null,
   ],
   ['position applied for', { label: 'Position you are applying for' }, null],
-  ['how did you hear', { label: 'How did you hear about us?' }, null],
-  ['earliest start date (no section)', { label: 'Earliest start date', type: 'date' }, null],
-  ['current salary', { label: 'Current salary' }, null],
-  ['phone country code', { label: 'Phone country code', type: 'select' }, null],
-  ['address line 2', { label: 'Address line 2' }, null],
+  ['how did you hear', { label: 'How did you hear about us?' }, 'additional.referralSource'],
+  [
+    'earliest start date (no section)',
+    { label: 'Earliest start date', type: 'date' },
+    'professional.earliestStartDate',
+  ],
+  ['current salary', { label: 'Current salary' }, 'professional.currentSalary'],
+  [
+    'phone country code',
+    { label: 'Phone country code', type: 'select' },
+    'personal.phoneCountryCode',
+  ],
+  ['address line 2', { label: 'Address line 2' }, 'personal.addressLine2'],
   [
     'privacy notice checkbox',
     { label: 'I have read the privacy notice', type: 'checkbox' },
@@ -329,13 +337,14 @@ const CORPUS: Case[] = [
   ],
 
   // ---- Sensitive: never answered automatically ----
-  ['gender', { label: 'Gender', type: 'select' }, 'sensitive'],
-  ['pronouns', { label: 'Pronouns' }, 'sensitive'],
-  ['race/ethnicity', { label: 'Race / Ethnicity', type: 'radio' }, 'sensitive'],
-  ['veteran status', { label: 'Veteran status', type: 'select' }, 'sensitive'],
-  ['disability', { label: 'Do you have a disability?', type: 'radio' }, 'sensitive'],
-  ['date of birth', { label: 'Date of birth', type: 'date' }, 'sensitive'],
-  ['over 18', { label: 'Are you at least 18 years of age?', type: 'radio' }, 'sensitive'],
+  // Personal / EEO questions map to explicit profile answers (left for review when empty).
+  ['gender', { label: 'Gender', type: 'select' }, 'personal.gender'],
+  ['pronouns', { label: 'Pronouns' }, 'personal.pronouns'],
+  ['race/ethnicity', { label: 'Race / Ethnicity', type: 'radio' }, 'additional.ethnicity'],
+  ['veteran status', { label: 'Veteran status', type: 'select' }, 'additional.veteranStatus'],
+  ['disability', { label: 'Do you have a disability?', type: 'radio' }, 'additional.disability'],
+  ['date of birth', { label: 'Date of birth', type: 'date' }, 'personal.dateOfBirth'],
+  ['over 18', { label: 'Are you at least 18 years of age?', type: 'radio' }, 'personal.age'],
   ['SSN', { label: 'SSN' }, 'sensitive'],
   [
     'terms consent',

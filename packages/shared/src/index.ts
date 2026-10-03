@@ -8,6 +8,8 @@ export {
 export {
   createCertificationEntry,
   createEducationEntry,
+  createEmptyAdditional,
+  createEmptyAddress,
   createEmptyProfile,
   createExperienceEntry,
   createOtherLink,

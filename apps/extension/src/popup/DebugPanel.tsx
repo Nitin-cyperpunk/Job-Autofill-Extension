@@ -107,8 +107,10 @@ export function DebugPanel() {
 
 const STATUS: Record<FieldOutcome['status'], { icon: string; label: string; className: string }> = {
   filled: { icon: '✓', label: 'Filled', className: 'text-ok' },
+  'already-filled': { icon: '●', label: 'Already Filled', className: 'text-muted' },
   'needs-review': { icon: '⚠', label: 'Needs Review', className: 'text-warn' },
   'not-filled': { icon: '○', label: 'Not Filled', className: 'text-muted' },
+  unsupported: { icon: '◌', label: 'Unsupported', className: 'text-muted' },
   failed: { icon: '✕', label: 'Failed', className: 'text-danger' },
 };
 

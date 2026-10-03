@@ -9,16 +9,21 @@ import type { FieldKey, FieldType } from '@jobfill/types';
  * ("Email address" is not an address; "Reference phone" is not your phone).
  */
 
-export type SectionContext = 'education' | 'experience';
+/**
+ * Section contexts change what a generic label means: "City" under "Permanent Address"
+ * is the permanent city, "Name" under "Projects" is a project name, "Day" under
+ * "Date of Birth" is the birth day. Detected from section headings and name/id.
+ */
+export type SectionContext = 'education' | 'experience' | 'project' | 'permanent' | 'birth';
 
 export interface MappingRule {
   key: FieldKey;
   phrases: string[];
   /** If any of these phrases appear, the rule doesn't apply. */
   exclude?: string[];
-  /** Only applies inside an Education / Experience section. */
+  /** Only applies inside this kind of section. */
   context?: SectionContext;
-  /** Doesn't apply inside an Education / Experience section (e.g. top-level "City"). */
+  /** Doesn't apply inside any special section (e.g. top-level "City"). */
   avoidContext?: boolean;
   /** Field types the rule may map. Defaults to TEXTUAL. */
   types?: readonly FieldType[];
@@ -37,6 +42,12 @@ export const TEXTUAL: readonly FieldType[] = [
 const CHOICE: readonly FieldType[] = ['radio', 'checkbox', 'select', 'text'];
 const DATES: readonly FieldType[] = ['date', 'month', 'text', 'select'];
 const LISTS: readonly FieldType[] = ['text', 'textarea', 'contenteditable', 'checkbox', 'select'];
+const LINKS: readonly FieldType[] = ['text', 'url', 'textarea'];
+const PROSE: readonly FieldType[] = ['textarea', 'contenteditable', 'text'];
+const ANY_CHOICE_OR_TEXT: readonly FieldType[] = [...TEXTUAL, 'radio', 'checkbox'];
+
+/** Words that mean an address field isn't the candidate's home address. */
+const ADDRESS_EXCLUDES = ['email', 'ip', 'web', 'website', 'url', 'company', 'employer', 'school'];
 
 /** People other than the candidate whose name/phone/email forms also ask for. */
 const OTHER_PEOPLE = [
@@ -158,7 +169,114 @@ export const RULES: MappingRule[] = [
       'whatsapp number',
       'primary phone',
     ],
-    exclude: [...OTHER_PEOPLE, 'country code', 'extension', 'ext', 'phone type', 'device'],
+    exclude: [
+      ...OTHER_PEOPLE,
+      'country code',
+      'extension',
+      'ext',
+      'phone type',
+      'device',
+      'alternate',
+      'alternative',
+      'secondary',
+      'other phone',
+      'landline',
+      'home phone',
+      'work phone',
+      'office',
+    ],
+  },
+  {
+    key: 'personal.phoneCountryCode',
+    phrases: [
+      'country code',
+      'phone country code',
+      'dialing code',
+      'dial code',
+      'calling code',
+      'isd code',
+      'isd',
+      'country calling code',
+    ],
+    exclude: OTHER_PEOPLE,
+  },
+  {
+    key: 'personal.alternatePhone',
+    phrases: [
+      'alternate phone',
+      'alternate number',
+      'alternate mobile',
+      'alternative phone',
+      'alternative number',
+      'secondary phone',
+      'secondary number',
+      'other phone',
+      'alternate contact number',
+      'alternate mobile number',
+      'landline',
+      'home phone',
+    ],
+    exclude: OTHER_PEOPLE,
+  },
+
+  // ---- Personal details: filled only from answers the user entered -------------------
+  {
+    key: 'personal.dateOfBirth',
+    phrases: ['date of birth', 'birth date', 'birthdate', 'birthday', 'born on'],
+    exclude: ['place', 'city', 'country', 'state', 'certificate', ...OTHER_PEOPLE],
+    types: DATES,
+  },
+  {
+    key: 'personal.birthDay',
+    phrases: ['day', 'dd', 'birth day', 'day of birth'],
+    context: 'birth',
+    types: ['select', 'text', 'number'],
+  },
+  {
+    key: 'personal.birthMonth',
+    phrases: ['month', 'mm', 'birth month', 'month of birth'],
+    context: 'birth',
+    types: ['select', 'text', 'number'],
+  },
+  {
+    key: 'personal.birthYear',
+    phrases: ['year', 'yyyy', 'yy', 'birth year', 'year of birth'],
+    context: 'birth',
+    types: ['select', 'text', 'number'],
+  },
+  {
+    key: 'personal.age',
+    phrases: ['age', 'your age', 'current age', 'age in years'],
+    exclude: ['limit', 'group', 'range of'],
+    types: ['text', 'number', 'select', 'radio'],
+  },
+  {
+    key: 'personal.gender',
+    phrases: ['gender', 'sex', 'gender identity', 'what is your gender'],
+    exclude: ['pronoun', 'orientation', 'transgender'],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'personal.pronouns',
+    phrases: ['pronouns', 'pronoun', 'preferred pronouns'],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'personal.nationality',
+    phrases: ['nationality', 'what is your nationality'],
+    exclude: ['id', 'number', 'insurance'],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'personal.citizenship',
+    phrases: ['citizenship', 'country of citizenship', 'citizen of', 'citizenship status'],
+    exclude: ['proof', 'number', 'document'],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'personal.maritalStatus',
+    phrases: ['marital status', 'marital', 'relationship status'],
+    types: ANY_CHOICE_OR_TEXT,
   },
 
   // ---- Address -----------------------------------------------------------------
@@ -169,43 +287,162 @@ export const RULES: MappingRule[] = [
       'street address',
       'address line 1',
       'address 1',
+      'line 1',
       'street',
       'mailing address',
       'residential address',
       'home address',
       'current address',
-      'permanent address',
+      'present address',
+      'correspondence address',
+      'communication address',
       'postal address',
+      'house number',
+      'flat number',
+      'house flat number',
+      'door number',
     ],
-    exclude: [
-      'email',
-      'ip',
-      'web',
-      'website',
-      'url',
-      'line 2',
-      'address 2',
-      'company',
-      'employer',
-      'school',
-      ...OTHER_PEOPLE,
-    ],
+    exclude: [...ADDRESS_EXCLUDES, 'line 2', 'address 2', 'permanent', 'same as', ...OTHER_PEOPLE],
+    avoidContext: true,
   },
+  {
+    key: 'personal.addressLine2',
+    phrases: ['address line 2', 'address 2', 'line 2', 'apartment', 'suite', 'locality'],
+    exclude: [...ADDRESS_EXCLUDES, 'permanent', ...OTHER_PEOPLE],
+    avoidContext: true,
+  },
+  {
+    key: 'personal.landmark',
+    phrases: ['landmark', 'nearest landmark'],
+    exclude: ['permanent'],
+    avoidContext: true,
+  },
+  {
+    key: 'personal.district',
+    phrases: ['district', 'county', 'taluka', 'tehsil'],
+    exclude: ['permanent', 'school district', 'council'],
+    avoidContext: true,
+  },
+  {
+    key: 'personal.permanentSameAsCurrent',
+    phrases: [
+      'same as current address',
+      'same as present address',
+      'permanent address same as current',
+      'permanent address same as current address',
+      'permanent address is same as current address',
+      'is your permanent address same as current',
+      'are your current and permanent addresses the same',
+      'current and permanent address are same',
+      'current and permanent addresses the same',
+      'same as above',
+      'same as permanent address',
+    ],
+    types: ['checkbox', 'radio', 'select'],
+  },
+  {
+    key: 'permanent.address',
+    phrases: [
+      'permanent address',
+      'address',
+      'address line 1',
+      'line 1',
+      'street address',
+      'street',
+      'house number',
+      'flat number',
+    ],
+    exclude: [...ADDRESS_EXCLUDES, 'line 2', 'address 2', 'same as'],
+    context: 'permanent',
+  },
+  {
+    key: 'permanent.address',
+    phrases: [
+      'permanent address',
+      'permanent address line 1',
+      'permanent street address',
+      'permanent residential address',
+      'native address',
+    ],
+    exclude: ['same as', 'line 2'],
+  },
+  {
+    key: 'permanent.addressLine2',
+    phrases: ['address line 2', 'address 2', 'line 2', 'locality'],
+    context: 'permanent',
+    exclude: ADDRESS_EXCLUDES,
+  },
+  { key: 'permanent.addressLine2', phrases: ['permanent address line 2'] },
+  { key: 'permanent.landmark', phrases: ['landmark', 'nearest landmark'], context: 'permanent' },
+  {
+    key: 'permanent.city',
+    phrases: ['city', 'town', 'city town', 'village'],
+    context: 'permanent',
+  },
+  { key: 'permanent.city', phrases: ['permanent city', 'home town', 'hometown', 'native place'] },
+  { key: 'permanent.district', phrases: ['district', 'county', 'taluka'], context: 'permanent' },
+  {
+    key: 'permanent.district',
+    phrases: ['permanent district', 'home district', 'native district'],
+  },
+  {
+    key: 'permanent.state',
+    phrases: ['state', 'province', 'region', 'state province'],
+    context: 'permanent',
+  },
+  { key: 'permanent.state', phrases: ['permanent state', 'home state', 'native state'] },
+  {
+    key: 'permanent.postalCode',
+    phrases: ['zip', 'zip code', 'postal code', 'pin code', 'pin', 'postcode'],
+    context: 'permanent',
+    exclude: ['pin number'],
+  },
+  {
+    key: 'permanent.postalCode',
+    phrases: ['permanent pin code', 'permanent zip code', 'permanent postal code'],
+  },
+  {
+    key: 'permanent.country',
+    phrases: ['country'],
+    context: 'permanent',
+    exclude: ['code', 'phone'],
+  },
+  { key: 'permanent.country', phrases: ['permanent country'] },
   {
     key: 'personal.city',
     phrases: ['city', 'town', 'city town', 'current city', 'city of residence'],
     avoidContext: true,
-    exclude: ['preferred', 'desired'],
+    exclude: ['preferred', 'desired', 'permanent', 'birth', 'home town', 'native'],
   },
   {
     key: 'personal.state',
-    phrases: ['state', 'province', 'region', 'state province', 'state region', 'state or province'],
+    phrases: [
+      'state',
+      'province',
+      'region',
+      'state province',
+      'state region',
+      'state or province',
+      'current state',
+    ],
+    exclude: ['permanent', 'birth', 'home state', 'native', 'statement', 'status'],
     avoidContext: true,
   },
   {
     key: 'personal.postalCode',
-    phrases: ['zip', 'zip code', 'postal code', 'pin code', 'pin', 'zip postal code'],
-    exclude: ['pin number'],
+    phrases: [
+      'zip',
+      'zip code',
+      'postal code',
+      'pin code',
+      'pin',
+      'zip postal code',
+      'postcode',
+      'post code',
+      'current pin code',
+    ],
+    exclude: ['pin number', 'permanent'],
+    avoidContext: true,
   },
   {
     key: 'personal.country',
@@ -216,7 +453,19 @@ export const RULES: MappingRule[] = [
       'current country',
       'country territory',
     ],
-    exclude: ['code', 'phone', 'citizenship', 'nationality', 'birth', 'preferred', 'passport'],
+    exclude: [
+      'code',
+      'phone',
+      'citizenship',
+      'nationality',
+      'birth',
+      'preferred',
+      'passport',
+      'permanent',
+      'authorized',
+      'authorised',
+      'eligible',
+    ],
     avoidContext: true,
   },
   {
@@ -231,7 +480,19 @@ export const RULES: MappingRule[] = [
       'city country',
       'based in',
     ],
-    exclude: ['preferred', 'desired', 'relocate', 'office', 'job location', 'work location'],
+    exclude: [
+      'preferred',
+      'desired',
+      'relocate',
+      'office',
+      'job location',
+      'work location',
+      'role location',
+      'position location',
+      'company',
+      'permanent',
+      'birth',
+    ],
     avoidContext: true,
   },
 
@@ -303,6 +564,30 @@ export const RULES: MappingRule[] = [
     types: ['text', 'number', 'select', 'radio'],
   },
   {
+    key: 'professional.currentSalary',
+    phrases: [
+      'current salary',
+      'current ctc',
+      'present ctc',
+      'current compensation',
+      'current annual salary',
+      'current package',
+      'last drawn salary',
+      'previous ctc',
+      'last ctc',
+      'present salary',
+      'current pay',
+      'current base salary',
+      'ctc',
+    ],
+    exclude: ['expected', 'desired', 'expectation'],
+  },
+  {
+    key: 'professional.salaryCurrency',
+    phrases: ['currency', 'salary currency', 'preferred currency', 'compensation currency'],
+    types: ['select', 'text', 'radio'],
+  },
+  {
     key: 'professional.expectedSalary',
     phrases: [
       'expected salary',
@@ -329,29 +614,108 @@ export const RULES: MappingRule[] = [
       'when can you start',
       'availability to join',
       'joining time',
-      'earliest joining date',
+      'notice period in days',
+      'serving notice',
+      'availability',
     ],
-    exclude: ['privacy', 'acknowledge', 'read', 'agree', 'policy', 'legal'],
+    exclude: ['privacy', 'acknowledge', 'read', 'agree', 'policy', 'legal', 'date'],
   },
   {
+    key: 'professional.earliestStartDate',
+    phrases: [
+      'earliest start date',
+      'available start date',
+      'start date',
+      'availability date',
+      'date available',
+      'earliest joining date',
+      'expected joining date',
+      'available from',
+      'joining date',
+      'date of joining',
+    ],
+    avoidContext: true,
+    types: DATES,
+  },
+  {
+    key: 'professional.reasonForLeaving',
+    phrases: [
+      'reason for leaving',
+      'reason for change',
+      'reason for job change',
+      'why are you leaving',
+      'why do you want to leave',
+      'why are you looking for a change',
+      'reason for switching',
+    ],
+    types: PROSE,
+  },
+  {
+    key: 'professional.preferredWorkMode',
+    phrases: [
+      'work mode',
+      'preferred work mode',
+      'work arrangement',
+      'remote or onsite',
+      'remote hybrid onsite',
+      'work model',
+      'workplace preference',
+      'preferred work setting',
+      'remote work preference',
+    ],
+    types: ['select', 'radio', 'text', 'checkbox'],
+  },
+  {
+    key: 'professional.preferredJobTypes',
+    phrases: [
+      'job type',
+      'employment type',
+      'type of employment',
+      'preferred job type',
+      'desired employment type',
+      'type of role',
+      'position type',
+    ],
+    exclude: ['current'],
+    types: LISTS,
+  },
+  {
+    // A status ("Citizen", "H-1B"): text boxes and status dropdowns.
     key: 'professional.workAuthorization',
     phrases: [
       'work authorization',
       'work authorisation',
+      'work authorization status',
+      'employment authorization',
+      'visa status',
+      'visa type',
+      'current visa',
+      'work eligibility',
+      'immigration status',
+      'residency status',
+    ],
+    exclude: ['sponsorship', 'sponsor'],
+    types: CHOICE,
+  },
+  {
+    // A yes/no about a country ("Are you legally authorized to work in India?").
+    key: 'professional.authorizedToWork',
+    phrases: [
       'authorized to work',
       'authorised to work',
       'legally authorized',
       'legally authorised',
+      'legally eligible',
       'eligible to work',
       'right to work',
+      'valid work permit',
       'work permit',
-      'employment authorization',
-      'visa status',
-      'work eligibility',
-      'work visa',
+      'permitted to work',
+      'allowed to work',
+      'legally able to work',
     ],
     exclude: ['sponsorship', 'sponsor'],
-    types: CHOICE,
+    types: ['radio', 'select', 'checkbox'],
   },
   {
     key: 'professional.requiresSponsorship',
@@ -375,6 +739,7 @@ export const RULES: MappingRule[] = [
       'relocating',
       'open to relocate',
     ],
+    exclude: ['assistance', 'package', 'allowance', 'reimbursement'],
     types: CHOICE,
   },
   {
@@ -392,8 +757,8 @@ export const RULES: MappingRule[] = [
       'describe yourself',
       'personal statement',
     ],
-    exclude: ['job', 'role', 'position', 'project'],
-    types: ['textarea', 'contenteditable', 'text'],
+    exclude: ['job', 'role', 'position', 'project', 'company', 'why'],
+    types: PROSE,
     avoidContext: true,
   },
   {
@@ -412,6 +777,28 @@ export const RULES: MappingRule[] = [
   },
 
   // ---- Education ------------------------------------------------------------------
+  {
+    key: 'education.level',
+    phrases: [
+      'education level',
+      'level of education',
+      'highest level of education',
+      'highest education',
+      'qualification level',
+      'degree level',
+    ],
+    types: [...TEXTUAL, 'radio'],
+  },
+  {
+    key: 'education.isCurrent',
+    phrases: [
+      'currently studying',
+      'currently enrolled',
+      'still studying',
+      'i currently study here',
+    ],
+    types: ['checkbox'],
+  },
   {
     key: 'education.institution',
     phrases: [
@@ -440,13 +827,25 @@ export const RULES: MappingRule[] = [
       'highest degree',
       'degree type',
       'highest qualification',
-      'education level',
-      'level of education',
-      'highest level of education',
       'degree obtained',
+      'course',
+      'course name',
+      'program',
+      'programme',
+      'degree name',
       'diploma',
     ],
-    exclude: ['field', 'major', 'subject', 'date', 'year', 'status'],
+    exclude: [
+      'field',
+      'major',
+      'subject',
+      'date',
+      'year',
+      'status',
+      'level',
+      'duration',
+      'of study',
+    ],
     types: [...TEXTUAL, 'radio'],
   },
   {
@@ -480,8 +879,12 @@ export const RULES: MappingRule[] = [
       'marks',
       'overall grade',
       'final grade',
+      'aggregate',
+      'aggregate percentage',
+      'score',
+      'result',
     ],
-    exclude: ['level', 'year'],
+    exclude: ['level', 'year', 'test', 'gre', 'gmat', 'toefl', 'ielts', 'credit'],
   },
   {
     key: 'education.endDate',
@@ -610,7 +1013,135 @@ export const RULES: MappingRule[] = [
       'what did you do',
     ],
     context: 'experience',
-    types: ['textarea', 'contenteditable', 'text'],
+    types: PROSE,
+  },
+
+  // ---- Projects ---------------------------------------------------------------------------
+  {
+    key: 'project.name',
+    phrases: ['project name', 'project title', 'name of project', 'name of the project'],
+  },
+  { key: 'project.name', phrases: ['name', 'title'], context: 'project' },
+  {
+    key: 'project.role',
+    phrases: ['role in project', 'role in the project', 'project role', 'your role in the project'],
+  },
+  { key: 'project.role', phrases: ['role', 'your role', 'position'], context: 'project' },
+  {
+    key: 'project.description',
+    phrases: [
+      'project description',
+      'description of project',
+      'project details',
+      'about the project',
+    ],
+    types: PROSE,
+  },
+  {
+    key: 'project.description',
+    phrases: ['description', 'details', 'summary', 'responsibilities'],
+    context: 'project',
+    types: PROSE,
+  },
+  {
+    // "Describe a project you're proud of": the whole project, in the user's own words.
+    key: 'project.summary',
+    phrases: [
+      'describe a project',
+      'describe your project',
+      'describe one project',
+      'describe your most recent project',
+      'project you are proud of',
+      'project you re proud of',
+      'tell us about a project',
+      'tell us about your project',
+      'most challenging project',
+      'a project you worked on',
+      'favorite project',
+      'favourite project',
+      'portfolio project',
+      'describe project',
+      'notable project',
+    ],
+    types: PROSE,
+  },
+  {
+    key: 'project.technologies',
+    phrases: [
+      'technologies used',
+      'tech stack used',
+      'project technologies',
+      'tools used',
+      'technology stack',
+    ],
+    types: LISTS,
+  },
+  {
+    key: 'project.technologies',
+    phrases: ['technologies', 'tech stack', 'skills used', 'tools', 'technology'],
+    context: 'project',
+    types: LISTS,
+  },
+  {
+    key: 'project.url',
+    phrases: [
+      'live demo',
+      'demo url',
+      'demo link',
+      'live url',
+      'live link',
+      'project url',
+      'project link',
+      'deployed url',
+      'hosted url',
+    ],
+    types: LINKS,
+  },
+  {
+    key: 'project.url',
+    phrases: ['url', 'link', 'website', 'demo'],
+    context: 'project',
+    exclude: ['github', 'repository', 'repo', 'source'],
+    types: LINKS,
+  },
+  {
+    key: 'project.githubUrl',
+    phrases: [
+      'github repository',
+      'repository url',
+      'repository link',
+      'repo url',
+      'repo link',
+      'source code',
+      'source code link',
+      'code repository',
+      'project github',
+    ],
+    types: LINKS,
+  },
+  {
+    key: 'project.githubUrl',
+    phrases: ['github', 'repository', 'repo', 'git url'],
+    context: 'project',
+    types: LINKS,
+  },
+  {
+    key: 'project.startDate',
+    phrases: ['start date', 'from', 'start', 'start month'],
+    context: 'project',
+    types: DATES,
+  },
+  {
+    key: 'project.endDate',
+    phrases: ['end date', 'to', 'end', 'end month', 'completion date'],
+    context: 'project',
+    types: DATES,
+  },
+  {
+    key: 'project.outcome',
+    phrases: ['outcome', 'impact', 'result', 'achievement', 'key achievement'],
+    context: 'project',
+    types: PROSE,
   },
 
   // ---- Skills ---------------------------------------------------------------------------
@@ -630,10 +1161,38 @@ export const RULES: MappingRule[] = [
       'top skills',
       'areas of expertise',
       'expertise',
-      'programming languages',
       'relevant skills',
+      'technical expertise',
     ],
-    exclude: ['soft', 'spoken'],
+    exclude: ['soft', 'spoken', 'programming language', 'framework', 'database', 'cloud', 'used'],
+    types: LISTS,
+  },
+  {
+    key: 'skills.programmingLanguages',
+    phrases: ['programming languages', 'programming language', 'coding languages'],
+    types: LISTS,
+  },
+  {
+    key: 'skills.frameworks',
+    phrases: [
+      'frameworks',
+      'framework',
+      'libraries and frameworks',
+      'frameworks libraries',
+      'web frameworks',
+    ],
+    types: LISTS,
+  },
+  {
+    key: 'skills.databases',
+    phrases: ['databases', 'database', 'database technologies'],
+    exclude: ['administrator'],
+    types: LISTS,
+  },
+  {
+    key: 'skills.cloud',
+    phrases: ['cloud technologies', 'cloud platforms', 'cloud', 'devops tools', 'cloud skills'],
+    exclude: ['icloud'],
     types: LISTS,
   },
   { key: 'skills.soft', phrases: ['soft skills', 'interpersonal skills'], types: LISTS },
@@ -767,6 +1326,121 @@ export const RULES: MappingRule[] = [
     types: ['text', 'url', 'textarea'],
   },
 
+  {
+    key: 'links.leetcode',
+    phrases: ['leetcode', 'leetcode profile', 'leetcode url'],
+    types: LINKS,
+  },
+  {
+    key: 'links.hackerrank',
+    phrases: ['hackerrank', 'hacker rank', 'hackerrank profile'],
+    types: LINKS,
+  },
+  { key: 'links.codechef', phrases: ['codechef', 'code chef', 'codechef profile'], types: LINKS },
+  { key: 'links.kaggle', phrases: ['kaggle', 'kaggle profile'], types: LINKS },
+  { key: 'links.behance', phrases: ['behance', 'behance profile'], types: LINKS },
+  { key: 'links.dribbble', phrases: ['dribbble', 'dribble', 'dribbble profile'], types: LINKS },
+  {
+    key: 'links.stackoverflow',
+    phrases: ['stack overflow', 'stackoverflow', 'stack overflow profile'],
+    types: LINKS,
+  },
+  { key: 'links.medium', phrases: ['medium profile', 'medium blog', 'medium url'], types: LINKS },
+
+  // ---- Additional: explicit answers only --------------------------------------------------
+  {
+    key: 'additional.disability',
+    phrases: [
+      'disability',
+      'disabled',
+      'disability status',
+      'person with disability',
+      'differently abled',
+      'physically challenged',
+    ],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'additional.veteranStatus',
+    phrases: ['veteran', 'veteran status', 'protected veteran', 'military service'],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'additional.ethnicity',
+    phrases: [
+      'ethnicity',
+      'race',
+      'racial',
+      'ethnic',
+      'race ethnicity',
+      'hispanic or latino',
+      'hispanic',
+    ],
+    types: ANY_CHOICE_OR_TEXT,
+  },
+  {
+    key: 'additional.backgroundCheck',
+    phrases: ['background check', 'background verification', 'background screening'],
+    types: ['radio', 'select'],
+  },
+  {
+    key: 'additional.drugTest',
+    phrases: ['drug test', 'drug screening', 'drug screen'],
+    types: ['radio', 'select'],
+  },
+  {
+    key: 'additional.criminalRecord',
+    phrases: [
+      'criminal record',
+      'criminal',
+      'convicted',
+      'conviction',
+      'felony',
+      'criminal offence',
+      'criminal offense',
+    ],
+    types: ['radio', 'select'],
+  },
+  {
+    key: 'additional.referralSource',
+    phrases: [
+      'how did you hear',
+      'how did you hear about us',
+      'how did you hear about this',
+      'how did you find',
+      'how did you learn about',
+      'where did you hear',
+      'source of application',
+      'referral source',
+      'application source',
+      'how did you come to know',
+    ],
+    types: [...TEXTUAL, 'radio'],
+  },
+  {
+    key: 'additional.coverLetter',
+    phrases: [
+      'cover letter',
+      'covering letter',
+      'cover note',
+      'motivation letter',
+      'letter of motivation',
+    ],
+    exclude: ['upload', 'attach', 'file'],
+    types: PROSE,
+  },
+  {
+    key: 'coverLetterFile',
+    phrases: [
+      'cover letter',
+      'covering letter',
+      'upload cover letter',
+      'attach cover letter',
+      'motivation letter',
+    ],
+    types: ['file'],
+  },
+
   // ---- Files ------------------------------------------------------------------------------
   {
     key: 'resume',
@@ -805,44 +1479,62 @@ export const RULES: MappingRule[] = [
 ];
 
 /**
- * Questions JobFill never answers for the user, even when it could guess:
- * demographics, identity documents, and consent / legal attestations.
+ * Questions JobFill never fills, whatever is in the profile: identity numbers,
+ * passwords/signatures, and personal data JobFill doesn't collect at all.
+ * (Gender, date of birth and EEO questions are NOT here: they map to explicit profile
+ * answers and are left for review when the user hasn't given one — see EXPLICIT_ONLY.)
  */
-export const SENSITIVE_PHRASES = [
-  'gender',
-  'sex',
-  'pronoun',
-  'pronouns',
-  'race',
-  'racial',
-  'ethnicity',
-  'ethnic',
-  'hispanic',
-  'veteran',
-  'disability',
-  'disabled',
+export const NEVER_FILL_PHRASES = [
   'sexual orientation',
   'lgbt',
   'religion',
-  'marital',
-  'date of birth',
-  'birth date',
-  'birthday',
-  'age',
+  'religious',
+  'caste',
   'social security',
   'ssn',
   'national insurance',
   'aadhaar',
+  'aadhar',
   'pan number',
+  'pan card',
   'passport',
   'national id',
-  'criminal',
-  'conviction',
-  'convicted',
+  'tax id',
+  'tax identification',
   'password',
   'signature',
   'captcha',
+  'blood group',
+  'mother s maiden name',
+  'maiden name',
 ];
+
+/**
+ * Keys whose answers JobFill must never infer. Without an explicit value in the profile
+ * the field is always flagged for the user (even when optional), never guessed.
+ */
+export const EXPLICIT_ONLY: ReadonlySet<FieldKey> = new Set<FieldKey>([
+  'personal.dateOfBirth',
+  'personal.birthDay',
+  'personal.birthMonth',
+  'personal.birthYear',
+  'personal.age',
+  'personal.gender',
+  'personal.pronouns',
+  'personal.nationality',
+  'personal.citizenship',
+  'personal.maritalStatus',
+  'professional.workAuthorization',
+  'professional.authorizedToWork',
+  'professional.requiresSponsorship',
+  'professional.willingToRelocate',
+  'additional.disability',
+  'additional.veteranStatus',
+  'additional.ethnicity',
+  'additional.backgroundCheck',
+  'additional.drugTest',
+  'additional.criminalRecord',
+]);
 
 export const CONSENT_PHRASES = [
   'agree',
@@ -864,6 +1556,9 @@ export const CONSENT_PHRASES = [
 // Deliberately narrow: a page title like "Job Application" or "University Recruiting"
 // must not put every field on the page into a section context.
 export const CONTEXT_WORDS: Record<SectionContext, string[]> = {
+  birth: ['date of birth', 'birth date', 'birthdate', 'birthday', 'dob', 'place of birth', 'birth'],
+  permanent: ['permanent address', 'permanent', 'native address', 'home town address'],
+  project: ['project', 'projects', 'project details', 'personal project', 'academic project'],
   education: [
     'education',
     'edu',
@@ -902,6 +1597,14 @@ export const AUTOCOMPLETE: Record<string, FieldKey> = {
   'country-name': 'personal.country',
   'street-address': 'personal.address',
   'address-line1': 'personal.address',
+  bday: 'personal.dateOfBirth',
+  'bday-day': 'personal.birthDay',
+  'bday-month': 'personal.birthMonth',
+  'bday-year': 'personal.birthYear',
+  sex: 'personal.gender',
+  'tel-country-code': 'personal.phoneCountryCode',
+  'address-line2': 'personal.addressLine2',
+  'address-level3': 'personal.district',
   organization: 'professional.currentCompany',
   'organization-title': 'professional.currentTitle',
   url: 'links.website',

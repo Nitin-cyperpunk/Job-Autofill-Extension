@@ -60,7 +60,7 @@ describe('Greenhouse-style board', () => {
       'Resume/CV': 'resume',
       'LinkedIn Profile': 'links.linkedin',
       Website: 'links.website',
-      'Are you legally authorized to work in the United Kingdom?': 'professional.workAuthorization',
+      'Are you legally authorized to work in the United Kingdom?': 'professional.authorizedToWork',
       'Will you now or in the future require sponsorship for employment visa status?':
         'professional.requiresSponsorship',
       'Why do you want to work here?': 'unmapped',
@@ -69,8 +69,9 @@ describe('Greenhouse-style board', () => {
       Discipline: 'education.fieldOfStudy',
       'Start date year': 'education.startDate',
       'End date year': 'education.endDate',
-      Gender: 'left for user',
-      'Veteran Status': 'left for user',
+      // Mapped to explicit profile answers; left for review while the profile has none.
+      Gender: 'personal.gender',
+      'Veteran Status': 'additional.veteranStatus',
       'I consent to the processing of my personal data': 'left for user',
     });
   });
@@ -86,8 +87,9 @@ describe('Greenhouse-style board', () => {
     expect(
       items['Are you legally authorized to work in the United Kingdom?']!.action,
     ).toMatchObject({
+      // The UK is in the user's authorized countries: an explicit Yes.
       kind: 'dropdown',
-      fallback: { kind: 'bool', value: true },
+      value: { kind: 'bool', value: true },
     });
     expect(items['Start date year']!.action).toEqual({ kind: 'text', text: '2014' });
     expect(
@@ -114,9 +116,10 @@ describe('Lever-style application', () => {
       'Portfolio URL': 'links.portfolio',
       'Will you require visa sponsorship to work here?': 'professional.requiresSponsorship',
       'How many years of professional experience do you have?': 'professional.yearsOfExperience',
-      'Additional information': 'unmapped',
-      Gender: 'left for user',
-      Race: 'left for user',
+      // Lever's own placeholder invites a cover letter here.
+      'Additional information': 'additional.coverLetter',
+      Gender: 'personal.gender',
+      Race: 'additional.ethnicity',
     });
     expect(items['Full name']).toMatchObject({ required: true, preview: 'Ada Lovelace' });
     expect(items['How many years of professional experience do you have?']!.preview).toBe('6-10');
@@ -137,7 +140,7 @@ describe('Workday-style application', () => {
       'Email Address': 'personal.email',
       'Phone Device Type': 'unmapped',
       'Phone Number': 'personal.phone',
-      'How Did You Hear About Us?': 'unmapped',
+      'How Did You Hear About Us?': 'additional.referralSource',
     });
     expect(items['Country']).toMatchObject({ type: 'select', action: { kind: 'dropdown' } });
   });
@@ -161,6 +164,9 @@ describe('Workday-style application', () => {
   it('treats a dropdown button that already shows a value as filled', () => {
     loadPage('workday.html', 'step-1');
     document.getElementById('input-1')!.textContent = 'United States of America';
-    expect(plan()['Country']).toMatchObject({ status: 'skip', reason: 'Already filled' });
+    expect(plan()['Country']).toMatchObject({
+      status: 'skip',
+      reason: 'Already filled — left as entered',
+    });
   });
 });

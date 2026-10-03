@@ -16,7 +16,7 @@ export function ProjectsForm({ value, onChange, errors }: SectionFormProps<'proj
       addLabel="Add project"
       emptyText="No projects added yet. Side projects and open source count."
       itemTitle={(p, i) => p.name || `Project ${i + 1}`}
-      itemSubtitle={(p) => p.technologies.join(', ')}
+      itemSubtitle={(p) => [p.role, p.technologies.join(', ')].filter(Boolean).join(' · ')}
       renderItem={(p, update, err) => (
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
@@ -28,7 +28,30 @@ export function ProjectsForm({ value, onChange, errors }: SectionFormProps<'proj
             error={err.name}
           />
           <TextField
-            label="Project URL"
+            label="Your role"
+            placeholder="e.g. Lead developer"
+            value={p.role}
+            onChange={(v) => update({ role: v })}
+            error={err.role}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <TextField
+              label="Start"
+              type="month"
+              value={p.startDate}
+              onChange={(v) => update({ startDate: v })}
+              error={err.startDate}
+            />
+            <TextField
+              label="End"
+              type="month"
+              value={p.endDate}
+              onChange={(v) => update({ endDate: v })}
+              error={err.endDate}
+            />
+          </div>
+          <TextField
+            label="Live / demo URL"
             type="url"
             placeholder="https://"
             value={p.url}
@@ -36,7 +59,7 @@ export function ProjectsForm({ value, onChange, errors }: SectionFormProps<'proj
             error={err.url}
           />
           <TextField
-            label="GitHub URL"
+            label="Repository URL"
             type="url"
             placeholder="https://github.com/…"
             value={p.githubUrl}
@@ -55,9 +78,19 @@ export function ProjectsForm({ value, onChange, errors }: SectionFormProps<'proj
             label="Description"
             rows={3}
             className="sm:col-span-2"
+            hint="What it does and what you built. Used for “Describe a project…” questions — JobFill picks the project that matches the question."
             value={p.description}
             onChange={(v) => update({ description: v })}
             error={err.description}
+          />
+          <TextAreaField
+            label="Outcome / achievement (optional)"
+            rows={2}
+            className="sm:col-span-2"
+            placeholder="e.g. Used by 3 student societies"
+            value={p.outcome}
+            onChange={(v) => update({ outcome: v })}
+            error={err.outcome}
           />
         </div>
       )}
@@ -70,8 +103,9 @@ export function ProjectsSummary({ value }: { value: ProjectEntry[] }) {
   return (
     <ul className="space-y-4">
       {value.map((p) => (
-        <EntrySummary key={p.id} title={p.name}>
+        <EntrySummary key={p.id} title={p.name} subtitle={p.role}>
           {p.description && <Clamp text={p.description} />}
+          {p.outcome && <p className="text-sm text-body">{p.outcome}</p>}
           {p.technologies.length > 0 && <TagList tags={p.technologies} />}
           {(p.url || p.githubUrl) && (
             <p className="flex flex-wrap gap-x-4 text-sm">

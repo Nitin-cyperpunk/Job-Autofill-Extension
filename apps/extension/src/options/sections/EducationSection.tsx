@@ -1,11 +1,23 @@
 import type { EducationEntry } from '@jobfill/types';
 import { createEducationEntry, formatDateRange } from '@jobfill/shared';
 import { EntryList } from '@/components/ui/EntryList';
-import { TextAreaField, TextField } from '@/components/ui/Field';
+import { CheckboxField, TextAreaField, TextField } from '@/components/ui/Field';
+import { Suggestions } from './form-ui';
 import type { SectionFormProps } from './types';
 import { Clamp, EntrySummary, NotProvided } from './summary-ui';
 
 const degreeLine = (e: EducationEntry) => [e.degree, e.fieldOfStudy].filter(Boolean).join(', ');
+
+const LEVELS = [
+  'Doctorate (PhD)',
+  "Master's",
+  "Bachelor's",
+  'Diploma',
+  '12th (Higher Secondary)',
+  '10th (Secondary)',
+  'Associate',
+  'Certificate',
+];
 
 export function EducationForm({ value, onChange, errors }: SectionFormProps<'education'>) {
   return (
@@ -31,8 +43,17 @@ export function EducationForm({ value, onChange, errors }: SectionFormProps<'edu
             error={err.institution}
           />
           <TextField
-            label="Degree"
-            placeholder="e.g. B.Sc., MBA"
+            label="Level"
+            list="jobfill-edu-levels"
+            placeholder="e.g. Bachelor's, 12th"
+            value={e.level}
+            onChange={(v) => update({ level: v })}
+            error={err.level}
+          />
+          <Suggestions id="jobfill-edu-levels" values={LEVELS} />
+          <TextField
+            label="Degree / course"
+            placeholder="e.g. B.Tech, MBA, Class XII"
             value={e.degree}
             onChange={(v) => update({ degree: v })}
             error={err.degree}
@@ -51,8 +72,8 @@ export function EducationForm({ value, onChange, errors }: SectionFormProps<'edu
             error={err.location}
           />
           <TextField
-            label="GPA / CGPA"
-            placeholder="e.g. 3.8/4.0"
+            label="CGPA / GPA / Percentage"
+            placeholder="e.g. 8.6/10 or 86%"
             value={e.gpa}
             onChange={(v) => update({ gpa: v })}
             error={err.gpa}
@@ -65,13 +86,19 @@ export function EducationForm({ value, onChange, errors }: SectionFormProps<'edu
             error={err.startDate}
           />
           <TextField
-            label="End date"
+            label={e.isCurrent ? 'Expected graduation' : 'End date'}
             type="month"
-            hint="Or expected graduation."
             value={e.endDate}
             onChange={(v) => update({ endDate: v })}
             error={err.endDate}
           />
+          <div className="sm:col-span-2">
+            <CheckboxField
+              label="I’m currently studying here"
+              checked={e.isCurrent}
+              onChange={(v) => update({ isCurrent: v })}
+            />
+          </div>
           <TextAreaField
             label="Description"
             rows={3}

@@ -1,5 +1,7 @@
 import {
   PROFILE_SCHEMA_VERSION,
+  type AdditionalInfo,
+  type Address,
   type CertificationEntry,
   type EducationEntry,
   type ExperienceEntry,
@@ -19,11 +21,23 @@ export function createEmptyProfile(): Profile {
       preferredName: '',
       email: '',
       phone: '',
-      country: '',
-      city: '',
-      state: '',
+      alternatePhone: '',
       address: '',
+      addressLine2: '',
+      landmark: '',
+      city: '',
+      district: '',
+      state: '',
       postalCode: '',
+      country: '',
+      permanentSameAsCurrent: '',
+      permanentAddress: createEmptyAddress(),
+      dateOfBirth: '',
+      gender: '',
+      pronouns: '',
+      nationality: '',
+      citizenship: '',
+      maritalStatus: '',
     },
     professional: {
       currentTitle: '',
@@ -31,11 +45,17 @@ export function createEmptyProfile(): Profile {
       yearsOfExperience: '',
       currentCompany: '',
       noticePeriod: '',
+      currentSalary: '',
       expectedSalary: '',
+      salaryCurrency: '',
+      earliestStartDate: '',
       preferredLocations: [],
+      preferredWorkMode: '',
+      preferredJobTypes: [],
       workAuthorization: '',
-      requiresSponsorship: false,
-      willingToRelocate: false,
+      authorizedCountries: [],
+      requiresSponsorship: '',
+      willingToRelocate: '',
     },
     education: [],
     experience: [],
@@ -51,6 +71,7 @@ export function createEmptyProfile(): Profile {
       website: '',
       other: [],
     },
+    additional: createEmptyAdditional(),
     resume: null,
     createdAt: null,
     updatedAt: null,
@@ -58,15 +79,43 @@ export function createEmptyProfile(): Profile {
   };
 }
 
+export function createEmptyAddress(): Address {
+  return {
+    line1: '',
+    line2: '',
+    landmark: '',
+    city: '',
+    district: '',
+    state: '',
+    postalCode: '',
+    country: '',
+  };
+}
+
+export function createEmptyAdditional(): AdditionalInfo {
+  return {
+    disability: '',
+    veteranStatus: '',
+    ethnicity: '',
+    backgroundCheck: '',
+    drugTest: '',
+    criminalRecord: '',
+    referralSource: '',
+    coverLetter: '',
+  };
+}
+
 export function createEducationEntry(): EducationEntry {
   return {
     id: createId(),
+    level: '',
     degree: '',
     fieldOfStudy: '',
     institution: '',
     location: '',
     startDate: '',
     endDate: '',
+    isCurrent: false,
     gpa: '',
     description: '',
   };
@@ -84,11 +133,23 @@ export function createExperienceEntry(): ExperienceEntry {
     isCurrent: false,
     description: '',
     skills: [],
+    reasonForLeaving: '',
   };
 }
 
 export function createProjectEntry(): ProjectEntry {
-  return { id: createId(), name: '', description: '', technologies: [], url: '', githubUrl: '' };
+  return {
+    id: createId(),
+    name: '',
+    role: '',
+    description: '',
+    technologies: [],
+    url: '',
+    githubUrl: '',
+    startDate: '',
+    endDate: '',
+    outcome: '',
+  };
 }
 
 export function createCertificationEntry(): CertificationEntry {

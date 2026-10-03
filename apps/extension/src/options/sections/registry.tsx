@@ -6,9 +6,11 @@ import {
   FolderIcon,
   GraduationIcon,
   LinkIcon,
+  ShieldCheckIcon,
   StarIcon,
   UserIcon,
 } from '@/components/ui/icons';
+import { AdditionalForm, AdditionalSummary } from './AdditionalSection';
 import { CertificationsForm, CertificationsSummary } from './CertificationsSection';
 import { EducationForm, EducationSummary } from './EducationSection';
 import { ExperienceForm, ExperienceSummary } from './ExperienceSection';
@@ -27,7 +29,8 @@ export const SECTIONS: { [K in SectionId]: SectionDefinition<K> } = {
   personal: {
     id: 'personal',
     title: 'Personal information',
-    description: 'How employers reach you. Name and email are required.',
+    description:
+      'Name, contact details, current and permanent address, and optional personal details.',
     icon: <UserIcon />,
     optional: false,
     Form: PersonalForm,
@@ -36,7 +39,7 @@ export const SECTIONS: { [K in SectionId]: SectionDefinition<K> } = {
   professional: {
     id: 'professional',
     title: 'Professional details',
-    description: 'Your current role and the questions most applications ask.',
+    description: 'Current role, salary, availability, job preferences and work authorization.',
     icon: <BriefcaseIcon />,
     optional: true,
     Form: ProfessionalForm,
@@ -96,6 +99,16 @@ export const SECTIONS: { [K in SectionId]: SectionDefinition<K> } = {
     Form: LinksForm,
     Summary: LinksSummary,
   },
+  additional: {
+    id: 'additional',
+    title: 'Additional information',
+    description:
+      'Equal-opportunity, background and other common questions — used only exactly as you answer them.',
+    icon: <ShieldCheckIcon />,
+    optional: true,
+    Form: AdditionalForm,
+    Summary: AdditionalSummary,
+  },
 };
 
 export const SECTION_ORDER: SectionId[] = [
@@ -107,4 +120,5 @@ export const SECTION_ORDER: SectionId[] = [
   'certifications',
   'skills',
   'links',
+  'additional',
 ];

@@ -39,9 +39,10 @@ describe('fillPage on the simple form', () => {
     expect(value('[name=last_name]')).toBe('Lovelace');
     expect(value('#email')).toBe('ada@example.com');
     expect(value('[name=phone]')).toBe('+44 20 7946 0000');
+    // "Authorized to work here?" names no country: never answered from a guess.
     expect(
       document.querySelector<HTMLInputElement>('input[name=authorized][value=yes]')!.checked,
-    ).toBe(true);
+    ).toBe(false);
 
     expect(summary.filled.map((f) => f.label)).toEqual([
       'First Name',
@@ -49,9 +50,9 @@ describe('fillPage on the simple form', () => {
       'Email',
       'Phone number',
     ]);
-    expect(summary.filledCount).toBe(5); // + the authorization radio, flagged for review
+    expect(summary.filledCount).toBe(4);
     const review = Object.fromEntries(summary.review.map((r) => [r.label, r.reason]));
-    expect(review['Are you legally authorized to work here?']).toMatch(/Legal question/);
+    expect(review['Are you legally authorized to work here?']).toMatch(/doesn’t name a country/);
     expect(review['Country']).toMatch(/No option matches/); // only India / US offered
     expect(review['I agree to the privacy policy']).toMatch(/Consent/);
     // No stored file in this test: offered as "Attach Resume", never claimed as uploaded.

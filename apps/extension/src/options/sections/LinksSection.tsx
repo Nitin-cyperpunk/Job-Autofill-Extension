@@ -56,7 +56,8 @@ export function LinksForm({ value, onChange, errors }: SectionFormProps<'links'>
       <div>
         <h3 className="text-sm font-medium text-body">Other links</h3>
         <p className="mb-3 text-xs text-muted">
-          Behance, Dribbble, Google Scholar, a blog — anything else.
+          LeetCode, HackerRank, Kaggle, Behance, Dribbble, Stack Overflow, Medium, a blog — anything
+          else. Forms that ask for one of these by name get the matching link.
         </p>
         <div className="space-y-3">
           {value.other.map((link, i) => {

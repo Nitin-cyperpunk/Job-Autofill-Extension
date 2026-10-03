@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { SectionId, SectionValue } from '@jobfill/types';
+import { WORK_MODES, type SectionId, type SectionValue } from '@jobfill/types';
 import { isHttpUrl, normalizeUrl } from './url';
 
 /**
@@ -24,6 +24,13 @@ const optionalUrl = z
   .max(2000, 'This link is too long.')
   .refine((v) => v === '' || isHttpUrl(v), 'Enter a valid web address, e.g. https://example.com');
 const month = z.string().refine((v) => v === '' || MONTH_RE.test(v), 'Use the format YYYY-MM.');
+const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const date = z
+  .string()
+  .refine((v) => v === '' || DATE_RE.test(v), 'Use a full date, e.g. 1998-04-21.');
+const answer = z.enum(['', 'yes', 'no']);
+const postal = optionalMatch(/^[A-Za-z0-9 -]{3,10}$/, 'Enter a valid ZIP/PIN code.');
+const PHONE_MESSAGE = 'Enter a valid phone number, e.g. +1 555 010 0000.';
 const tags = z
   .array(z.string().max(60, 'Each item must be under 60 characters.'))
   .max(100, 'That is a lot of items — keep it under 100.');
@@ -45,12 +52,36 @@ const schemas = {
     lastName: required('Last name'),
     preferredName: short,
     email: required('Email').refine((v) => v === '' || EMAIL_RE.test(v), 'Enter a valid email.'),
-    phone: optionalMatch(PHONE_RE, 'Enter a valid phone number, e.g. +1 555 010 0000.'),
-    country: short,
-    city: short,
-    state: short,
+    phone: optionalMatch(PHONE_RE, PHONE_MESSAGE),
+    alternatePhone: optionalMatch(PHONE_RE, PHONE_MESSAGE),
     address: short,
-    postalCode: optionalMatch(/^[A-Za-z0-9 -]{3,10}$/, 'Enter a valid ZIP/PIN code.'),
+    addressLine2: short,
+    landmark: short,
+    city: short,
+    district: short,
+    state: short,
+    postalCode: postal,
+    country: short,
+    permanentSameAsCurrent: answer,
+    permanentAddress: z.object({
+      line1: short,
+      line2: short,
+      landmark: short,
+      city: short,
+      district: short,
+      state: short,
+      postalCode: postal,
+      country: short,
+    }),
+    dateOfBirth: date.refine(
+      (v) => v === '' || v <= new Date().toISOString().slice(0, 10),
+      'Date of birth can’t be in the future.',
+    ),
+    gender: short,
+    pronouns: short,
+    nationality: short,
+    citizenship: short,
+    maritalStatus: short,
   }),
   professional: z.object({
     currentTitle: short,
@@ -58,22 +89,33 @@ const schemas = {
     yearsOfExperience: optionalMatch(/^\d{1,2}(\.\d)?$/, 'Enter a number, e.g. 4 or 2.5.'),
     currentCompany: short,
     noticePeriod: short,
+    currentSalary: short,
     expectedSalary: short,
+    salaryCurrency: optionalMatch(
+      /^[A-Za-z]{3}$/,
+      'Use a 3-letter currency code, e.g. INR or USD.',
+    ),
+    earliestStartDate: date,
     preferredLocations: tags,
+    preferredWorkMode: z.enum([...WORK_MODES, '']),
+    preferredJobTypes: z.array(z.string()),
     workAuthorization: short,
-    requiresSponsorship: z.boolean(),
-    willingToRelocate: z.boolean(),
+    authorizedCountries: tags,
+    requiresSponsorship: answer,
+    willingToRelocate: answer,
   }),
   education: z.array(
     z
       .object({
         id: z.string(),
+        level: short,
         degree: short,
         fieldOfStudy: short,
         institution: required('Institution'),
         location: short,
         startDate: month,
         endDate: month,
+        isCurrent: z.boolean(),
         gpa: z.string().max(20, 'Keep GPA/CGPA short, e.g. 3.8/4.0.'),
         description: long,
       })
@@ -92,18 +134,25 @@ const schemas = {
         isCurrent: z.boolean(),
         description: long,
         skills: tags,
+        reasonForLeaving: long,
       })
       .superRefine(endAfterStart),
   ),
   projects: z.array(
-    z.object({
-      id: z.string(),
-      name: required('Project name'),
-      description: long,
-      technologies: tags,
-      url: optionalUrl,
-      githubUrl: optionalUrl,
-    }),
+    z
+      .object({
+        id: z.string(),
+        name: required('Project name'),
+        role: short,
+        description: long,
+        technologies: tags,
+        url: optionalUrl,
+        githubUrl: optionalUrl,
+        startDate: month,
+        endDate: month,
+        outcome: long,
+      })
+      .superRefine(endAfterStart),
   ),
   certifications: z.array(
     z.object({
@@ -129,6 +178,16 @@ const schemas = {
         url: optionalUrl.refine((v) => v !== '', 'Enter the link address.'),
       }),
     ),
+  }),
+  additional: z.object({
+    disability: short,
+    veteranStatus: short,
+    ethnicity: short,
+    backgroundCheck: answer,
+    drugTest: answer,
+    criminalRecord: answer,
+    referralSource: short,
+    coverLetter: long,
   }),
 } satisfies Record<SectionId, z.ZodType>;
 
@@ -210,7 +269,11 @@ function isBlank(obj: object): boolean {
 }
 
 const cleaners: { [K in SectionId]: (value: SectionValue<K>) => SectionValue<K> } = {
-  personal: (v) => ({ ...trimStrings(v), email: v.email.trim().toLowerCase() }),
+  personal: (v) => ({
+    ...trimStrings(v),
+    email: v.email.trim().toLowerCase(),
+    permanentAddress: trimStrings(v.permanentAddress),
+  }),
   professional: (v) => trimStrings(v),
   education: (list) => list.map(trimStrings).filter((e) => !isBlank(e)),
   experience: (list) =>
@@ -229,6 +292,7 @@ const cleaners: { [K in SectionId]: (value: SectionValue<K>) => SectionValue<K> 
       .map((c) => ({ ...c, url: normalizeUrl(c.url) }))
       .filter((c) => !isBlank(c)),
   skills: (v) => trimStrings(v),
+  additional: (v) => trimStrings(v),
   links: (v) => ({
     resumeUrl: normalizeUrl(v.resumeUrl),
     linkedin: normalizeUrl(v.linkedin),

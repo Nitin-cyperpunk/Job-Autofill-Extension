@@ -6,7 +6,7 @@ import { targetTabId } from '@/utils/messaging';
 
 export type Readiness =
   | { state: 'checking' }
-  | { state: 'ready'; detected: number; fillable: number }
+  | { state: 'ready'; detected: number; fillable: number; review: number; unavailable: number }
   | { state: 'unavailable' };
 
 /**
@@ -44,11 +44,17 @@ export function usePageReadiness(profile: Profile, enabled: boolean): Readiness 
           return;
         }
         const plan = planFill(fields, profile);
+        const fillable = plan.filter(
+          (p) => p.status === 'fill' || p.status === 'fill-review',
+        ).length;
+        const review = plan.filter((p) => p.status === 'review').length;
         if (!cancelled)
           setReadiness({
             state: 'ready',
             detected: fields.length,
-            fillable: plan.filter((p) => p.status === 'fill' || p.status === 'fill-review').length,
+            fillable,
+            review,
+            unavailable: fields.length - fillable - review,
           });
       } catch {
         if (!cancelled) setReadiness({ state: 'unavailable' });

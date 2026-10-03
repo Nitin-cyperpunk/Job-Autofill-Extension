@@ -127,16 +127,27 @@ function PageStatus({ readiness }: { readiness: Readiness }) {
     return <p className="mt-3 text-xs text-muted">No form JobFill can read on this page.</p>;
   if (readiness.detected === 0)
     return <p className="mt-3 text-xs text-muted">No form fields detected on this page yet.</p>;
+  const stats = [
+    { label: 'Ready', value: readiness.fillable, icon: '✓', tone: 'text-ok' },
+    { label: 'Need review', value: readiness.review, icon: '⚠', tone: 'text-warn' },
+    { label: 'Not available', value: readiness.unavailable, icon: '○', tone: 'text-muted' },
+  ];
   return (
-    <dl className="mt-3 grid animate-fade grid-cols-2 gap-2 text-center" aria-live="polite">
-      <div className="rounded-md bg-subtle px-2 py-1.5">
-        <dt className="text-[11px] text-muted">Fields detected</dt>
-        <dd className="text-sm font-semibold text-fg tabular-nums">{readiness.detected}</dd>
-      </div>
-      <div className="rounded-md bg-subtle px-2 py-1.5">
-        <dt className="text-[11px] text-muted">Ready to fill</dt>
-        <dd className="text-sm font-semibold text-accent tabular-nums">{readiness.fillable}</dd>
-      </div>
-    </dl>
+    <div className="mt-3 animate-fade" aria-live="polite">
+      <p className="text-xs font-medium text-body">
+        JobFill found {readiness.detected} {readiness.detected === 1 ? 'field' : 'fields'}
+      </p>
+      <dl className="mt-1.5 grid grid-cols-3 gap-1.5 text-center">
+        {stats.map((s) => (
+          <div key={s.label} className="flex flex-col-reverse rounded-md bg-subtle px-1 py-1.5">
+            <dt className="text-[10px] leading-tight text-muted">{s.label}</dt>
+            <dd className={`text-sm font-semibold tabular-nums ${s.tone}`}>
+              <span aria-hidden="true">{s.icon} </span>
+              {s.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }

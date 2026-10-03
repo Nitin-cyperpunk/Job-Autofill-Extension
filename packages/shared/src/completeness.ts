@@ -39,7 +39,12 @@ export function computeCompleteness(profile: Profile): Completeness {
         [Boolean(p.firstName && p.lastName), 'Full name'],
         [Boolean(p.email), 'Email'],
         [Boolean(p.phone), 'Phone'],
-        [Boolean(p.city || p.country), 'Location'],
+        [Boolean(p.address && p.city && p.postalCode), 'Current address (street, city, PIN/ZIP)'],
+        [
+          p.permanentSameAsCurrent === 'yes' ||
+            Boolean(p.permanentAddress.line1 && p.permanentAddress.city),
+          'Permanent address (or “same as current”)',
+        ],
       ]),
     },
     {
@@ -50,7 +55,10 @@ export function computeCompleteness(profile: Profile): Completeness {
         [Boolean(pro.currentTitle), 'Current job title'],
         [Boolean(pro.summary), 'Professional summary'],
         [Boolean(pro.yearsOfExperience), 'Years of experience'],
-        [Boolean(pro.workAuthorization), 'Work authorization'],
+        [Boolean(pro.workAuthorization || pro.authorizedCountries.length), 'Work authorization'],
+        [pro.requiresSponsorship !== '', 'Sponsorship answer'],
+        [Boolean(pro.noticePeriod || pro.earliestStartDate), 'Notice period / start date'],
+        [Boolean(pro.expectedSalary), 'Expected salary'],
       ]),
     },
     {
@@ -69,7 +77,13 @@ export function computeCompleteness(profile: Profile): Completeness {
       id: 'projects',
       label: 'Projects',
       weight: 5,
-      ...fraction([[profile.projects.length > 0, 'At least one project']]),
+      ...fraction([
+        [profile.projects.length > 0, 'At least one project'],
+        [
+          profile.projects.some((pr) => pr.description && pr.technologies.length > 0),
+          'Project details (description and technologies)',
+        ],
+      ]),
     },
     {
       id: 'skills',

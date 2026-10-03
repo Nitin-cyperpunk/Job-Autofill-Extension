@@ -93,6 +93,15 @@ export function ExperienceForm({ value, onChange, errors }: SectionFormProps<'ex
             onChange={(v) => update({ skills: v })}
             error={err.skills}
           />
+          <TextAreaField
+            label="Reason for leaving (optional)"
+            rows={2}
+            className="sm:col-span-2"
+            hint="Used only for “Why are you leaving?” questions, exactly as written."
+            value={e.reasonForLeaving}
+            onChange={(v) => update({ reasonForLeaving: v })}
+            error={err.reasonForLeaving}
+          />
         </div>
       )}
     />

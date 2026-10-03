@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <title>Careers — Software Engineer application (India)</title>
+    <style>
+      body {
+        font:
+          15px system-ui,
+          sans-serif;
+        max-width: 760px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      fieldset {
+        margin: 1.25rem 0;
+        padding: 0.75rem 1rem;
+      }
+      label {
+        display: block;
+        margin: 0.5rem 0 0.15rem;
+      }
+      input[type='text'],
+      input[type='email'],
+      input[type='tel'],
+      input[type='url'],
+      select,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .inline label {
+        display: inline;
+        margin-right: 1rem;
+      }
+      .hint {
+        color: #666;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Apply: Software Engineer, Bengaluru</h1>
+    <p>Job location: Bengaluru (Hybrid)</p>
+    <form
+      id="application"
+      onsubmit="
+        window.__submits = (window.__submits || 0) + 1;
+        return false;
+      "
+    >
+      <fieldset>
+        <legend>Personal Details</legend>
+        <label for="fname">First Name *</label>
+        <input id="fname" name="fname" type="text" required />
+        <label for="lname">Surname *</label>
+        <input id="lname" name="lname" type="text" required />
+        <label for="email">Email ID *</label>
+        <input id="email" name="email_id" type="email" required />
+        <label for="ccode">Country Code</label>
+        <select id="ccode" name="country_code">
+          <option value="">Select</option>
+          <option value="+1">United States (+1)</option>
+          <option value="+44">United Kingdom (+44)</option>
+          <option value="+91">India (+91)</option>
+          <option value="+971">UAE (+971)</option>
+        </select>
+        <label for="mobile">Mobile Number *</label>
+        <input id="mobile" name="mobile_no" type="tel" required />
+        <label for="altmobile">Alternate Mobile Number</label>
+        <input id="altmobile" name="alt_mobile" type="tel" />
+        <label for="dob">Date of Birth *</label>
+        <input id="dob" name="dob" type="text" placeholder="DD/MM/YYYY" required />
+        <div role="radiogroup" aria-labelledby="gender-label" class="inline">
+          <p id="gender-label">Gender *</p>
+          <label><input type="radio" name="gender" value="M" /> Male</label>
+          <label><input type="radio" name="gender" value="F" /> Female</label>
+          <label><input type="radio" name="gender" value="O" /> Other</label>
+          <label><input type="radio" name="gender" value="NA" /> Prefer not to say</label>
+        </div>
+        <label for="aadhaar">Aadhaar Number</label>
+        <input id="aadhaar" name="aadhaar" type="text" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Current Address</legend>
+        <label for="addr1">Address Line 1 *</label>
+        <input id="addr1" name="current_address_line1" type="text" />
+        <label for="addr2">Address Line 2</label>
+        <input id="addr2" name="current_address_line2" type="text" />
+        <label for="landmark">Landmark</label>
+        <input id="landmark" name="landmark" type="text" />
+        <label for="city">City *</label>
+        <input id="city" name="city" type="text" />
+        <label for="district">District</label>
+        <input id="district" name="district" type="text" />
+        <label for="state">State *</label>
+        <select id="state" name="state">
+          <option value="">Select state</option>
+          <option>Delhi</option>
+          <option>Karnataka</option>
+          <option>Maharashtra</option>
+          <option>Uttar Pradesh</option>
+        </select>
+        <label for="pincode">Pincode *</label>
+        <input id="pincode" name="pincode" type="text" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Permanent Address</legend>
+        <label
+          ><input id="same" type="checkbox" name="perm_same" /> Permanent address same as current
+          address</label
+        >
+        <label for="paddr1">Address Line 1</label>
+        <input id="paddr1" name="permanent_address_line1" type="text" />
+        <label for="pcity">City</label>
+        <input id="pcity" name="permanent_city" type="text" />
+        <label for="pstate">State</label>
+        <input id="pstate" name="permanent_state" type="text" />
+        <label for="ppin">PIN Code</label>
+        <input id="ppin" name="permanent_pin" type="text" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Education 1</legend>
+        <label for="edu1-college">College / University *</label>
+        <input id="edu1-college" name="education[0][college]" type="text" />
+        <label for="edu1-course">Course *</label>
+        <input id="edu1-course" name="education[0][course]" type="text" />
+        <label for="edu1-cgpa">CGPA / Percentage</label>
+        <input id="edu1-cgpa" name="education[0][cgpa]" type="text" />
+        <label for="edu1-year">Year of Passing</label>
+        <input id="edu1-year" name="education[0][passing_year]" type="text" />
+      </fieldset>
+      <fieldset>
+        <legend>Education 2</legend>
+        <label for="edu2-college">College / University</label>
+        <input id="edu2-college" name="education[1][college]" type="text" />
+        <label for="edu2-course">Course</label>
+        <input id="edu2-course" name="education[1][course]" type="text" />
+        <label for="edu2-cgpa">CGPA / Percentage</label>
+        <input id="edu2-cgpa" name="education[1][cgpa]" type="text" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Work Experience</legend>
+        <label for="employer">Current Employer</label>
+        <input id="employer" name="current_employer" type="text" />
+        <label for="designation">Designation</label>
+        <input id="designation" name="designation" type="text" />
+        <label for="ctc">Current CTC (LPA)</label>
+        <input id="ctc" name="current_ctc" type="text" />
+        <label for="ectc">Expected CTC (LPA)</label>
+        <input id="ectc" name="expected_ctc" type="text" />
+        <label for="notice">Notice Period</label>
+        <input id="notice" name="notice_period" type="text" />
+        <label for="reason">Reason for leaving</label>
+        <textarea id="reason" name="reason_for_leaving" rows="2"></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Projects</legend>
+        <label for="pname">Project Name</label>
+        <input id="pname" name="project_name" type="text" />
+        <label for="pdesc">Project Description</label>
+        <textarea id="pdesc" name="project_description" rows="3"></textarea>
+        <label for="pstack">Tech Stack</label>
+        <input id="pstack" name="project_tech" type="text" />
+        <label for="prepo">GitHub Repository</label>
+        <input id="prepo" name="project_repo" type="url" />
+        <label for="plive">Live Demo</label>
+        <input id="plive" name="project_live" type="url" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Skills &amp; Profiles</legend>
+        <label for="langs">Programming Languages</label>
+        <input id="langs" name="programming_languages" type="text" />
+        <label for="skills">Technical Skills</label>
+        <input id="skills" name="skills" type="text" value="React, Next.js" />
+        <span class="hint">(pre-filled by the candidate — must not be overwritten)</span>
+        <label for="linkedin">LinkedIn Profile</label>
+        <input id="linkedin" name="linkedin" type="url" />
+        <label for="leetcode">LeetCode Profile</label>
+        <input id="leetcode" name="leetcode" type="url" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Eligibility</legend>
+        <div role="radiogroup" aria-labelledby="auth-label" class="inline">
+          <p id="auth-label">Are you legally authorized to work in India? *</p>
+          <label><input type="radio" name="authorized" value="yes" /> Yes</label>
+          <label><input type="radio" name="authorized" value="no" /> No</label>
+        </div>
+        <div role="radiogroup" aria-labelledby="spons-label" class="inline">
+          <p id="spons-label">Will you now or in the future require visa sponsorship?</p>
+          <label><input type="radio" name="sponsorship" value="yes" /> Yes</label>
+          <label><input type="radio" name="sponsorship" value="no" /> No</label>
+        </div>
+        <div role="radiogroup" aria-labelledby="reloc-label" class="inline">
+          <p id="reloc-label">Are you willing to relocate?</p>
+          <label><input type="radio" name="relocate" value="yes" /> Yes</label>
+          <label><input type="radio" name="relocate" value="no" /> No</label>
+        </div>
+        <div id="reloc-more"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Questions</legend>
+        <label for="q-project">Describe one project where you used React</label>
+        <textarea id="q-project" name="q_project" rows="4"></textarea>
+        <label for="q-why">Why do you want to join us?</label>
+        <textarea id="q-why" name="q_why" rows="4"></textarea>
+        <label for="hear">How did you hear about this position?</label>
+        <select id="hear" name="source">
+          <option value="">Select</option>
+          <option>Company website</option>
+          <option>LinkedIn</option>
+          <option>Referral</option>
+          <option>Naukri</option>
+        </select>
+      </fieldset>
+
+      <label
+        ><input id="consent" type="checkbox" name="consent" required /> I agree to the privacy
+        policy and terms *</label
+      >
+      <button type="submit">Submit application</button>
+    </form>
+    <script>
+      // A follow-up field revealed by an answer, like real forms do.
+      document.querySelectorAll('input[name=relocate]').forEach((r) =>
+        r.addEventListener('change', () => {
+          const box = document.getElementById('reloc-more');
+          if (r.value === 'yes' && r.checked && !box.firstChild) {
+            box.innerHTML =
+              '<label for="pref-loc">Preferred work location</label><input id="pref-loc" name="preferred_location" type="text" />';
+          }
+        }),
+      );
+    </script>
+  </body>
+</html>

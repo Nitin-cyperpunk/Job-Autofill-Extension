@@ -1,5 +1,8 @@
-export { EMPLOYMENT_TYPES, PROFILE_SCHEMA_VERSION } from './profile';
+export { EMPLOYMENT_TYPES, PROFILE_SCHEMA_VERSION, WORK_MODES } from './profile';
 export type {
+  AdditionalInfo,
+  Address,
+  Answer,
   CertificationEntry,
   EducationEntry,
   EmploymentType,
@@ -14,6 +17,7 @@ export type {
   SectionId,
   SectionValue,
   Skills,
+  WorkMode,
 } from './profile';
 export type { StoredResume } from './resume';
 export { PROFILE_EXPORT_FORMAT } from './export';

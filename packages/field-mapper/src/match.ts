@@ -3,8 +3,8 @@ import {
   AUTOCOMPLETE,
   CONSENT_PHRASES,
   CONTEXT_WORDS,
+  NEVER_FILL_PHRASES,
   RULES,
-  SENSITIVE_PHRASES,
   TEXTUAL,
   type MappingRule,
   type SectionContext,
@@ -60,7 +60,7 @@ const PREPARED: PreparedRule[] = RULES.map((rule) => ({
   normalizedPhrases: [...new Set(rule.phrases.map(normalizeText).filter(Boolean))],
   normalizedExcludes: (rule.exclude ?? []).map(normalizeText).filter(Boolean),
 }));
-const SENSITIVE = SENSITIVE_PHRASES.map(normalizeText);
+const NEVER_FILL = NEVER_FILL_PHRASES.map(normalizeText);
 const CONSENT = CONSENT_PHRASES.map(normalizeText);
 
 /** How well one normalized text matches one normalized phrase (0–1). */
@@ -97,13 +97,27 @@ function ruleScore(rule: PreparedRule, text: string): { score: number; phrase: s
   return best;
 }
 
-/** Education / Experience section, from the section heading and the field's name/id. */
+/** Most specific first: a "Permanent address" block inside "Personal details" is permanent. */
+const CONTEXT_ORDER: SectionContext[] = [
+  'birth',
+  'permanent',
+  'project',
+  'education',
+  'experience',
+];
+const CONTEXT_PHRASES = Object.fromEntries(
+  CONTEXT_ORDER.map((c) => [c, CONTEXT_WORDS[c].map(normalizeText)]),
+) as Record<SectionContext, string[]>;
+
+/**
+ * The kind of section a field sits in (Education, Experience, Projects, Permanent
+ * address, Date of birth), from its section heading and its name/id.
+ */
 export function sectionContext(field: FieldDescriptor): SectionContext | null {
   const texts = [field.section, field.name, field.htmlId].map(normalizeText);
   for (const text of texts) {
-    for (const context of ['education', 'experience'] as const) {
-      if (CONTEXT_WORDS[context].some((word) => containsPhrase(text, normalizeText(word))))
-        return context;
+    for (const context of CONTEXT_ORDER) {
+      if (CONTEXT_PHRASES[context].some((word) => containsPhrase(text, word))) return context;
     }
   }
   return null;
@@ -142,9 +156,10 @@ export function matchField(field: FieldDescriptor): MatchResult {
     )
     .map(([, text]) => text);
 
-  // 1. Never answer demographic, identity or consent questions for the user.
-  const sensitive = findPhrase(humanTexts, SENSITIVE);
-  if (sensitive) return { kind: 'sensitive', reason: 'personal', phrase: sensitive };
+  // 1. Never fill identity numbers, passwords or data JobFill doesn't collect, and never
+  //    tick consent boxes. (Demographics map to explicit profile answers further down.)
+  const never = findPhrase(humanTexts, NEVER_FILL);
+  if (never) return { kind: 'sensitive', reason: 'personal', phrase: never };
   if (field.type === 'checkbox' || field.type === 'radio') {
     const consent = findPhrase(humanTexts, CONSENT);
     if (consent) return { kind: 'sensitive', reason: 'consent', phrase: consent };
@@ -229,7 +244,7 @@ export function explainMatch(field: FieldDescriptor, result: MatchResult): strin
   if (result.kind === 'sensitive') {
     return result.reason === 'consent'
       ? `Consent question ("${result.phrase}") — never answered automatically`
-      : `Personal question ("${result.phrase}") — never answered automatically`;
+      : `Protected question ("${result.phrase}") — never answered automatically`;
   }
   switch (result.source) {
     case 'autocomplete':

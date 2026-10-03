@@ -2,11 +2,12 @@ import { z } from 'zod';
 import {
   EMPLOYMENT_TYPES,
   PROFILE_SCHEMA_VERSION,
+  WORK_MODES,
   type Profile,
   type ResumeMeta,
   type StoredResume,
 } from '@jobfill/types';
-import { createEmptyProfile } from './default-profile';
+import { createEmptyAdditional, createEmptyAddress, createEmptyProfile } from './default-profile';
 import { createId } from './ids';
 import { liftLegacyLinks } from './legacy-links';
 
@@ -21,6 +22,20 @@ import { liftLegacyLinks } from './legacy-links';
 
 const text = z.string().catch('');
 const flag = z.boolean().catch(false);
+/**
+ * Yes/no answers. v2 stored relocation/sponsorship as booleans defaulting to false, so
+ * `true` was a real answer but `false` may only mean "never answered": it migrates to ''
+ * (not answered) rather than a "No" the user may never have given.
+ */
+const answer = z
+  .union([z.enum(['', 'yes', 'no']), z.boolean()])
+  .transform((v): '' | 'yes' | 'no' => (v === true ? 'yes' : v === false ? '' : v))
+  .catch('');
+/** "YYYY-MM-DD" only; anything else becomes "". */
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .catch('');
 const nullableIso = z.string().nullable().catch(null);
 const id = z
   .string()
@@ -48,6 +63,19 @@ function entryList<T>(schema: z.ZodType<T>) {
 
 const empty = createEmptyProfile();
 
+const addressSchema = z
+  .object({
+    line1: text,
+    line2: text,
+    landmark: text,
+    city: text,
+    district: text,
+    state: text,
+    postalCode: text,
+    country: text,
+  })
+  .catch(() => createEmptyAddress());
+
 const personalSchema = z
   .object({
     firstName: text,
@@ -56,11 +84,23 @@ const personalSchema = z
     preferredName: text,
     email: text,
     phone: text,
-    country: text,
-    city: text,
-    state: text,
+    alternatePhone: text,
     address: text,
+    addressLine2: text,
+    landmark: text,
+    city: text,
+    district: text,
+    state: text,
     postalCode: text,
+    country: text,
+    permanentSameAsCurrent: answer,
+    permanentAddress: addressSchema,
+    dateOfBirth: isoDate,
+    gender: text,
+    pronouns: text,
+    nationality: text,
+    citizenship: text,
+    maritalStatus: text,
   })
   .catch(() => createEmptyProfile().personal);
 
@@ -71,22 +111,37 @@ const professionalSchema = z
     yearsOfExperience: text,
     currentCompany: text,
     noticePeriod: text,
+    currentSalary: text,
     expectedSalary: text,
+    salaryCurrency: text,
+    earliestStartDate: isoDate,
     preferredLocations: stringList,
+    preferredWorkMode: z.enum([...WORK_MODES, '']).catch(''),
+    preferredJobTypes: z
+      .array(z.unknown())
+      .catch([])
+      .transform((items) =>
+        items.filter((i): i is (typeof EMPLOYMENT_TYPES)[number] =>
+          (EMPLOYMENT_TYPES as readonly unknown[]).includes(i),
+        ),
+      ),
     workAuthorization: text,
-    requiresSponsorship: flag,
-    willingToRelocate: flag,
+    authorizedCountries: stringList,
+    requiresSponsorship: answer,
+    willingToRelocate: answer,
   })
   .catch(() => createEmptyProfile().professional);
 
 const educationSchema = z.object({
   id,
+  level: text,
   degree: text,
   fieldOfStudy: text,
   institution: text,
   location: text,
   startDate: text,
   endDate: text,
+  isCurrent: flag,
   gpa: text,
   description: text,
 });
@@ -102,16 +157,34 @@ const experienceSchema = z.object({
   isCurrent: flag,
   description: text,
   skills: stringList,
+  reasonForLeaving: text,
 });
 
 const projectSchema = z.object({
   id,
   name: text,
+  role: text,
   description: text,
   technologies: stringList,
   url: text,
   githubUrl: text,
+  startDate: text,
+  endDate: text,
+  outcome: text,
 });
+
+const additionalSchema = z
+  .object({
+    disability: text,
+    veteranStatus: text,
+    ethnicity: text,
+    backgroundCheck: answer,
+    drugTest: answer,
+    criminalRecord: answer,
+    referralSource: text,
+    coverLetter: text,
+  })
+  .catch(() => createEmptyAdditional());
 
 const certificationSchema = z.object({ id, name: text, issuer: text, date: text, url: text });
 
@@ -151,6 +224,7 @@ const profileSchema = z
     certifications: entryList(certificationSchema),
     skills: skillsSchema,
     links: linksSchema,
+    additional: additionalSchema,
     resume: resumeMetaSchema.nullable().catch(null),
     createdAt: nullableIso,
     updatedAt: nullableIso,

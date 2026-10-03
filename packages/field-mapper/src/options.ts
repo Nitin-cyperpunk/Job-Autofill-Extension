@@ -26,7 +26,11 @@ export function isPlaceholderOption(option: FieldOption): boolean {
 
 // ---- Aliases -----------------------------------------------------------------------
 
-const COUNTRY_ALIASES: string[][] = [
+/**
+ * Different words for the same answer. A stored value matches any option in its group
+ * ("Male" ↔ "Man", "Prefer not to say" ↔ "Decline to self-identify", "April" ↔ "04").
+ */
+const ALIASES: string[][] = [
   ['united states', 'united states of america', 'usa', 'us', 'u s a', 'america'],
   ['united kingdom', 'uk', 'u k', 'great britain', 'britain', 'gb', 'england'],
   ['united arab emirates', 'uae', 'u a e'],
@@ -36,10 +40,145 @@ const COUNTRY_ALIASES: string[][] = [
   ['south korea', 'korea republic of', 'republic of korea', 'korea'],
   ['canada', 'ca'],
   ['australia', 'au'],
+  // Gender (only ever used with the user's own explicit answer)
+  ['male', 'man', 'm', 'cisgender male', 'cis male'],
+  ['female', 'woman', 'f', 'cisgender female', 'cis female'],
+  ['non binary', 'nonbinary', 'non-binary', 'genderqueer', 'gender non conforming'],
+  // Declining to answer — EEO, disability, veteran…
+  [
+    'prefer not to say',
+    'prefer not to answer',
+    'prefer not to disclose',
+    'decline to self identify',
+    'decline to answer',
+    'decline to state',
+    'i don t wish to answer',
+    'i do not wish to answer',
+    'i don t wish to disclose',
+    'do not wish to disclose',
+    'choose not to disclose',
+    'rather not say',
+    'not disclosed',
+  ],
+  // Months
+  ['january', 'jan', '01', '1'],
+  ['february', 'feb', '02', '2'],
+  ['march', 'mar', '03', '3'],
+  ['april', 'apr', '04', '4'],
+  ['may', '05', '5'],
+  ['june', 'jun', '06', '6'],
+  ['july', 'jul', '07', '7'],
+  ['august', 'aug', '08', '8'],
+  ['september', 'sep', 'sept', '09', '9'],
+  ['october', 'oct', '10'],
+  ['november', 'nov', '11'],
+  ['december', 'dec', '12'],
+  // Work mode and job type
+  ['remote', 'fully remote', 'work from home', 'wfh', 'remote only'],
+  ['hybrid', 'hybrid remote'],
+  ['on site', 'onsite', 'on-site', 'in office', 'office', 'in person', 'work from office', 'wfo'],
+  ['flexible', 'any', 'no preference', 'open to all', 'open to any'],
+  ['full time', 'fulltime', 'permanent', 'full time permanent', 'permanent full time'],
+  ['part time', 'parttime'],
+  ['internship', 'intern'],
+  ['contract', 'contractual', 'contractor', 'fixed term'],
+  ['freelance', 'freelancer'],
+  ['temporary', 'temp'],
+  // Marital status
+  ['single', 'unmarried', 'never married'],
+  ['married'],
 ].map((group) => group.map(normalizeText));
 
 function aliasGroup(text: string): string[] | undefined {
-  return COUNTRY_ALIASES.find((group) => group.includes(text));
+  return ALIASES.find((group) => group.includes(text));
+}
+
+/** Country alias groups (the first entries of ALIASES), canonical name first. */
+const COUNTRY_GROUPS = ALIASES.slice(0, 9);
+
+/** Countries forms commonly name in work-authorization questions. */
+const COMMON_COUNTRIES = [
+  'india',
+  'united states',
+  'united kingdom',
+  'canada',
+  'australia',
+  'germany',
+  'france',
+  'netherlands',
+  'ireland',
+  'singapore',
+  'united arab emirates',
+  'japan',
+  'south korea',
+  'china',
+  'new zealand',
+  'sweden',
+  'norway',
+  'denmark',
+  'finland',
+  'switzerland',
+  'austria',
+  'belgium',
+  'spain',
+  'portugal',
+  'italy',
+  'poland',
+  'czech republic',
+  'israel',
+  'saudi arabia',
+  'qatar',
+  'brazil',
+  'mexico',
+  'argentina',
+  'south africa',
+  'nigeria',
+  'kenya',
+  'egypt',
+  'philippines',
+  'indonesia',
+  'malaysia',
+  'vietnam',
+  'thailand',
+  'pakistan',
+  'bangladesh',
+  'sri lanka',
+  'nepal',
+  'european union',
+  'eu',
+].map(normalizeText);
+
+/** Two-letter aliases that are also common English words ("in", "us"): never matched alone in prose. */
+const AMBIGUOUS_SHORT = new Set(['in', 'us', 'ca', 'de', 'au', 'gb', 'nl', 'u s']);
+
+/** True when two country names refer to the same country ("USA" ≈ "United States"). */
+export function sameCountry(a: string, b: string): boolean {
+  const x = normalizeText(a);
+  const y = normalizeText(b);
+  if (!x || !y) return false;
+  if (x === y) return true;
+  const group = aliasGroup(x);
+  return !!group && group.includes(y);
+}
+
+/**
+ * The country a question names ("…authorized to work in India?"), as written in the
+ * user's own list when it matches one of theirs. Null when no country is named.
+ */
+export function countryInText(text: string, userCountries: string[] = []): string | null {
+  const t = normalizeText(text);
+  if (!t) return null;
+  if (containsPhrase(t, 'the us')) return 'united states';
+  const candidates: string[] = [
+    ...userCountries.map(normalizeText),
+    ...COUNTRY_GROUPS.flat(),
+    ...COMMON_COUNTRIES,
+  ].filter((c) => c && !AMBIGUOUS_SHORT.has(c) && (c.length > 2 || c === 'uk' || c === 'eu'));
+  // Longest first: "united arab emirates" before "emirates"-like partials.
+  candidates.sort((a, b) => b.length - a.length);
+  const found = candidates.find((c) => containsPhrase(t, c));
+  if (!found) return null;
+  return userCountries.find((u) => sameCountry(u, found)) ?? aliasGroup(found)?.[0] ?? found;
 }
 
 const DEGREE_LEVELS: Array<[level: string, pattern: RegExp]> = [
@@ -99,6 +238,11 @@ export function parseRange(label: string): [number, number] | null {
 // ---- Text ------------------------------------------------------------------------------------
 
 function textScore(option: FieldOption, value: string): number {
+  // Phone country codes: "+91" must match "India (+91)" exactly, never "+911" or "+9".
+  if (/^\+\d{1,4}$/.test(value.trim())) {
+    const code = new RegExp(`\\${value.trim()}(?!\\d)`);
+    return code.test(option.label) || code.test(option.value) ? 0.9 : 0;
+  }
   const want = normalizeText(value);
   if (!want) return 0;
   let best = 0;
@@ -162,6 +306,11 @@ export function chooseOptions(
         },
         0.85,
       );
+
+    case 'date':
+      // A full date in a single dropdown has no reliable match; split Day/Month/Year
+      // dropdowns map to their own keys instead.
+      return null;
 
     case 'month': {
       // Year-only dropdowns ("2024") are the common case.

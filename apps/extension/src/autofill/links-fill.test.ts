@@ -116,7 +116,7 @@ describe('links and résumé on a typical application form', () => {
     document.body.innerHTML = `<label for="a">LinkedIn</label><input id="a" value="https://linkedin.com/in/someone">`;
     const summary = await fillPage(detect, { settleMs: 0 });
     expect(val('#a')).toBe('https://linkedin.com/in/someone');
-    expect(statusOf(summary, 'LinkedIn')!.status).toBe('not-filled');
+    expect(statusOf(summary, 'LinkedIn')!.status).toBe('already-filled');
   });
 
   it('reports a field as Failed when the page clears the value, never as Filled', async () => {

@@ -1,4 +1,4 @@
-import type { PlanItem } from '@jobfill/field-mapper';
+import { planNotes, type PlanItem } from '@jobfill/field-mapper';
 import type { FieldOutcome, FillResultItem, FillSummary } from '@jobfill/shared';
 import type { SiteAdapter } from '@/adapters';
 import { planForFields } from '@/mapping';
@@ -51,6 +51,8 @@ export async function fillPage(
   };
   const seen = new Set<string>();
 
+  // One profile read per run: every pass plans against the same data.
+  const profile = await loadProfile();
   let fields = scan();
   for (let pass = 0; pass <= followUpPasses; pass++) {
     const fresh = fields.filter((f) => !seen.has(f.descriptor.id));
@@ -62,9 +64,12 @@ export async function fillPage(
       break;
     }
     // Plan with the full list (occurrence counting for repeated sections), fill only fresh fields.
-    const items = (await planPage(fields)).filter((item) =>
-      fresh.some((f) => f.descriptor.id === item.fieldId),
-    );
+    const planned = planForFields(fields, profile);
+    if (pass === 0) {
+      const notes = planNotes(planned, profile);
+      if (notes.length) summary.notes = notes;
+    }
+    const items = planned.filter((item) => fresh.some((f) => f.descriptor.id === item.fieldId));
     await fillItems(items, fields, approved, adapter, summary);
 
     if (pass === followUpPasses) break;
@@ -105,6 +110,7 @@ async function fillItems(
     label: item.label,
     preview: item.preview,
     ...(reason ? { reason } : {}),
+    ...(item.category !== 'UNKNOWN' ? { category: item.category } : {}),
   });
   const outcome = (item: PlanItem, status: FieldOutcome['status'], reason?: string) => {
     const o: FieldOutcome = {
@@ -127,8 +133,13 @@ async function fillItems(
 
   const written: Array<{ item: PlanItem; field: DetectedField }> = [];
   for (const item of items) {
+    // Only what the plan says to fill — or, in preview mode, exactly what the user ticked
+    // (which is also the only way an already-filled field is ever replaced).
     const wanted =
-      item.action && (approved ? approved.has(item.fieldId) : item.status !== 'review');
+      item.action &&
+      (approved
+        ? approved.has(item.fieldId)
+        : item.status === 'fill' || item.status === 'fill-review');
     if (!wanted) {
       // Open questions get their own list (write it yourself, or ask AI) rather than ⚠.
       if (item.openEnded) {
@@ -136,7 +147,10 @@ async function fillItems(
         outcome(item, 'needs-review', item.reason);
       } else if (item.status === 'review') {
         summary.review.push(result(item, item.reason));
-        outcome(item, 'needs-review', item.reason);
+        outcome(item, item.unsupported ? 'unsupported' : 'needs-review', item.reason);
+      } else if (item.replaceable || item.reason.startsWith('Already filled')) {
+        summary.skipped++;
+        outcome(item, 'already-filled', item.reason);
       } else {
         summary.skipped++;
         outcome(item, 'not-filled', item.reason || 'Not selected');
