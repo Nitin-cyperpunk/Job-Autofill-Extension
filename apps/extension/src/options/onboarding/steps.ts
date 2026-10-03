@@ -13,6 +13,7 @@ export const STEP_LABELS: Record<StepId, string> = {
   links: 'Links',
   additional: 'Additional info',
   resume: 'Resume & Links',
+  details: 'Details not on your resume',
   review: 'Review',
   complete: 'Complete',
 };

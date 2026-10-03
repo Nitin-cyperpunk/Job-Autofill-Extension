@@ -104,7 +104,9 @@ beforeEach(async () => {
     <button type="button" id="next">Next</button><button type="submit">Submit</button></form>`;
   buttonClicks = 0;
   submits = 0;
-  document.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => buttonClicks++));
+  document
+    .querySelectorAll('button')
+    .forEach((b) => b.addEventListener('click', () => buttonClicks++));
   document.querySelector('form')!.addEventListener('submit', (e) => {
     e.preventDefault();
     submits++;

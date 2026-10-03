@@ -53,7 +53,8 @@ const CARDS: CardSpec[] = [
     key: 'contact',
     id: 'personal',
     title: 'Contact & Address',
-    description: 'Email, phone, and your current and permanent address. Résumés rarely include a full address.',
+    description:
+      'Email, phone, and your current and permanent address. Résumés rarely include a full address.',
     icon: <GlobeIcon />,
     groups: ['contact', 'current', 'permanent'],
   },

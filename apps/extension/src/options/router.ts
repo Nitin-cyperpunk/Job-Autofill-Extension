@@ -7,7 +7,20 @@ import { SECTION_ORDER } from './sections/registry';
  * #/profile, #/privacy and #/import-resume. The hash keeps the user's place across reloads.
  */
 
-export type StepId = 'welcome' | 'start' | SectionId | 'resume' | 'review' | 'complete';
+export type StepId =
+  | 'welcome'
+  | 'start'
+  | SectionId
+  | 'resume'
+  /** After a résumé import: what a résumé doesn't contain (address, DOB, gender…). */
+  | 'details'
+  | 'review'
+  | 'complete';
+
+export type ReturnTo = 'review' | 'details';
+
+const parseReturn = (value: string | null): ReturnTo | undefined =>
+  value === 'review' || value === 'details' ? value : undefined;
 
 /**
  * "Resume & Professional Links" comes first: the resume file plus the drive link, LinkedIn,
@@ -24,7 +37,7 @@ export const STEP_ORDER: StepId[] = [
 ];
 
 export type Route =
-  | { name: 'onboarding'; step: StepId; returnTo?: 'review'; notice?: 'deleted' | 'reset' }
+  | { name: 'onboarding'; step: StepId; returnTo?: ReturnTo; notice?: 'deleted' | 'reset' }
   | { name: 'profile' }
   /** What's stored, what can leave the device, and the data controls. */
   | { name: 'privacy' }
@@ -60,14 +73,14 @@ export function parseHash(hash: string): Route | null {
     return {
       name: 'onboarding',
       step: 'resume',
-      returnTo: params.get('return') === 'review' ? 'review' : undefined,
+      returnTo: parseReturn(params.get('return')),
     };
-  if (step && STEP_ORDER.includes(step)) {
+  if (step && (STEP_ORDER.includes(step) || step === 'details')) {
     const notice = params.get('notice');
     return {
       name: 'onboarding',
       step,
-      returnTo: params.get('return') === 'review' ? 'review' : undefined,
+      returnTo: parseReturn(params.get('return')),
       notice: notice === 'deleted' || notice === 'reset' ? notice : undefined,
     };
   }

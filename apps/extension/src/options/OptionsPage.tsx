@@ -33,14 +33,15 @@ function OptionsRoutes() {
   if (route.name === 'privacy') return <PrivacyPage navigate={navigate} />;
   if (route.name === 'resume-import') {
     // After saving: onboarding confirms Resume & Professional Links (links are often only
-    // hyperlinked on the resume), then Review; the dashboard shows the result.
+    // hyperlinked on the resume), then asks for what a resume doesn't contain (address,
+    // date of birth, gender, availability…), then Review. The dashboard shows the result.
     const back =
       route.from === 'onboarding'
         ? ({ name: 'onboarding', step: 'start' } as const)
         : ({ name: 'profile' } as const);
     const done =
       route.from === 'onboarding'
-        ? ({ name: 'onboarding', step: 'resume', returnTo: 'review' } as const)
+        ? ({ name: 'onboarding', step: 'resume', returnTo: 'details' } as const)
         : ({ name: 'profile' } as const);
     return (
       <main className="min-h-screen animate-enter px-6 py-10">

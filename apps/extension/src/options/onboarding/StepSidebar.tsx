@@ -13,7 +13,8 @@ export function StepSidebar({
   onSelect: (step: StepId) => void;
 }) {
   const { profile, completeness } = useProfile();
-  const currentIndex = FORM_STEPS.indexOf(current);
+  // The post-import "details" step sits just before Review.
+  const currentIndex = FORM_STEPS.indexOf(current === 'details' ? 'review' : current);
   // Free navigation once the required personal step has been saved.
   const canJump = profile.createdAt !== null;
 

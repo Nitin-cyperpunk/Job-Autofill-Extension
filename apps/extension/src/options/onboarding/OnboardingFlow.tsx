@@ -13,6 +13,7 @@ import { SECTIONS } from '../sections/registry';
 import type { Route, StepId } from '../router';
 import { StepSidebar } from './StepSidebar';
 import { CompleteStep } from './CompleteStep';
+import { DetailsStep } from './DetailsStep';
 import { ReviewStep } from './ReviewStep';
 import { StartStep } from './StartStep';
 import { WelcomeStep } from './WelcomeStep';
@@ -36,8 +37,11 @@ export function OnboardingFlow({
   /** Links are edited inside the Resume & Professional Links step during onboarding. */
   const stepFor = (to: StepId): StepId => (to === 'links' ? 'resume' : to);
   const go = (to: StepId) => navigate({ name: 'onboarding', step: stepFor(to) });
-  /** After saving a step: back to review when editing from there, otherwise onwards. */
-  const advance = () => go(returnTo === 'review' ? 'review' : nextStep(step));
+  /**
+   * After saving a step: back to review when editing from there; after a résumé import,
+   * on to the details a résumé doesn't contain; otherwise onwards.
+   */
+  const advance = () => go(returnTo ?? nextStep(step));
   const back = () => go(returnTo === 'review' ? 'review' : prevStep(step));
 
   let content;
@@ -70,9 +74,13 @@ export function OnboardingFlow({
         </aside>
         <div className="min-w-0">
           <p className="mb-3 text-sm font-medium text-accent">
-            Step {FORM_STEPS.indexOf(step) + 1} of {FORM_STEPS.length}
+            {step === 'details'
+              ? 'Almost done'
+              : `Step ${FORM_STEPS.indexOf(step) + 1} of ${FORM_STEPS.length}`}
           </p>
-          {step === 'review' ? (
+          {step === 'details' ? (
+            <DetailsStep onDone={() => go('review')} onBack={() => go('resume')} />
+          ) : step === 'review' ? (
             <ReviewStep
               onEdit={(to) =>
                 navigate({ name: 'onboarding', step: stepFor(to), returnTo: 'review' })

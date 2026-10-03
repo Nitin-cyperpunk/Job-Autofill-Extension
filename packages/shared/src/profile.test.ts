@@ -316,7 +316,13 @@ describe('computeCompleteness', () => {
     expect(result.coreComplete).toBe(true);
     const missing = result.optional.filter((o) => !o.provided).map((o) => o.label);
     expect(missing).toEqual(
-      expect.arrayContaining(['Current address', 'Date of birth', 'Gender', 'Availability', 'Work authorization']),
+      expect.arrayContaining([
+        'Current address',
+        'Date of birth',
+        'Gender',
+        'Availability',
+        'Work authorization',
+      ]),
     );
   });
 });

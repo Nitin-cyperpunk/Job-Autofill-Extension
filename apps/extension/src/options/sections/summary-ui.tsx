@@ -107,7 +107,8 @@ export function StatusList({ rows }: { rows: StatusRow[] }) {
   return (
     <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
       {rows.map((row) => {
-        const empty = row.value === '' || row.value === null || row.value === undefined || row.value === false;
+        const empty =
+          row.value === '' || row.value === null || row.value === undefined || row.value === false;
         return (
           <div key={row.label} className="min-w-0">
             <dt className="text-xs font-medium tracking-wide text-muted uppercase">{row.label}</dt>

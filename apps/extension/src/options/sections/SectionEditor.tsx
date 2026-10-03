@@ -99,8 +99,7 @@ export function SectionEditor<K extends SectionId>({
           {errorCount - hiddenErrors.length === 1
             ? 'the highlighted field'
             : `${errorCount - hiddenErrors.length} highlighted fields`}{' '}
-          before
-          saving.
+          before saving.
         </Alert>
       )}
       {saveError && <Alert tone="error">{saveError}</Alert>}

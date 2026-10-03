@@ -65,7 +65,10 @@ export function computeCompleteness(profile: Profile): Completeness {
       ...fraction([[profile.resume !== null, 'Upload your resume']]),
     },
     {
-      id: profile.experience.length === 0 && profile.education.length > 0 ? 'education' : 'experience',
+      id:
+        profile.experience.length === 0 && profile.education.length > 0
+          ? 'education'
+          : 'experience',
       label: 'Experience or education',
       weight: 25,
       ...fraction([
@@ -97,18 +100,22 @@ export function computeCompleteness(profile: Profile): Completeness {
 
   const a = profile.additional;
   const optional: OptionalDetail[] = [
-    { id: 'personal', label: 'Current address',
-      group: 'current', provided: Boolean(p.address || p.city || p.postalCode) },
+    {
+      id: 'personal',
+      label: 'Current address',
+      group: 'current',
+      provided: Boolean(p.address || p.city || p.postalCode),
+    },
     {
       id: 'personal',
       label: 'Permanent address',
       group: 'permanent',
-      provided: p.permanentSameAsCurrent === 'yes' || Boolean(p.permanentAddress.line1 || p.permanentAddress.city),
+      provided:
+        p.permanentSameAsCurrent === 'yes' ||
+        Boolean(p.permanentAddress.line1 || p.permanentAddress.city),
     },
-    { id: 'personal', label: 'Date of birth',
-      group: 'details', provided: Boolean(p.dateOfBirth) },
-    { id: 'personal', label: 'Gender',
-      group: 'details', provided: Boolean(p.gender) },
+    { id: 'personal', label: 'Date of birth', group: 'details', provided: Boolean(p.dateOfBirth) },
+    { id: 'personal', label: 'Gender', group: 'details', provided: Boolean(p.gender) },
     { id: 'education', label: 'Education', provided: profile.education.length > 0 },
     { id: 'projects', label: 'Projects', provided: profile.projects.length > 0 },
     {
@@ -116,7 +123,10 @@ export function computeCompleteness(profile: Profile): Completeness {
       label: 'Job preferences',
       group: 'preferences',
       provided: Boolean(
-        pro.preferredLocations.length || pro.preferredWorkMode || pro.willingToRelocate || pro.preferredJobTypes.length,
+        pro.preferredLocations.length ||
+        pro.preferredWorkMode ||
+        pro.willingToRelocate ||
+        pro.preferredJobTypes.length,
       ),
     },
     {
@@ -129,7 +139,9 @@ export function computeCompleteness(profile: Profile): Completeness {
       id: 'professional',
       label: 'Work authorization',
       group: 'authorization',
-      provided: Boolean(pro.workAuthorization || pro.authorizedCountries.length || pro.requiresSponsorship),
+      provided: Boolean(
+        pro.workAuthorization || pro.authorizedCountries.length || pro.requiresSponsorship,
+      ),
     },
     {
       id: 'professional',
