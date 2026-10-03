@@ -332,6 +332,26 @@ describe('review: never overwrite silently', () => {
     expect(applied.experience[0]).not.toHaveProperty('monthAssumed');
   });
 
+  it('marks what came from the resume and never fills gender, DOB or street address', () => {
+    const review = buildReview(createEmptyProfile(), extracted);
+    const applied = applyReview(createEmptyProfile(), extracted, review, review.defaults);
+    expect(applied.sources.resume).toEqual(
+      expect.arrayContaining(['personal.email', 'experience', 'education', 'skills.technical']),
+    );
+    // A resume is only part of the profile: these stay for the user to add (or not).
+    expect(applied.personal.gender).toBe('');
+    expect(applied.personal.dateOfBirth).toBe('');
+    expect(applied.personal.address).toBe('');
+    expect(applied.personal.postalCode).toBe('');
+    expect(applied.personal.permanentSameAsCurrent).toBe('');
+    expect(applied.sources.resume.some((p) => /gender|dateOfBirth|address|postal/i.test(p))).toBe(
+      false,
+    );
+    // Unticked items are not marked.
+    const none = applyReview(createEmptyProfile(), extracted, review, new Set());
+    expect(none.sources.resume).toEqual([]);
+  });
+
   it('shows conflicts with both values and keeps the existing one by default', () => {
     const profile = sampleProfile();
     profile.professional.currentTitle = 'AI Engineer';

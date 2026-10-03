@@ -10,6 +10,7 @@ import {
   normalizeProfile,
   parseImportFile,
   prepareSection,
+  pruneSources,
   scopeErrors,
   validateDraft,
 } from './index';
@@ -105,6 +106,74 @@ describe('migrateProfileV1', () => {
     });
     expect(p.links.github).toBe('https://github.com/ada');
     expect(p.onboardingCompletedAt).toBe('2026-01-01T00:00:00.000Z');
+  });
+});
+
+describe('optional personal details: gender, DOB, address', () => {
+  const base = () => filledProfile().personal;
+
+  it('saves gender, date of birth and a structured address', () => {
+    const { value, valid } = prepareSection('personal', {
+      ...base(),
+      gender: 'Non-binary',
+      dateOfBirth: '1999-04-21',
+      address: ' Flat 302, MG Road ',
+      addressLine2: 'Indiranagar',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      postalCode: '560038',
+      country: 'India',
+      permanentSameAsCurrent: 'no',
+      permanentAddress: {
+        ...base().permanentAddress,
+        line1: '12 Station Rd',
+        city: 'Jaipur',
+        postalCode: '302001',
+      },
+    });
+    expect(valid).toBe(true);
+    expect(value.gender).toBe('Non-binary');
+    expect(value.dateOfBirth).toBe('1999-04-21');
+    expect(value.address).toBe('Flat 302, MG Road');
+    expect(value.postalCode).toBe('560038');
+    expect(value.permanentAddress.city).toBe('Jaipur');
+  });
+
+  it('saves with gender, DOB and address all skipped', () => {
+    const { valid, errors } = prepareSection('personal', {
+      ...base(),
+      gender: '',
+      dateOfBirth: '',
+      address: '',
+      city: '',
+      postalCode: '',
+      permanentSameAsCurrent: '',
+    });
+    expect(errors).toEqual({});
+    expect(valid).toBe(true);
+  });
+
+  it('loads an older profile without these fields', () => {
+    const old = JSON.parse(JSON.stringify(filledProfile())) as Record<string, unknown>;
+    const personal = old.personal as Record<string, unknown>;
+    delete personal.gender;
+    delete personal.dateOfBirth;
+    delete personal.permanentAddress;
+    delete old.sources;
+    const loaded = normalizeProfile(old);
+    expect(loaded.personal.firstName).toBe('Ada');
+    expect(loaded.personal.gender).toBe('');
+    expect(loaded.personal.dateOfBirth).toBe('');
+    expect(loaded.personal.permanentAddress.line1).toBe('');
+    expect(loaded.sources.resume).toEqual([]);
+  });
+
+  it('forgets "from resume" for a value the user changed, keeps the rest', () => {
+    const p = filledProfile();
+    p.sources = { resume: ['personal.email', 'personal.city', 'experience', 'skills.technical'] };
+    const next = pruneSources(p, 'personal', { ...p.personal, city: 'Cambridge' });
+    expect(next.resume).toEqual(['personal.email', 'experience', 'skills.technical']);
+    expect(pruneSources(p, 'experience', []).resume).not.toContain('experience');
   });
 });
 

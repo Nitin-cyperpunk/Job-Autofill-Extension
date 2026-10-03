@@ -10,7 +10,7 @@
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_APP_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://job-autofill-extension-nyqt.vercel.app'
+  'https://getjobfill.vercel.app'
 ).replace(/\/+$/, '');
 
 /**

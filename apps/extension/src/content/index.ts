@@ -6,6 +6,7 @@ import { adapterFor } from '@/adapters';
 import { CONTROL_SELECTOR, FieldWatcher } from '@/field-detection';
 import type { DebugTools } from '@/field-detection/debug';
 import { logger } from '@/utils/logger';
+import type { ContinueSession } from '@/autofill/continue-session';
 
 /**
  * Detection starts once the page is idle and follows the page as it changes.
@@ -36,7 +37,7 @@ function startWatching() {
 }
 
 // ---- "Keep filling new steps" (multi-step applications) -----------------------------------
-let session: import('@/autofill/continue-session').ContinueSession | null = null;
+let session: ContinueSession | null = null;
 
 /**
  * Fill each new step of the application as it renders. Started only by the user's own

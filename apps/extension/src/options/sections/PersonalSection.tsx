@@ -8,13 +8,7 @@ import type { SectionFormProps, SectionSummaryProps } from './types';
 import { StatusList, type StatusRow } from './summary-ui';
 
 /** The options the user picks from — JobFill never infers a gender. */
-export const GENDER_OPTIONS = [
-  'Male',
-  'Female',
-  'Non-binary',
-  'Other',
-  'Prefer not to say',
-] as const;
+const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] as const;
 const PRONOUN_SUGGESTIONS = ['He/Him', 'She/Her', 'They/Them', 'Prefer not to say'];
 const MARITAL_SUGGESTIONS = ['Single', 'Married', 'Prefer not to say'];
 

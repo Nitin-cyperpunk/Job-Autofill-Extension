@@ -31,7 +31,7 @@ npm run verify       # production build + SEO checks
 
 | Variable                                                          | Purpose                                                                                                                   |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_APP_URL`                                             | The site's own address (canonical URLs, sitemap, social cards). Default `https://job-autofill-extension-nyqt.vercel.app`. |
+| `NEXT_PUBLIC_APP_URL`                                             | The site's own address (canonical URLs, sitemap, social cards). Default `https://getjobfill.vercel.app`. |
 | `NEXT_PUBLIC_BUYMEACOFFEE_URL`                                    | Buy Me a Coffee page. Default `https://buymeacoffee.com/nitinverse`.                                                      |
 | `NEXT_PUBLIC_GITHUB_URL`                                          | GitHub repository. Default `https://github.com/Nitin-cyperpunk/Job-Autofill-Extension`.                                   |
 | `NEXT_PUBLIC_CHROME_WEB_STORE_URL`                                | The Chrome Web Store listing. Until set, "Add to Chrome" links to `/install`.                                             |

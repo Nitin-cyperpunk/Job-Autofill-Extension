@@ -7,7 +7,7 @@ import { SectionEditor } from '../sections/SectionEditor';
 import { SectionSummary } from '../sections/SectionSummary';
 import { SECTIONS } from '../sections/registry';
 import { fieldsForGroups } from '../sections/groups';
-import { useResumeSources } from '../sections/summary-ui';
+import { useResumeSources } from '../sections/resume-sources';
 
 /** A profile section on the dashboard: read-only summary, or inline editor with Save / Cancel. */
 export function SectionCard({

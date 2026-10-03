@@ -1,6 +1,6 @@
-import { useContext, useMemo, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { isHttpUrl } from '@jobfill/shared';
-import { ProfileContext } from '@/profile/profile-context';
+import { useResumeSources } from './resume-sources';
 
 /** Read-only building blocks shared by every section summary. */
 
@@ -131,10 +131,4 @@ export function StatusList({ rows }: { rows: StatusRow[] }) {
       })}
     </dl>
   );
-}
-
-/** Profile paths last filled by a résumé import (empty outside a ProfileProvider). */
-export function useResumeSources(): ReadonlySet<string> {
-  const paths = useContext(ProfileContext)?.profile.sources.resume;
-  return useMemo(() => new Set(paths ?? []), [paths]);
 }
