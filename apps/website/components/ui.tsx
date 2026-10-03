@@ -90,9 +90,10 @@ export function LockIcon({ className }: { className?: string }) {
 const button = {
   // Press feedback is a 2% scale (transform only); colour changes ease over 150ms.
   base: 'inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-base font-semibold transition duration-150 ease-out active:scale-[0.98]',
-  primary: 'bg-brand-600 text-white shadow-card hover:bg-brand-700',
-  secondary: 'bg-surface text-fg ring-1 ring-line-strong hover:bg-subtle',
-  onDark: 'bg-white/10 text-white ring-1 ring-white/30 hover:bg-white/20',
+  primary:
+    'bg-brand-600 text-white shadow-card hover:scale-[1.015] hover:bg-brand-700 hover:shadow-raised',
+  secondary: 'bg-surface text-fg ring-1 ring-line-strong hover:scale-[1.015] hover:bg-subtle',
+  onDark: 'bg-white/10 text-white ring-1 ring-white/30 hover:scale-[1.015] hover:bg-white/20',
 };
 
 export function AddToChromeButton({
@@ -160,7 +161,10 @@ export function CtaBand({
     <section aria-labelledby="cta-title" className="py-16 sm:py-20">
       <Container>
         {/* Always a dark panel, in both themes; outlined in dark mode so it doesn't merge with the page. */}
-        <div className="rounded-2xl bg-ink px-6 py-12 text-center ring-1 ring-ink-line sm:px-12 sm:py-16">
+        <div
+          data-reveal
+          className="rounded-2xl bg-ink px-6 py-12 text-center ring-1 ring-ink-line sm:px-12 sm:py-16"
+        >
           <div>
             <h2
               id="cta-title"
@@ -226,20 +230,26 @@ export function PageHero({
   return (
     <section className="border-b border-line bg-subtle">
       <Container className="py-12 sm:py-16">
-        {crumbs && <Breadcrumbs crumbs={crumbs} />}
-        {eyebrow && (
-          <p className="mt-6 text-sm font-semibold tracking-wide text-accent uppercase">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-balance text-fg sm:text-5xl">
-          {title}
-        </h1>
-        {/* The heading (the LCP element) paints immediately; what follows eases in. */}
-        <div className="animate-enter [animation-delay:60ms]">
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-muted">{lead}</p>
-          {cta && <CtaButtons className="mt-8" />}
-          {children}
+        <div data-hero>
+          {crumbs && (
+            <div>
+              <Breadcrumbs crumbs={crumbs} />
+            </div>
+          )}
+          {eyebrow && (
+            <p className="mt-6 text-sm font-semibold tracking-wide text-accent uppercase">
+              {eyebrow}
+            </p>
+          )}
+          <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-balance text-fg sm:text-5xl">
+            {title}
+          </h1>
+          {/* The heading (the LCP element) stays opaque; what follows eases in (globals.css). */}
+          <div>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-muted">{lead}</p>
+            {cta && <CtaButtons className="mt-8" />}
+            {children}
+          </div>
         </div>
       </Container>
     </section>
@@ -260,7 +270,7 @@ export function SectionHeading({
   center?: boolean;
 }) {
   return (
-    <div className={cx('max-w-2xl', center && 'mx-auto text-center')}>
+    <div data-reveal className={cx('max-w-2xl', center && 'mx-auto text-center')}>
       {eyebrow && (
         <p className="text-sm font-semibold tracking-wide text-accent uppercase">{eyebrow}</p>
       )}
@@ -297,8 +307,8 @@ export function FeatureCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="group relative flex flex-col rounded-xl border border-line bg-surface p-6 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-raised">
-      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-soft text-accent">
+    <div className="group relative flex flex-col rounded-xl border border-line bg-surface p-6 shadow-card transition duration-200 ease-out hover:-translate-y-0.5 hover:border-line-strong hover:shadow-raised">
+      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-soft text-accent transition-transform duration-200 ease-out group-hover:scale-105">
         {icon}
       </span>
       <h3 className="mt-5 text-lg font-semibold text-fg">
@@ -380,12 +390,12 @@ export function RelatedLinks({
         <h2 id="related-title" className="text-2xl font-bold tracking-tight text-fg">
           {title}
         </h2>
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul data-reveal-stagger className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {links.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="block h-full rounded-xl border border-line bg-surface p-5 hover:border-accent-line hover:shadow-card"
+                className="block h-full rounded-xl border border-line bg-surface p-5 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-accent-line hover:shadow-raised"
               >
                 <span className="font-semibold text-fg">{l.label}</span>
                 {l.text && <span className="mt-1 block text-sm text-muted">{l.text}</span>}

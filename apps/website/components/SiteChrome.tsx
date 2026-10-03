@@ -7,7 +7,11 @@ import { AddToChromeButton, Container, LockIcon, Logo } from './ui';
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-md">
+    // Glass once scrolled: data-scrolled is set by <Motion />.
+    <header
+      data-site-header
+      className="sticky top-0 z-40 border-b border-line/50 bg-canvas/70 backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-300 data-scrolled:border-line data-scrolled:bg-canvas/80 data-scrolled:shadow-card data-scrolled:backdrop-blur-lg"
+    >
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-fg"

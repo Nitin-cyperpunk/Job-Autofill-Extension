@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { Motion } from '@/components/Motion';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import { JsonLd } from '@/components/ui';
 import { graph, organizationSchema, websiteSchema } from '@/lib/schema';
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <JsonLd data={graph(organizationSchema(), websiteSchema())} />
         {/* Vercel Web Analytics: cookieless page-view counts (see /privacy → About this website). */}
         <Analytics />
+        <Motion />
       </body>
     </html>
   );

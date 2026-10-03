@@ -61,27 +61,29 @@ export default function SupportPage() {
     <>
       <section className="border-b border-line bg-subtle">
         <Container className="max-w-4xl py-14 text-center sm:py-20">
-          <div className="flex justify-center">
-            <Breadcrumbs crumbs={CRUMBS} />
-          </div>
-          <span
-            aria-hidden="true"
-            className="mx-auto mt-8 flex h-12 w-12 animate-pop items-center justify-center rounded-xl bg-accent-soft text-accent"
-          >
-            <HeartIcon />
-          </span>
-          <h1 className="mt-5 text-4xl font-bold tracking-tight text-fg sm:text-5xl">
-            Support JobFill
-          </h1>
-          <div className="animate-enter [animation-delay:80ms]">
-            <p className="mt-3 text-lg font-medium text-accent">
-              Built with curiosity, caffeine, and a lot of debugging.
-            </p>
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted">
-              {SITE.name} is built to make job applications a little less repetitive. If it saves
-              you time and you enjoy using it, you can support the project and help me keep
-              improving it. It’s completely optional — JobFill works the same either way.
-            </p>
+          <div data-hero>
+            <div className="flex justify-center">
+              <Breadcrumbs crumbs={CRUMBS} />
+            </div>
+            <span
+              aria-hidden="true"
+              className="mx-auto mt-8 flex h-12 w-12 animate-pop items-center justify-center rounded-xl bg-accent-soft text-accent"
+            >
+              <HeartIcon />
+            </span>
+            <h1 className="mt-5 text-4xl font-bold tracking-tight text-fg sm:text-5xl">
+              Support JobFill
+            </h1>
+            <div>
+              <p className="mt-3 text-lg font-medium text-accent">
+                Built with curiosity, caffeine, and a lot of debugging.
+              </p>
+              <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted">
+                {SITE.name} is built to make job applications a little less repetitive. If it saves
+                you time and you enjoy using it, you can support the project and help me keep
+                improving it. It’s completely optional — JobFill works the same either way.
+              </p>
+            </div>
           </div>
         </Container>
       </section>
@@ -127,7 +129,7 @@ export default function SupportPage() {
           <h2 id="support-title" className="text-3xl font-bold tracking-tight text-fg">
             Support the Project
           </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div data-reveal-stagger className="mt-10 grid gap-6 md:grid-cols-3">
             <SupportCard
               icon={<CoffeeIcon />}
               title="Buy Me a Coffee"

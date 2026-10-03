@@ -123,7 +123,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line bg-subtle">
         <Container className="grid items-center gap-16 py-16 sm:py-20 lg:grid-cols-[1.05fr_1fr] lg:py-24">
-          <div>
+          <div data-hero>
             <p className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-sm font-medium text-ok ring-1 ring-ok-line">
               <LockIcon className="h-4 w-4 text-ok" />
               Local-first Chrome extension
@@ -167,7 +167,7 @@ export default function HomePage() {
             title="Stop Filling the Same Information Again and Again"
             lead="If you’re applying to many roles, every application asks for the same name, email, phone, address, work history, education, links and resume — typed again on a different form each time. It’s slow, and it’s where typos slip in."
           />
-          <div className="rounded-xl border border-line bg-subtle p-7">
+          <div data-reveal className="rounded-xl border border-line bg-subtle p-7">
             <p className="font-semibold text-fg">JobFill takes the repetitive part:</p>
             <CheckList
               className="mt-4 text-body"
@@ -191,11 +191,11 @@ export default function HomePage() {
             title="How JobFill Works"
             center
           />
-          <ol className="mt-12 grid gap-6 md:grid-cols-3">
+          <ol data-reveal-stagger className="mt-12 grid gap-6 md:grid-cols-3">
             {STEPS.map((step, i) => (
               <li
                 key={step.title}
-                className="rounded-xl bg-surface p-7 shadow-card ring-1 ring-line"
+                className="rounded-xl bg-surface p-7 shadow-card ring-1 ring-line transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-raised hover:ring-line-strong"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
                   {i + 1}
@@ -222,7 +222,10 @@ export default function HomePage() {
             title="What JobFill Can Autofill"
             lead="JobFill matches each field’s label and context to your profile. Anything it isn’t sure about is left for you — and flagged."
           />
-          <dl className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+          <dl
+            data-reveal-stagger
+            className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {AUTOFILL_ITEMS.map(([title, detail]) => (
               <div key={title} className="flex gap-3">
                 <CheckIcon className="mt-1 h-5 w-5 shrink-0 text-ok" />
@@ -233,7 +236,7 @@ export default function HomePage() {
               </div>
             ))}
           </dl>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div data-reveal-stagger className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <FeatureCard title="One-click autofill" href="/features/autofill" icon={<BoltIcon />}>
               Understands the many ways forms ask for the same thing, and flags anything it isn’t
               sure about.
@@ -254,7 +257,7 @@ export default function HomePage() {
               the extension.
             </FeatureCard>
           </div>
-          <div className="mt-6 grid gap-6 sm:grid-cols-3">
+          <div data-reveal-stagger className="mt-6 grid gap-6 sm:grid-cols-3">
             <FeatureCard title="Preview before filling" icon={<EyeIcon />}>
               See every value before it goes in, and untick anything you’d rather type yourself.
             </FeatureCard>
@@ -278,7 +281,7 @@ export default function HomePage() {
             title="Privacy-First by Design"
             lead="JobFill is local-first: your profile stays in your browser on your device, with no account and no JobFill server. Data only goes somewhere when you use a feature that needs it — and we tell you exactly where."
           />
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
+          <div data-reveal-stagger className="mt-12 grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-ok-line bg-ok-soft p-7">
               <h3 className="text-lg font-semibold text-fg">What stays on your device</h3>
               <CheckList
@@ -339,11 +342,11 @@ export default function HomePage() {
               may need manual entry.
             </p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul data-reveal-stagger className="grid gap-3 sm:grid-cols-2">
             {FORMS.map((form) => (
               <li
                 key={form}
-                className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-white/10"
+                className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-white/10 backdrop-blur-sm transition-colors duration-200 hover:bg-white/[0.08] hover:ring-white/20"
               >
                 <FormIcon className="h-5 w-5 shrink-0 text-brand-200" />
                 <span className="text-sm">{form}</span>
@@ -363,12 +366,12 @@ export default function HomePage() {
             eyebrow="Guides"
             title="Job search productivity guides"
           />
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul data-reveal-stagger className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {POSTS.slice(0, 6).map((p) => (
               <li key={p.slug}>
                 <Link
                   href={`/blog/${p.slug}`}
-                  className="block h-full rounded-xl border border-line bg-surface p-5 hover:border-accent-line hover:shadow-card"
+                  className="block h-full rounded-xl border border-line bg-surface p-5 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-accent-line hover:shadow-raised"
                 >
                   <span className="font-semibold text-fg">{p.title}</span>
                   <span className="mt-2 block text-sm text-muted">{p.description}</span>

@@ -91,7 +91,7 @@ export default async function BlogPostPage({ params }: Props) {
               <li key={p.slug}>
                 <Link
                   href={`/blog/${p.slug}`}
-                  className="block h-full rounded-xl border border-line bg-surface p-5 hover:border-accent-line hover:shadow-card"
+                  className="block h-full rounded-xl border border-line bg-surface p-5 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-accent-line hover:shadow-raised"
                 >
                   <span className="font-semibold text-fg">{p.title}</span>
                   <span className="mt-1 block text-sm text-muted">{p.description}</span>

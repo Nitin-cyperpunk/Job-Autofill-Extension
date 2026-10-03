@@ -14,7 +14,7 @@ export function ProductMockup() {
     { label: 'Why do you want to work here?', value: '', filled: false },
   ];
   return (
-    <figure className="relative mx-auto w-full max-w-xl">
+    <figure data-hero-visual className="relative mx-auto w-full max-w-xl">
       <div className="rounded-xl border border-line bg-surface p-5 shadow-raised sm:p-6">
         <div className="flex items-center gap-1.5" aria-hidden="true">
           <span className="h-2.5 w-2.5 rounded-full bg-line" />
@@ -41,7 +41,10 @@ export function ProductMockup() {
         </div>
       </div>
 
-      <div className="absolute -right-2 -bottom-10 w-64 rounded-xl border border-line bg-surface p-4 shadow-raised sm:-right-10">
+      <div
+        data-float
+        className="absolute -right-2 -bottom-10 w-64 rounded-xl border border-line bg-surface/85 p-4 shadow-raised backdrop-blur-md sm:-right-10"
+      >
         <p className="text-sm font-semibold text-fg">JobFill</p>
         <p className="mt-2 flex items-center gap-2 text-sm text-ok">
           <CheckIcon className="h-4 w-4" /> JobFill filled 4 fields
