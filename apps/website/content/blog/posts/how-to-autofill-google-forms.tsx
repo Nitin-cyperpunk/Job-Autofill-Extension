@@ -72,8 +72,9 @@ export default function Post() {
           it.
         </li>
         <li>
-          <strong>Personal or sensitive questions.</strong> Diversity questions and declarations are
-          always left to you.
+          <strong>Personal or sensitive questions.</strong> Diversity questions are answered only if
+          you’ve added your answer to your profile; declarations and consent boxes are always left
+          to you.
         </li>
         <li>
           <strong>Unusual choices.</strong> If a question’s options don’t clearly match your

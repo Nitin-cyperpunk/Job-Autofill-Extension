@@ -46,8 +46,8 @@ export default function Post() {
       </p>
       <p>
         <Link href="/chrome-extension">JobFill</Link> is a job application autofill extension for
-        Chrome that keeps your profile on your device. It never submits applications and leaves
-        sensitive questions to you. It doesn’t track your applications or search for jobs.
+        Chrome that keeps your profile on your device. It never submits applications and never
+        guesses personal or legal answers. It doesn’t track your applications or search for jobs.
       </p>
 
       <InlineCta title="Try a privacy-first autofill extension">

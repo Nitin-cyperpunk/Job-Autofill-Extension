@@ -24,14 +24,14 @@ import {
 } from '@/components/ui';
 import { AI_FAQS, GENERAL_FAQS, PRIVACY_FAQS, RESUME_FAQS } from '@/content/faqs';
 import { POSTS } from '@/content/blog';
-import { graph, webApplicationSchema } from '@/lib/schema';
+import { graph, softwareApplicationSchema } from '@/lib/schema';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
-  title: 'JobFill — Job Application Autofill Chrome Extension',
+  title: 'JobFill – Smart Job Application Autofill Chrome Extension',
   absoluteTitle: true,
   description:
-    'Autofill job applications in Chrome from a profile kept on your device. Import your resume, fill forms in one click, review every field, submit when ready.',
+    'A privacy-first Chrome extension that autofills repetitive job application forms from your saved profile — less time typing, more time applying.',
   path: '/',
   keywords: [
     'job application autofill',
@@ -44,13 +44,49 @@ export const metadata = pageMetadata({
 
 const HOME_FAQS = [
   GENERAL_FAQS.what,
-  GENERAL_FAQS.free,
+  GENERAL_FAQS.howItWorks,
+  GENERAL_FAQS.fields,
   PRIVACY_FAQS.where,
-  PRIVACY_FAQS.leave,
+  RESUME_FAQS.upload,
   GENERAL_FAQS.submit,
   GENERAL_FAQS.sites,
-  RESUME_FAQS.upload,
-  AI_FAQS.required,
+  AI_FAQS.howAi,
+  AI_FAQS.needKey,
+  GENERAL_FAQS.free,
+];
+
+/** What the extension fills today — kept in line with the field-mapper's keys. */
+const AUTOFILL_ITEMS: Array<[title: string, detail: string]> = [
+  [
+    'Personal & contact details',
+    'Name, email, phone (with separate country-code fields) and alternate phone',
+  ],
+  [
+    'Current & permanent address',
+    'Address lines, landmark, city, district, state, PIN / ZIP and country',
+  ],
+  [
+    'Education',
+    'Institution, degree or course, field of study, CGPA / percentage and dates — every entry in order',
+  ],
+  [
+    'Work experience',
+    'Employer, job title, dates, description, current and expected salary, notice period',
+  ],
+  [
+    'Projects',
+    'Name, role, description, tech stack, repository and live links — the most relevant project for “describe a project” questions',
+  ],
+  [
+    'Skills & links',
+    'Technical skills, programming languages, LinkedIn, GitHub, portfolio, LeetCode and other profile links',
+  ],
+  ['Job preferences', 'Preferred locations, work mode, job type, relocation and start date'],
+  ['Your resume', 'Attached to standard resume upload fields; flagged when a site blocks it'],
+  [
+    'Optional answers you choose to add',
+    'Date of birth, gender, work authorization and EEO questions — only exactly as you entered them, never guessed',
+  ],
 ];
 
 const STEPS = [
@@ -82,7 +118,7 @@ const FORMS = [
 export default function HomePage() {
   return (
     <>
-      <JsonLd data={graph(webApplicationSchema())} />
+      <JsonLd data={graph(softwareApplicationSchema())} />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line bg-subtle">
@@ -93,12 +129,12 @@ export default function HomePage() {
               Local-first Chrome extension
             </p>
             <h1 className="mt-6 text-4xl font-bold tracking-tight text-balance text-fg sm:text-5xl lg:text-6xl">
-              Autofill job applications faster —{' '}
-              <span className="text-accent">keep your profile on your device.</span>
+              Autofill Job Applications Faster <span className="text-accent">with JobFill</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
-              JobFill fills in application forms from a profile you save once: your details,
-              experience, education, links and resume. You review every field and submit when you’re
+              JobFill is a Chrome extension that fills in job application forms from a profile you
+              save once — your details, address, education, experience, projects, links and resume.
+              Your profile stays on your device; you review every field and submit when you’re
               ready.
             </p>
             <CtaButtons className="mt-8" />
@@ -128,8 +164,8 @@ export default function HomePage() {
           <SectionHeading
             id="problem-title"
             eyebrow="The problem"
-            title="Every application asks for the same things"
-            lead="Name, email, phone, work history, education, links, resume — typed again for every employer, on a different form each time. It’s slow, and it’s where typos slip in."
+            title="Stop Filling the Same Information Again and Again"
+            lead="If you’re applying to many roles, every application asks for the same name, email, phone, address, work history, education, links and resume — typed again on a different form each time. It’s slow, and it’s where typos slip in."
           />
           <div className="rounded-xl border border-line bg-subtle p-7">
             <p className="font-semibold text-fg">JobFill takes the repetitive part:</p>
@@ -151,8 +187,8 @@ export default function HomePage() {
         <Container>
           <SectionHeading
             id="steps-title"
-            eyebrow="How it works"
-            title="Set up once. Fill in seconds."
+            eyebrow="Set up once. Fill in seconds."
+            title="How JobFill Works"
             center
           />
           <ol className="mt-12 grid gap-6 md:grid-cols-3">
@@ -183,9 +219,20 @@ export default function HomePage() {
           <SectionHeading
             id="features-title"
             eyebrow="Features"
-            title="A job application assistant that stays out of your way"
-            lead="Everything you need to fill applications quickly and accurately — and nothing that acts without you."
+            title="What JobFill Can Autofill"
+            lead="JobFill matches each field’s label and context to your profile. Anything it isn’t sure about is left for you — and flagged."
           />
+          <dl className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+            {AUTOFILL_ITEMS.map(([title, detail]) => (
+              <div key={title} className="flex gap-3">
+                <CheckIcon className="mt-1 h-5 w-5 shrink-0 text-ok" />
+                <div>
+                  <dt className="font-semibold text-fg">{title}</dt>
+                  <dd className="mt-1 text-sm leading-6 text-muted">{detail}</dd>
+                </div>
+              </div>
+            ))}
+          </dl>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <FeatureCard title="One-click autofill" href="/features/autofill" icon={<BoltIcon />}>
               Understands the many ways forms ask for the same thing, and flags anything it isn’t
@@ -199,7 +246,8 @@ export default function HomePage() {
               href="/features/ai-answers"
               icon={<SparkIcon />}
             >
-              Draft open answers with your own AI provider. You see exactly what’s sent, every time.
+              Optional and off by default: draft open answers with your own API key. You see exactly
+              what’s sent, every time.
             </FeatureCard>
             <FeatureCard title="Privacy by design" href="/privacy" icon={<ShieldIcon />}>
               Your profile is stored in your browser. No account, no JobFill server, no tracking in
@@ -211,46 +259,13 @@ export default function HomePage() {
               See every value before it goes in, and untick anything you’d rather type yourself.
             </FeatureCard>
             <FeatureCard title="You stay in control" icon={<HandIcon />}>
-              Never submits. Never overwrites what you typed. Leaves sensitive questions to you.
+              Never submits. Never overwrites what you typed. Never guesses personal or legal
+              answers.
             </FeatureCard>
             <FeatureCard title="Works where forms live" icon={<LayersIcon />}>
               Multi-step forms, embedded iframes and custom dropdowns, not just simple pages.
             </FeatureCard>
           </div>
-        </Container>
-      </section>
-
-      {/* Compatibility */}
-      <section aria-labelledby="compat-title" className="bg-ink py-16 text-white sm:py-20">
-        <Container className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-          <div>
-            <p className="text-sm font-semibold tracking-wide text-brand-200 uppercase">
-              Compatibility
-            </p>
-            <h2 id="compat-title" className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-              Built for the forms you actually meet
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-slate-300">
-              JobFill reads each field’s label and context the way you do, so it works on standard
-              web forms across sites — including the application forms common on hiring platforms.
-              When a field is ambiguous, it leaves it for you instead of guessing.
-            </p>
-            <p className="mt-4 text-sm text-slate-400">
-              Tested on sample pages built like these platforms. Live sites change, so some fields
-              may need manual entry.
-            </p>
-          </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {FORMS.map((form) => (
-              <li
-                key={form}
-                className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-white/10"
-              >
-                <FormIcon className="h-5 w-5 shrink-0 text-brand-200" />
-                <span className="text-sm">{form}</span>
-              </li>
-            ))}
-          </ul>
         </Container>
       </section>
 
@@ -260,8 +275,8 @@ export default function HomePage() {
           <SectionHeading
             id="privacy-title"
             eyebrow="Privacy"
-            title="Your profile stays on your device"
-            lead="JobFill is local-first. Your data only goes somewhere when you use a feature that needs it — and we tell you exactly where."
+            title="Privacy-First by Design"
+            lead="JobFill is local-first: your profile stays in your browser on your device, with no account and no JobFill server. Data only goes somewhere when you use a feature that needs it — and we tell you exactly where."
           />
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-ok-line bg-ok-soft p-7">
@@ -285,8 +300,9 @@ export default function HomePage() {
                   to that website, just as if you had typed them.
                 </li>
                 <li>
-                  <strong className="text-fg">AI answers (optional):</strong> only the details you
-                  approve for one question, sent to the provider you chose.
+                  <strong className="text-fg">AI answers (optional, off by default):</strong> only
+                  the details you approve for one question, sent with your own API key to the
+                  provider you chose. Autofill itself never uses AI.
                 </li>
                 <li>
                   <strong className="text-fg">Export:</strong> a backup file saved where you choose.
@@ -302,7 +318,42 @@ export default function HomePage() {
         </Container>
       </section>
 
-      <FaqSection faqs={HOME_FAQS} />
+      {/* Compatibility */}
+      <section aria-labelledby="compat-title" className="bg-ink py-16 text-white sm:py-20">
+        <Container className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <div>
+            <p className="text-sm font-semibold tracking-wide text-brand-200 uppercase">
+              Compatibility
+            </p>
+            <h2 id="compat-title" className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+              Built for Real Job Applications
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-slate-300">
+              JobFill reads each field’s label and context the way you do, so it’s designed to work
+              with a wide variety of job application forms — from Google Forms to multi-step
+              applicant tracking systems. When a field is ambiguous, it leaves it for you instead of
+              guessing.
+            </p>
+            <p className="mt-4 text-sm text-slate-400">
+              Tested on sample pages built like these platforms. Live sites change, so some fields
+              may need manual entry.
+            </p>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {FORMS.map((form) => (
+              <li
+                key={form}
+                className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-white/10"
+              >
+                <FormIcon className="h-5 w-5 shrink-0 text-brand-200" />
+                <span className="text-sm">{form}</span>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
+
+      <FaqSection faqs={HOME_FAQS} title="Frequently Asked Questions" />
 
       {/* Blog */}
       <section aria-labelledby="guides-title" className="border-t border-line bg-subtle py-16">
@@ -328,7 +379,10 @@ export default function HomePage() {
         </Container>
       </section>
 
-      <CtaBand />
+      <CtaBand
+        title="Get JobFill"
+        text="Add JobFill to Chrome, save your profile once, and autofill your next application — you review and submit."
+      />
     </>
   );
 }

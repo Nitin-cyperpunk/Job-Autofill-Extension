@@ -13,7 +13,7 @@ import {
   SectionHeading,
 } from '@/components/ui';
 import { GENERAL_FAQS, PRIVACY_FAQS } from '@/content/faqs';
-import { graph, webApplicationSchema } from '@/lib/schema';
+import { graph, softwareApplicationSchema } from '@/lib/schema';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -33,7 +33,7 @@ const CRUMBS = [{ name: 'Chrome extension', path: '/chrome-extension' }];
 export default function ChromeExtensionPage() {
   return (
     <>
-      <JsonLd data={graph(webApplicationSchema())} />
+      <JsonLd data={graph(softwareApplicationSchema())} />
       <PageHero
         crumbs={CRUMBS}
         eyebrow="Chrome extension"
@@ -93,8 +93,8 @@ export default function ChromeExtensionPage() {
           <p className="mt-4 text-lg leading-8 text-muted">
             Some tools promise to apply to hundreds of jobs for you. JobFill doesn’t. It automates
             the typing, not the decisions: it fills what you’ve already told it, flags what it isn’t
-            sure about, and leaves open questions, sensitive questions and the submit button to you.
-            That keeps your applications accurate and genuinely yours.
+            sure about, and leaves open questions, unanswered personal questions, consent boxes and
+            the submit button to you. That keeps your applications accurate and genuinely yours.
           </p>
           <p className="mt-4 text-muted">
             New to autofill? Read{' '}

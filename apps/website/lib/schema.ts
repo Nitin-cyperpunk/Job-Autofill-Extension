@@ -33,26 +33,30 @@ export function websiteSchema(): Json {
   };
 }
 
-export function webApplicationSchema(): Json {
+/**
+ * The extension as a SoftwareApplication. Facts only: no ratings, review counts,
+ * download numbers or prices (there is no paid plan to describe).
+ */
+export function softwareApplicationSchema(): Json {
   return {
-    '@type': 'WebApplication',
+    '@type': 'SoftwareApplication',
     '@id': APP_ID,
     name: SITE.name,
     description: SITE.description,
     url: SITE_URL,
     applicationCategory: 'BrowserApplication',
     applicationSubCategory: 'Job application autofill',
-    operatingSystem: 'Windows, macOS, Linux, ChromeOS',
-    browserRequirements: 'Requires Google Chrome (desktop)',
+    operatingSystem: 'Google Chrome (desktop)',
+    browserRequirements:
+      'Requires Google Chrome on desktop; other Chromium-based browsers may work',
     ...(CHROME_WEB_STORE_URL ? { installUrl: CHROME_WEB_STORE_URL } : {}),
-    isAccessibleForFree: SITE.price === '0',
-    offers: { '@type': 'Offer', price: SITE.price, priceCurrency: SITE.priceCurrency },
+    isAccessibleForFree: true,
     featureList: [
       'Autofill job application forms from a locally stored profile',
+      'Structured current and permanent addresses, education, experience and projects',
       'Resume parsing on your device (PDF, DOCX, TXT)',
-      'Preview fields before filling',
-      'Optional AI-drafted answers with per-question consent',
-      'Designed for Google Forms and common applicant tracking systems (tested on sample pages)',
+      'Preview fields before filling; never overwrites what you typed',
+      'Optional AI-drafted answers with your own API key and per-question consent',
       'Export, import and delete your data at any time',
     ],
     publisher: { '@id': ORG_ID },

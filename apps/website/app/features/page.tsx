@@ -100,8 +100,9 @@ export default function FeaturesPage() {
               Fields that already have a value are left alone, and resume imports never replace
               profile details without your choice.
             </FeatureCard>
-            <FeatureCard title="Sensitive questions stay yours" icon={<ShieldIcon />}>
-              Diversity, identity and consent questions are never filled automatically.
+            <FeatureCard title="Personal answers only from you" icon={<ShieldIcon />}>
+              Gender, date of birth, work authorization and EEO questions are answered only from
+              what you explicitly add — never guessed. Consent boxes are never ticked.
             </FeatureCard>
             <FeatureCard title="Works on real-world forms" icon={<LayersIcon />}>
               Multi-step forms, fields revealed by earlier answers, iframes, shadow DOM and custom
@@ -127,7 +128,8 @@ export default function FeaturesPage() {
               className="text-body"
               items={[
                 'Submit applications or click “Apply” for you',
-                'Answer demographic or legal declaration questions',
+                'Guess demographic, identity or work-authorization answers',
+                'Tick consent boxes or legal declarations',
                 'Store a history of the jobs you apply to',
                 'Send your profile to a JobFill server — there isn’t one',
                 'Require an account or an email address',

@@ -86,7 +86,7 @@ export default function AutofillPage() {
               ],
               [
                 'Decide safely',
-                'Confident matches are filled; uncertain ones are marked for review; sensitive and consent questions are skipped.',
+                'Confident matches are filled; uncertain ones are marked for review; personal and legal questions are answered only from what you explicitly entered, and consent boxes are never ticked.',
               ],
             ].map(([title, text], i) => (
               <li key={title} className="flex gap-4">
@@ -155,8 +155,8 @@ export default function AutofillPage() {
           </h2>
           <p className="mt-4 text-lg leading-8 text-slate-300">
             After every fill, JobFill shows what it filled and what needs your review. It never
-            overwrites what you typed, never answers sensitive questions, and never submits the
-            application. Prefer to approve field by field? Turn on{' '}
+            overwrites what you typed, never guesses personal or legal answers, and never submits
+            the application. Prefer to approve field by field? Turn on{' '}
             <em>Preview fields before filling</em>.
           </p>
         </Container>

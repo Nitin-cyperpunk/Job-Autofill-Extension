@@ -10,7 +10,7 @@
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_APP_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://www.jobfill.app'
+  'https://job-autofill-extension-nyqt.vercel.app'
 ).replace(/\/+$/, '');
 
 /**
@@ -26,9 +26,6 @@ export const SITE = {
   description:
     'JobFill is a Chrome extension that autofills job applications from a profile stored on your own device. Import your resume, review every field, and submit when you’re ready.',
   locale: 'en_US',
-  /** The extension has no payments or accounts. Change here if that ever changes. */
-  price: '0',
-  priceCurrency: 'USD',
   lastUpdated: '2026-09-27',
 } as const;
 
@@ -74,6 +71,11 @@ export const LINKS = {
 
 export const CREATOR = { name: 'Nitinverse' } as const;
 
+/** Google Search Console HTML-tag token (content value only). Empty = no meta tag. */
+export const GOOGLE_SITE_VERIFICATION = (process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? '')
+  .trim()
+  .replace(/[^A-Za-z0-9_-]/g, '');
+
 /** "Report an issue" link: the repository's Issues page when LINKS.github is a GitHub repo. */
 export const ISSUES_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/.test(LINKS.github)
   ? `${LINKS.github.replace(/\/$/, '')}/issues`
@@ -83,7 +85,8 @@ export const ADD_TO_CHROME_HREF = CHROME_WEB_STORE_URL || '/install';
 export const TRY_HREF = '/install#get-started';
 
 export function absoluteUrl(path = '/'): string {
-  return path === '/' ? SITE_URL : `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  // The homepage is written with its trailing slash: https://…vercel.app/
+  return path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
 export const NAV = [

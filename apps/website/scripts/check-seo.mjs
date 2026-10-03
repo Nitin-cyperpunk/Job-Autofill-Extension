@@ -64,7 +64,7 @@ for (const { path, html } of PAGES) {
   const title = decode(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '');
   const description = meta(html, 'name', 'description');
   const canonical = /<link rel="canonical" href="([^"]+)"/.exec(html)?.[1];
-  const expected = path === '/' ? siteUrl : `${siteUrl}${path}`;
+  const expected = path === '/' ? `${siteUrl}/` : `${siteUrl}${path}`;
 
   if (!title) fail(path, 'missing <title>');
   else if (title.length > 70) fail(path, `title is ${title.length} chars: "${title}"`);
@@ -77,10 +77,12 @@ for (const { path, html } of PAGES) {
   titles.set(title, path);
   descriptions.set(description, path);
 
-  if (canonical !== expected) fail(path, `canonical ${canonical} ≠ ${expected}`);
+  // "https://host" and "https://host/" are the same URL (an empty path is "/").
+  const sameUrl = (x, y) => (x ?? '').replace(/\/$/, '') === (y ?? '').replace(/\/$/, '');
+  if (!sameUrl(canonical, expected)) fail(path, `canonical ${canonical} ≠ ${expected}`);
   for (const p of ['og:title', 'og:description', 'og:url', 'og:image', 'og:type', 'og:site_name'])
     if (!meta(html, 'property', p)) fail(path, `missing ${p}`);
-  if (meta(html, 'property', 'og:url') !== expected) fail(path, 'og:url ≠ canonical');
+  if (!sameUrl(meta(html, 'property', 'og:url'), expected)) fail(path, 'og:url ≠ canonical');
   for (const n of ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'])
     if (!meta(html, 'name', n)) fail(path, `missing ${n}`);
 

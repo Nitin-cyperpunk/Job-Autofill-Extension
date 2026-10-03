@@ -29,14 +29,14 @@ npm run verify       # production build + SEO checks
 
 ### Environment
 
-| Variable                                                          | Purpose                                                                                            |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_APP_URL`                                             | The site's own address (canonical URLs, sitemap, social cards). Default `https://www.jobfill.app`. |
-| `NEXT_PUBLIC_BUYMEACOFFEE_URL`                                    | Buy Me a Coffee page. Default `https://buymeacoffee.com/nitinverse`.                               |
-| `NEXT_PUBLIC_GITHUB_URL`                                          | GitHub repository. Default `https://github.com/Nitin-cyperpunk/Job-Autofill-Extension`.            |
-| `NEXT_PUBLIC_CHROME_WEB_STORE_URL`                                | The Chrome Web Store listing. Until set, "Add to Chrome" links to `/install`.                      |
-| `NEXT_PUBLIC_SUPPORT_EMAIL`                                       | Help/contact email. Hidden until set.                                                              |
-| `NEXT_PUBLIC_X_URL`, `…_DOCS_URL`, `…_TERMS_URL`, `…_CREATOR_URL` | Optional links; hidden until set.                                                                  |
+| Variable                                                          | Purpose                                                                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`                                             | The site's own address (canonical URLs, sitemap, social cards). Default `https://job-autofill-extension-nyqt.vercel.app`. |
+| `NEXT_PUBLIC_BUYMEACOFFEE_URL`                                    | Buy Me a Coffee page. Default `https://buymeacoffee.com/nitinverse`.                                                      |
+| `NEXT_PUBLIC_GITHUB_URL`                                          | GitHub repository. Default `https://github.com/Nitin-cyperpunk/Job-Autofill-Extension`.                                   |
+| `NEXT_PUBLIC_CHROME_WEB_STORE_URL`                                | The Chrome Web Store listing. Until set, "Add to Chrome" links to `/install`.                                             |
+| `NEXT_PUBLIC_SUPPORT_EMAIL`                                       | Help/contact email. Hidden until set.                                                                                     |
+| `NEXT_PUBLIC_X_URL`, `…_DOCS_URL`, `…_TERMS_URL`, `…_CREATOR_URL` | Optional links; hidden until set.                                                                                         |
 
 All values are public (no secrets). See [.env.example](.env.example); for local development copy it to
 `.env.local`. The older names `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_SUPPORT_URL` still work.

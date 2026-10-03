@@ -6,7 +6,7 @@ import { JsonLd } from '@/components/ui';
 import { graph, organizationSchema, websiteSchema } from '@/lib/schema';
 import { OG_IMAGE } from '@/lib/seo';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
-import { SITE, SITE_URL } from '@/lib/site';
+import { GOOGLE_SITE_VERIFICATION, SITE, SITE_URL } from '@/lib/site';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   openGraph: { siteName: SITE.name, locale: SITE.locale, type: 'website', images: [OG_IMAGE] },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
+  // Google Search Console HTML-tag verification — only when the owner sets the token.
+  ...(GOOGLE_SITE_VERIFICATION ? { verification: { google: GOOGLE_SITE_VERIFICATION } } : {}),
 };
 
 export const viewport: Viewport = {

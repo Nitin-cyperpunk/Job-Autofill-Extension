@@ -128,8 +128,9 @@ export default function HowItWorksPage() {
               something your profile doesn’t have yet.
             </li>
             <li>
-              <strong className="text-fg">Sensitive questions</strong> — demographic, identity and
-              consent questions are always yours to answer.
+              <strong className="text-fg">Personal &amp; consent questions</strong> — demographic,
+              identity or legal questions you haven’t answered in your profile, and every consent
+              box, are yours to answer.
             </li>
           </ul>
         </Container>

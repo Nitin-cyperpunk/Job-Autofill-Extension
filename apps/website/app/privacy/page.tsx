@@ -6,7 +6,8 @@ import { formatDate } from '@/lib/format';
 import { SITE, SUPPORT_EMAIL } from '@/lib/site';
 
 export const metadata = pageMetadata({
-  title: 'Privacy: Your Job Application Profile Stays on Your Device',
+  title: 'JobFill Privacy Policy',
+  absoluteTitle: true,
   description:
     'How JobFill handles your data: what stays on your device, what may leave it and why, which provider receives it, and how to export or delete everything.',
   path: '/privacy',

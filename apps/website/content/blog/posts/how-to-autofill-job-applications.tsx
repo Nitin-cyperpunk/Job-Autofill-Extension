@@ -96,7 +96,7 @@ export default function Post() {
         <li>
           <strong>Read the summary.</strong> JobFill tells you how many fields it filled and which
           ones need your review — typically open questions, anything it wasn’t confident about, and
-          sensitive questions it deliberately leaves to you.
+          personal questions you haven’t answered in your profile.
         </li>
         <li>
           <strong>Answer the open questions</strong> yourself, or, if you’ve turned it on, draft
@@ -132,9 +132,10 @@ export default function Post() {
       <p>
         Speed matters, but some parts of an application should always be yours. Diversity and
         demographic questions, legal declarations and consent checkboxes deserve a deliberate answer
-        — which is why JobFill never fills them. Motivation questions (“Why do you want to work
-        here?”) are where you stand out, so treat any drafted answer as a starting point. And the
-        final submit button is always your decision.
+        — which is why JobFill never guesses them: it only uses answers you’ve chosen to save, and
+        it never ticks consent boxes. Motivation questions (“Why do you want to work here?”) are
+        where you stand out, so treat any drafted answer as a starting point. And the final submit
+        button is always your decision.
       </p>
       <Callout>
         <strong>Privacy check:</strong> before choosing any autofill tool, ask where your profile is

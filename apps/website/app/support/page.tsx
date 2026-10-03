@@ -8,10 +8,10 @@ import { pageMetadata } from '@/lib/seo';
 import { CHROME_WEB_STORE_URL, ISSUES_URL, LINKS, SITE, SITE_URL, SUPPORT_EMAIL } from '@/lib/site';
 
 export const metadata = pageMetadata({
-  title: 'Support JobFill — Help Keep JobFill Growing',
+  title: 'JobFill Support – Help with the Job Application Autofill Extension',
   absoluteTitle: true,
   description:
-    'Support JobFill and help continue development of a privacy-focused job application autofill tool — with a coffee, a GitHub star, or by sharing it.',
+    'Get help with JobFill: troubleshooting, reporting a form that doesn’t fill, and optional ways to support development of the privacy-first autofill extension.',
   path: '/support',
 });
 

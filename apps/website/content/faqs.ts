@@ -6,6 +6,14 @@ import type { Faq } from '@/lib/schema';
  */
 
 export const GENERAL_FAQS = {
+  howItWorks: {
+    q: 'How does JobFill autofill job applications?',
+    a: 'You save your profile once in the extension. On an application form, click the JobFill icon and choose Autofill Application: JobFill reads each field’s label and surrounding text, matches it to your profile, fills what it is confident about, checks the page kept each value, and lists anything that needs your review. You submit the application yourself.',
+  },
+  fields: {
+    q: 'What information can JobFill autofill?',
+    a: 'Your name, email and phone (including separate country-code fields), current and permanent address, education, work experience, projects, skills, LinkedIn, GitHub, portfolio and other profile links, salary and notice period, job preferences, and your resume file on standard upload fields. Optional answers you add — such as date of birth, gender or work authorization — are used only exactly as you entered them.',
+  },
   what: {
     q: 'What is JobFill?',
     a: 'JobFill is a Chrome extension that fills in job application forms for you. You save your details once — personal information, education, experience, skills and links — and JobFill fills matching fields on application forms when you click Autofill. You review everything and submit the application yourself.',
@@ -32,7 +40,7 @@ export const GENERAL_FAQS = {
   },
   sensitive: {
     q: 'Will JobFill answer diversity, identity or consent questions?',
-    a: 'No. Questions about gender, ethnicity, disability, veteran status and similar, and consent or declaration checkboxes, are always left for you to answer yourself.',
+    a: 'Only with answers you have explicitly added to your profile. Gender, date of birth, disability, veteran status, ethnicity and work-authorization questions are optional profile fields: if you leave them empty, JobFill leaves the question for you and never guesses. Consent and declaration checkboxes are never ticked for you.',
   },
 } satisfies Record<string, Faq>;
 
@@ -102,6 +110,14 @@ export const RESUME_FAQS = {
 } satisfies Record<string, Faq>;
 
 export const AI_FAQS = {
+  howAi: {
+    q: 'How do JobFill’s AI features work?',
+    a: 'AI answers are optional and off by default. For an open question like “Why do you want to work here?”, JobFill shows exactly what it would send — the question, job details from the page and the profile items you tick — and only after you click Generate Answer does it send that to the AI provider you configured. You get draft answers to edit; nothing is inserted until you choose one.',
+  },
+  needKey: {
+    q: 'Do I need an AI API key?',
+    a: 'No. Autofill, resume import, preview and every other core feature work without any AI. Only the optional AI answers need a key: you use your own (bring-your-own-key) from OpenAI, Google Gemini or an OpenAI-compatible endpoint, stored only in your browser.',
+  },
   required: {
     q: 'Do I have to use AI?',
     a: 'No. AI answers are optional and off by default. Autofill, resume import and everything else work without AI.',
@@ -127,7 +143,7 @@ export const AI_FAQS = {
 export const TROUBLESHOOTING_FAQS = {
   notFilled: {
     q: 'Why wasn’t a field filled?',
-    a: 'JobFill leaves a field alone when it already has a value, when it’s a legal, demographic or consent question, when it isn’t confident what the field is asking for, when your profile doesn’t have that detail yet, or when the site uses a custom control it can’t operate safely. The summary after each fill lists the fields that need your review.',
+    a: 'JobFill leaves a field alone when it already has a value, when it’s a personal, demographic or legal question you haven’t answered in your profile, when it’s a consent box, when it isn’t confident what the field is asking for, when your profile doesn’t have that detail yet, or when the site uses a custom control it can’t operate safely. The summary after each fill lists the fields that need your review.',
   },
   resume: {
     q: 'Why wasn’t my resume attached?',
@@ -152,7 +168,19 @@ export const TROUBLESHOOTING_FAQS = {
 } satisfies Record<string, Faq>;
 
 export const FAQ_GROUPS: Array<{ id: string; title: string; faqs: Faq[] }> = [
-  { id: 'general', title: 'General', faqs: Object.values(GENERAL_FAQS) },
+  {
+    id: 'general',
+    title: 'General',
+    faqs: [
+      GENERAL_FAQS.what,
+      GENERAL_FAQS.howItWorks,
+      GENERAL_FAQS.fields,
+      ...Object.values(GENERAL_FAQS).filter(
+        (f) =>
+          f !== GENERAL_FAQS.what && f !== GENERAL_FAQS.howItWorks && f !== GENERAL_FAQS.fields,
+      ),
+    ],
+  },
   { id: 'privacy', title: 'Privacy and data', faqs: Object.values(PRIVACY_FAQS) },
   { id: 'autofill', title: 'Autofill', faqs: Object.values(AUTOFILL_FAQS) },
   { id: 'resume', title: 'Resume import', faqs: Object.values(RESUME_FAQS) },
