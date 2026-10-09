@@ -9,6 +9,7 @@ import {
   ShieldIcon,
   SparkIcon,
 } from '@/components/icons';
+import { PlatformMarquee } from '@/components/PlatformMarquee';
 import { ProductMockup } from '@/components/ProductMockup';
 import {
   CheckIcon,
@@ -157,6 +158,8 @@ export default function HomePage() {
           </div>
         </Container>
       </section>
+
+      <PlatformMarquee />
 
       {/* Problem */}
       <section aria-labelledby="problem-title" className="py-16 sm:py-20">

@@ -144,3 +144,43 @@ html.lenis body {
     scroll-behavior: auto;
   }
 }
+
+/*
+ * Platform logo marquee (components/PlatformMarquee.tsx). The track holds --copies
+ * identical lists and moves left by exactly one of them, so the loop is seamless.
+ * Slow, paused on hover, and a static row for reduced motion.
+ */
+@keyframes jf-marquee {
+  to {
+    transform: translateX(calc(-100% / var(--copies)));
+  }
+}
+.marquee {
+  /* Soft edge fades. */
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track {
+  animation: jf-marquee 30s linear infinite;
+  will-change: transform;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    mask-image: none;
+  }
+  .marquee-track {
+    animation: none;
+    width: auto;
+    justify-content: center;
+  }
+  .marquee-copy {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-inline: 1.25rem;
+  }
+  .marquee-copy + .marquee-copy {
+    display: none;
+  }
+}
