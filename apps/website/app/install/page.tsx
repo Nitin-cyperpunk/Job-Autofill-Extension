@@ -9,7 +9,6 @@ import {
 } from '@/components/ui';
 import { GENERAL_FAQS, PRIVACY_FAQS } from '@/content/faqs';
 import { pageMetadata } from '@/lib/seo';
-import { CHROME_WEB_STORE_URL } from '@/lib/site';
 
 export const metadata = pageMetadata({
   title: 'Install JobFill: Add the Job Application Extension to Chrome',
@@ -50,13 +49,7 @@ export default function InstallPage() {
         cta={false}
       >
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          {CHROME_WEB_STORE_URL ? (
-            <AddToChromeButton />
-          ) : (
-            <p className="rounded-lg bg-warn-soft px-4 py-3 text-sm text-warn ring-1 ring-warn-line">
-              The Chrome Web Store listing link will appear here when it’s published.
-            </p>
-          )}
+          <AddToChromeButton />
           <Link
             href="#get-started"
             className="inline-flex items-center justify-center rounded-lg px-5 py-3 font-semibold text-fg ring-1 ring-line-strong hover:bg-subtle"

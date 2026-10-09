@@ -2,13 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 /**
  * Small-screen navigation on a native <details> (works without JS). The script only
  * closes it after navigating, on Escape, and on a click outside.
  */
-export function MobileMenu({ items }: { items: ReadonlyArray<{ href: string; label: string }> }) {
+export function MobileMenu({
+  items,
+  cta,
+}: {
+  items: ReadonlyArray<{ href: string; label: string }>;
+  /** Shown under the links, e.g. the install button. */
+  cta?: ReactNode;
+}) {
   const ref = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
 
@@ -76,6 +83,7 @@ export function MobileMenu({ items }: { items: ReadonlyArray<{ href: string; lab
             </li>
           ))}
         </ul>
+        {cta && <div className="mt-2 border-t border-line px-1 pt-3 pb-1">{cta}</div>}
       </nav>
     </details>
   );

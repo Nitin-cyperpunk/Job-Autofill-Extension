@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { breadcrumbSchema, faqSchema, graph, type Crumb, type Faq } from '@/lib/schema';
-import { ADD_TO_CHROME_HREF, CHROME_WEB_STORE_URL, SITE, TRY_HREF } from '@/lib/site';
+import { CHROME_WEB_STORE_URL, SITE, TRY_HREF } from '@/lib/site';
 
 /* Server components only: the site ships no component JavaScript of its own. */
 
@@ -103,22 +103,13 @@ export function AddToChromeButton({
   className?: string;
   label?: string;
 }) {
-  const external = CHROME_WEB_STORE_URL !== '';
-  const content = (
-    <>
+  // Same tab, like any other link to install a Chrome extension.
+  return (
+    <a href={CHROME_WEB_STORE_URL} className={cx(button.base, button.primary, className)}>
       <ChromeIcon className="h-5 w-5" />
       {label}
-    </>
-  );
-  const cls = cx(button.base, button.primary, className);
-  return external ? (
-    <a href={ADD_TO_CHROME_HREF} className={cls}>
-      {content}
+      <span className="sr-only"> — opens the Chrome Web Store</span>
     </a>
-  ) : (
-    <Link href={ADD_TO_CHROME_HREF} className={cls}>
-      {content}
-    </Link>
   );
 }
 

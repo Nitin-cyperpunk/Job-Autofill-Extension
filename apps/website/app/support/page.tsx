@@ -211,23 +211,11 @@ export default function SupportPage() {
               )}
             </HelpItem>
             <HelpItem title="Leave a review">
-              {CHROME_WEB_STORE_URL ? (
-                <>
-                  An honest review on the{' '}
-                  <a
-                    href={CHROME_WEB_STORE_URL}
-                    rel="noopener"
-                    className="font-medium text-accent hover:underline"
-                  >
-                    Chrome Web Store
-                  </a>{' '}
-                  helps other job seekers decide whether JobFill is for them.
-                </>
-              ) : (
-                <>
-                  An honest review on the Chrome Web Store, once it’s listed, helps others decide.
-                </>
-              )}
+              An honest review on the{' '}
+              <a href={CHROME_WEB_STORE_URL} className="font-medium text-accent hover:underline">
+                Chrome Web Store
+              </a>{' '}
+              helps other job seekers decide whether JobFill is for them.
             </HelpItem>
             <HelpItem title="Tell a friend">
               Job searches are tiring. Point someone to{' '}

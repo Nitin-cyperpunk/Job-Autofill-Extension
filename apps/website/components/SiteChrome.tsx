@@ -30,6 +30,8 @@ export function SiteHeader() {
           <AddToChromeButton label="Get JobFill" className="px-4! py-2! text-sm! max-sm:hidden" />
           <MobileMenu
             items={[...NAV, { href: '/faq', label: 'FAQ' }, { href: '/install', label: 'Install' }]}
+            // On phones the header button is hidden, so the menu carries the install link.
+            cta={<AddToChromeButton className="w-full px-4! py-2.5! text-sm!" />}
           />
         </div>
       </Container>

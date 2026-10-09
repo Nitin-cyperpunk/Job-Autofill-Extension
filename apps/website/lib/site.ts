@@ -13,11 +13,20 @@ export const SITE_URL = (
   'https://getjobfill.vercel.app'
 ).replace(/\/+$/, '');
 
+/** The official Chrome Web Store listing. Every install button links here. */
+export const OFFICIAL_CHROME_WEB_STORE_URL =
+  'https://chromewebstore.google.com/detail/fgefnkekciijnkeljlgmfecohleeppch';
+
 /**
- * The Chrome Web Store listing. Until it's set, "Add to Chrome" buttons lead to the
- * install guide instead of a broken or guessed store link.
+ * NEXT_PUBLIC_CHROME_WEB_STORE_URL may override it, but only with a Chrome Web Store
+ * address — never the site's own URL or a download link.
  */
-export const CHROME_WEB_STORE_URL = process.env.NEXT_PUBLIC_CHROME_WEB_STORE_URL ?? '';
+const storeOverride = process.env.NEXT_PUBLIC_CHROME_WEB_STORE_URL?.trim() ?? '';
+export const CHROME_WEB_STORE_URL = /^https:\/\/chromewebstore\.google\.com\/detail\/\S+$/.test(
+  storeOverride,
+)
+  ? storeOverride
+  : OFFICIAL_CHROME_WEB_STORE_URL;
 
 export const SITE = {
   name: 'JobFill',
@@ -81,7 +90,6 @@ export const ISSUES_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/.test(LINKS.
   ? `${LINKS.github.replace(/\/$/, '')}/issues`
   : '';
 
-export const ADD_TO_CHROME_HREF = CHROME_WEB_STORE_URL || '/install';
 export const TRY_HREF = '/install#get-started';
 
 export function absoluteUrl(path = '/'): string {
