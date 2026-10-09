@@ -259,13 +259,27 @@ export function AnswerAssistant({
               </button>
             ))}
           </div>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={9}
-            aria-label="Answer (you can edit it)"
-            className="w-full rounded-lg border border-line-strong p-2 text-sm"
-          />
+          <div className="animate-enter rounded-xl border border-accent-line bg-accent-soft p-2 shadow-card">
+            <div className="flex items-center justify-between gap-2 px-1 pb-1.5">
+              <p className="text-xs font-semibold text-accent">
+                <span aria-hidden="true">✨</span> AI suggested answer
+              </p>
+              <button
+                type="button"
+                onClick={() => void generate()}
+                className="rounded-md px-1.5 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-surface"
+              >
+                Regenerate
+              </button>
+            </div>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={9}
+              aria-label="AI suggested answer (you can edit it)"
+              className="w-full rounded-lg border border-line-strong bg-surface p-2 text-sm"
+            />
+          </div>
           <p className="text-xs text-muted">
             Check it’s accurate and sounds like you — AI can get details wrong.{' '}
             {question?.maxLength

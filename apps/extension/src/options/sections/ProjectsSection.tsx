@@ -99,7 +99,12 @@ export function ProjectsForm({ value, onChange, errors }: SectionFormProps<'proj
 }
 
 export function ProjectsSummary({ value }: { value: ProjectEntry[] }) {
-  if (value.length === 0) return <NotProvided />;
+  if (value.length === 0)
+    return (
+      <NotProvided>
+        No projects added yet. Add them once and JobFill can reuse them across applications.
+      </NotProvided>
+    );
   return (
     <ul className="space-y-4">
       {value.map((p) => (

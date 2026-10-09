@@ -109,7 +109,13 @@ export function ExperienceForm({ value, onChange, errors }: SectionFormProps<'ex
 }
 
 export function ExperienceSummary({ value }: { value: ExperienceEntry[] }) {
-  if (value.length === 0) return <NotProvided />;
+  if (value.length === 0)
+    return (
+      <NotProvided>
+        No experience added yet. Add your roles once — JobFill fills them into every work-history
+        section.
+      </NotProvided>
+    );
   return (
     <ul className="space-y-4">
       {value.map((e) => (

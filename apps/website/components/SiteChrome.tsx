@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CREATOR, LINKS, NAV, SITE } from '@/lib/site';
+import { HeartIcon } from './icons';
 import { MobileMenu } from './MobileMenu';
 import { NavLinks } from './NavLinks';
 import { ThemeToggle } from './ThemeToggle';
@@ -135,16 +136,28 @@ export function SiteFooter() {
   );
 }
 
-/** A quiet creator signature — smaller than the JobFill brand, recognisable on hover. */
+/** A quiet creator signature — smaller than the JobFill brand; the name links to the creator. */
 function CreatorSignature() {
-  const name = <span className="font-semibold tracking-wide text-body">{CREATOR.name}</span>;
-  const cls =
-    'inline-block rounded-md opacity-80 transition duration-200 ease-out hover:-translate-y-px hover:opacity-100';
-  return LINKS.creator ? (
-    <a href={LINKS.creator} rel="noopener" className={cls}>
-      Crafted by {name}
-    </a>
-  ) : (
-    <p className={cls}>Crafted by {name}</p>
+  const nameCls = 'font-semibold tracking-wide text-body';
+  return (
+    <p className="inline-flex items-center gap-1 opacity-80 transition-opacity duration-200 ease-out hover:opacity-100">
+      Crafted with
+      <HeartIcon className="h-3.5 w-3.5 shrink-0 text-rose-500" />
+      <span className="sr-only">love</span>
+      by{' '}
+      {LINKS.creator ? (
+        <a
+          href={LINKS.creator}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${nameCls} rounded-sm transition-colors duration-150 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`}
+        >
+          {CREATOR.name}
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      ) : (
+        <span className={nameCls}>{CREATOR.name}</span>
+      )}
+    </p>
   );
 }

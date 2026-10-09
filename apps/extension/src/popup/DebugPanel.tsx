@@ -107,7 +107,7 @@ export function DebugPanel() {
 
 const STATUS: Record<FieldOutcome['status'], { icon: string; label: string; className: string }> = {
   filled: { icon: '✓', label: 'Filled', className: 'text-ok' },
-  'already-filled': { icon: '●', label: 'Already Filled', className: 'text-muted' },
+  'already-filled': { icon: '✓', label: 'Already Filled', className: 'text-muted' },
   'needs-review': { icon: '⚠', label: 'Needs Review', className: 'text-warn' },
   'not-filled': { icon: '○', label: 'Not Filled', className: 'text-muted' },
   unsupported: { icon: '◌', label: 'Unsupported', className: 'text-muted' },
@@ -119,9 +119,12 @@ function FillStatus({ outcome }: { outcome?: FieldOutcome }) {
   if (!outcome) return null;
   const s = STATUS[outcome.status];
   return (
-    <span className={`block font-medium ${s.className}`}>
-      {s.icon} {s.label}
-      {outcome.reason ? ` — ${outcome.reason}` : ''}
+    <span key={outcome.status} className={`block animate-fade font-medium ${s.className}`}>
+      <span className="mr-1 inline-flex items-center gap-1 rounded-full bg-subtle-2 px-1.5 py-px">
+        <span aria-hidden="true">{s.icon}</span>
+        {s.label}
+      </span>
+      {outcome.reason}
     </span>
   );
 }

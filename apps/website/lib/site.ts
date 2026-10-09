@@ -74,8 +74,8 @@ export const LINKS = {
   x: optionalUrl(process.env.NEXT_PUBLIC_X_URL),
   docs: optionalUrl(process.env.NEXT_PUBLIC_DOCS_URL),
   terms: optionalUrl(process.env.NEXT_PUBLIC_TERMS_URL),
-  /** The creator's site or profile, linked from "Crafted by Nitinverse". */
-  creator: optionalUrl(process.env.NEXT_PUBLIC_CREATOR_URL),
+  /** The creator's site, linked from "Crafted with ❤ by Nitinverse". */
+  creator: optionalUrl(process.env.NEXT_PUBLIC_CREATOR_URL || 'https://nitinverse.me/'),
 } as const;
 
 export const CREATOR = { name: 'Nitinverse' } as const;

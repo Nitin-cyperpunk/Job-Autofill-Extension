@@ -12,7 +12,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white shadow-card hover:bg-brand-700 focus-visible:outline-accent',
+  primary:
+    'bg-brand-600 text-white shadow-card hover:bg-brand-700 hover:shadow-raised focus-visible:outline-accent',
   secondary:
     'border border-line-strong bg-surface text-fg shadow-card hover:bg-subtle focus-visible:outline-accent',
   ghost: 'text-muted hover:bg-subtle-2 hover:text-fg focus-visible:outline-accent',
@@ -43,7 +44,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cx(
-        'inline-flex shrink-0 items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex shrink-0 items-center justify-center rounded-lg font-medium transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
         variants[variant],
         sizes[size],
         className,

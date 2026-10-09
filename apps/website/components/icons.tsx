@@ -84,3 +84,10 @@ export const KeyIcon = ({ className }: { className?: string }) => (
     <path d="m11 12 9-9m-4 4 3 3" />
   </Svg>
 );
+
+/** Filled heart (pass a size and colour, e.g. "h-3.5 w-3.5 text-rose-500"). */
+export const HeartIcon = ({ className }: { className?: string }) => (
+  <Svg className={`fill-current ${className ?? 'h-6 w-6'}`}>
+    <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />
+  </Svg>
+);

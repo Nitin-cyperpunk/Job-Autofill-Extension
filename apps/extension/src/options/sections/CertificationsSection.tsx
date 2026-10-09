@@ -61,7 +61,12 @@ export function CertificationsForm({
 }
 
 export function CertificationsSummary({ value }: { value: CertificationEntry[] }) {
-  if (value.length === 0) return <NotProvided />;
+  if (value.length === 0)
+    return (
+      <NotProvided>
+        No certifications added yet. Optional — licences and courses count too.
+      </NotProvided>
+    );
   return (
     <ul className="space-y-3">
       {value.map((c) => (

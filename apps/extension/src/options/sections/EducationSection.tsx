@@ -115,7 +115,12 @@ export function EducationForm({ value, onChange, errors }: SectionFormProps<'edu
 }
 
 export function EducationSummary({ value }: { value: EducationEntry[] }) {
-  if (value.length === 0) return <NotProvided />;
+  if (value.length === 0)
+    return (
+      <NotProvided>
+        No education added yet. Add your degrees once and JobFill fills them in order.
+      </NotProvided>
+    );
   return (
     <ul className="space-y-4">
       {value.map((e) => (
