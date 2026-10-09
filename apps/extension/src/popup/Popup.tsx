@@ -13,6 +13,7 @@ import { DEBUG } from '@/utils/env';
 import { AutofillPanel } from './AutofillPanel';
 import { usePageReadiness, type Readiness } from './usePageReadiness';
 import { DebugPanel } from './DebugPanel';
+import { SupportCard } from './SupportCard';
 
 /** Dev builds always show the debugger; release builds when "Debug mode" is on. */
 function useDebugMode(): boolean {
@@ -82,6 +83,7 @@ function PopupContent() {
             <PageStatus readiness={readiness} />
           </div>
           <AutofillPanel readiness={readiness} />
+          <SupportCard />
         </>
       ) : (
         <>

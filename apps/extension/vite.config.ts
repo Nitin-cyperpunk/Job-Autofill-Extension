@@ -15,6 +15,9 @@ export default defineConfig({
     strictPort: true,
     cors: { origin: [/chrome-extension:\/\//] },
   },
+  // Lets a build pick up the website's Buy Me a Coffee override (see src/utils/links.ts).
+  // Only this one variable is exposed — nothing else from the environment.
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_BUYMEACOFFEE_URL'],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
